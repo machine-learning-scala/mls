@@ -18,6 +18,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml
 
 import weka.core._
+import no.uib.cipr.matrix.DenseVector
 
 /**
  * Two Patterns are equal if they have the same id.
@@ -31,7 +32,7 @@ object Pattern {
 case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight: Double = 1, missed: Boolean = false, parent: PatternParent = null, weka: Boolean = false)
   extends DenseInstance(instance_weight, vector.toArray :+ label) {
   lazy val array = vector.toArray
-//  lazy val arraymtj = new DenseVector(array, false)
+  lazy val arraymtj = new DenseVector(array, false)
 //  lazy val arraymtjmatrix = {
 //    val m = new DenseMatrix(1, nattributes)
 //    var i = 0

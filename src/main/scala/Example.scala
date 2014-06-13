@@ -1,6 +1,3 @@
-import ml.classifiers.NB
-import util.Datasets
-
 /*
 mls: basic machine learning algorithms for Scala
 Copyright (C) 2014 Davi Pereira dos Santos
@@ -18,22 +15,27 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+import ml.classifiers.NB
+import util.{Tempo, Datasets}
+
 object Example extends App {
   println( """
  mls Copyright (C) 2014 Davi Pereira dos Santos
-
+--------------------------------------------------------------
  This program comes with ABSOLUTELY NO WARRANTY.
  This is free software, and you are welcome to redistribute it
  under certain conditions.
- Refer to LICENSE file for details.     """)
+ Refer to LICENSE file for details.
+--------------------------------------------------------------""")
 
   val data = Datasets.arff(bina = true)("iris.arff") match {
     case Right(x) => x
     case Left(str) => println("Could not load iris dataset from the program path: " + str); sys.exit(0)
   }
   util.Datasets.kfoldCV(data, k = 10, parallel = true) { (trainingSet, testingSet, fold, _) =>
-    val model = NB().build(trainingSet)
+    val (model, t) = Tempo.timev(NB().build(trainingSet))
     val acc = model.accuracy(testingSet)
-    println("Fold " + fold + ": " + acc)
+
+    println("Fold " + fold + ": " + acc + " in " + t + "ms.")
   }
 }
