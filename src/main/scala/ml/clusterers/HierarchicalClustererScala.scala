@@ -130,7 +130,7 @@ object HC {
 }
 
 object Test extends App {
-  val data = Datasets.arff(bina = false)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get._1.distinct
+  val data = Datasets.arff(bina = false)("/home/davi/unversioned/experimentos/fourclusters.arff").right.get
   val train = data.take(1500)
   val hc = HClusterer(train)
   //    val patts = Data.arff("/home/davi/working-copies/arff/twoclusters.arff").right.get.distinct //.take(22)
