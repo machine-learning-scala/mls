@@ -5,14 +5,14 @@ Wrappers for Weka for Scala (at least at the moment).
 Installation
 ------------
 
-1. Install [sbt](http://www.scala-sbt.org/release/tutorial/Installing-sbt-on-Linux.html "installing sbt")
+* Install [sbt](http://www.scala-sbt.org/release/tutorial/Installing-sbt-on-Linux.html "installing sbt")
 
-2. Clone repo:
+* Clone repo:
 ```
     git clone https://github.com/machine-learning-scala/mls.git
 ```
 
-3. Run included example:
+* Run included example:
 ```
     cd mls
     sbt run
@@ -22,7 +22,7 @@ Installation
 Use as a library
 ----------------
 
-1. Add a file 'Build.scala' to the 'project' folder of your own project with the contents:
+* Add a file 'Build.scala' to the 'project' folder of your own project with the contents:
 ```
     import sbt._
 
@@ -34,4 +34,4 @@ Use as a library
     }
 ```
 
-2. Be happy.
+* Be happy.
