@@ -8,17 +8,20 @@ Installation
 1. Install [sbt](http://www.scala-sbt.org/release/tutorial/Installing-sbt-on-Linux.html "installing sbt")
 
 2. Clone repo:
+
     git clone https://github.com/machine-learning-scala/mls.git
 
 3. Run included example:
-cd mls
-sbt run
+
+    cd mls
+    sbt run
 
 
 Use as a library
 ----------------
 
 1. Add a file 'Build.scala' to the 'project' folder of your own project with the contents:
+
     import sbt._
 
     object MyBuild extends Build {
