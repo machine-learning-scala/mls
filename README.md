@@ -29,7 +29,7 @@ Use as a library
     object MyBuild extends Build {
 
       lazy val root = Project("root", file(".")) dependsOn(mlsProj)
-      lazy val mlsProj = RootProject(uri("git://github.com/machine-learning-scala/mls.git"))
+      lazy val mlsProj = RootProject(uri("https://github.com/machine-learning-scala/mls.git"))
 
     }
 ```
