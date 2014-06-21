@@ -20,8 +20,6 @@ package ml.models
 import ml.Pattern
 
 trait Model {
-  val size = 1d
-
   //  val size: Double
 
   //  def distributions(instance: Pattern): Seq[Array[Double]]
