@@ -21,11 +21,10 @@ import weka.classifiers.{UpdateableClassifier, Classifier}
 import ml.Pattern
 
 class WekaModel(var classifier: Classifier) extends Model {
-  val size = 1d
 
-  def distributions(pattern: Pattern): Seq[Array[Double]] =
+  def distribution(pattern: Pattern)=
     if (classifier == null) throw new Exception("Underlying model already changed! Please call update with fast_mutable disabled.")
-    else Seq(classifier.distributionForInstance(pattern))
+    else classifier.distributionForInstance(pattern)
 }
 
 case class WekaBatModel(private val batch_classifier: Classifier, training_set: Seq[Pattern]) extends WekaModel(batch_classifier)

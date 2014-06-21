@@ -20,60 +20,80 @@ package ml.models
 import ml.Pattern
 
 trait Model {
+  val size = 1d
 
-  val size: Double
+  //  val size: Double
 
-  def distributions(instance: Pattern): Seq[Array[Double]]
+  //  def distributions(instance: Pattern): Seq[Array[Double]]
 
-  def distribution(instance: Pattern) = {
-    val dists = distributions(instance)
-    val dist = dists(0)
-    val nclasses = instance.nclasses
-    var c = 0
-    while (c < nclasses) {
-      var d = 1
-      while (d < size) {
-        dist(c) += dists(d)(c)
-        d += 1
-      }
-      dist(c) /= size
-      c += 1
-    }
-    dist
-    //    distributions(instance).transpose.map(_.sum / size).toArray
-  } //average between distributions (is it the same as adding and normalizing?)
+  //  def distribution(instance: Pattern) = {
+  //    val dists = distributions(instance)
+  //    val dist = dists(0)
+  //    val nclasses = instance.nclasses
+  //    var c = 0
+  //    while (c < nclasses) {
+  //      var d = 1
+  //      while (d < size) {
+  //        dist(c) += dists(d)(c)
+  //        d += 1
+  //      }
+  //      dist(c) /= size
+  //      c += 1
+  //    }
+  //    dist
+  //    //    distributions(instance).transpose.map(_.sum / size).toArray
+  //  } //average between distributions (is it the same as adding and normalizing?)
 
-  /**
-   * Hard prediction for a given instance.
-   * In the case of ensembles, hard vote will be performed.
-   * @param instance
-   * @return
-   */
+  //  /**
+  //   * Hard prediction for a given instance.
+  //   * In the case of ensembles, hard vote will be performed.
+  //   * @param instance
+  //   * @return
+  //   */
+  //  def predict(instance: Pattern) = {
+  //    val dists = distributions(instance) //weka classifyInstance() also internally falls back to distributionForInstance()
+  //    val nclasses = instance.nclasses
+  //    val votes = new Array[Int](nclasses)
+  //    var d = 0
+  //    while (d < size) {
+  //      var c = 0
+  //      var max = 0d
+  //      var cmax = 0
+  //      while (c < nclasses) {
+  //        val v = dists(d)(c)
+  //        if (v > max) {
+  //          max = v
+  //          cmax = c
+  //        }
+  //        c += 1
+  //      }
+  //      votes(cmax) += 1
+  //      d += 1
+  //    }
+  //    var c = 0
+  //    var max = 0
+  //    var cmax = 0
+  //    while (c < nclasses) {
+  //      val v = votes(c)
+  //      if (v > max) {
+  //        max = v
+  //        cmax = c
+  //      }
+  //      c += 1
+  //    }
+  //    cmax
+  //  }
+
+  def distribution(instance: Pattern): Array[Double]
+
   def predict(instance: Pattern) = {
-    val dists = distributions(instance) //weka classifyInstance() also internally falls back to distributionForInstance()
+    val dist = distribution(instance)
     val nclasses = instance.nclasses
-    val votes = new Array[Int](nclasses)
-    var d = 0
-    while (d < size) {
-      var c = 0
-      var max = 0d
-      var cmax = 0
-      while (c < nclasses) {
-        val v = dists(d)(c)
-        if (v > max) {
-          max = v
-          cmax = c
-        }
-        c += 1
-      }
-      votes(cmax) += 1
-      d += 1
-    }
     var c = 0
-    var max = 0
+    var max = 0d
     var cmax = 0
     while (c < nclasses) {
-      val v = votes(c)
+      val v = dist(c)
       if (v > max) {
         max = v
         cmax = c
@@ -81,11 +101,6 @@ trait Model {
       c += 1
     }
     cmax
-
-    //    val votes = Array.fill(instance.nclasses)(0)
-    //    distributions(instance).foreach(dist => votes(dist.zipWithIndex.maxBy(_._1)._2) += 1)
-    //    //    println(votes.toList + " " + votes.zipWithIndex.maxBy(_._1)._2)
-    //    votes.zipWithIndex.maxBy(_._1)._2
   }
 
   /**
@@ -122,9 +137,9 @@ trait Model {
   }
 }
 
-trait IncrementalModel extends Model
+//trait IncrementalModel extends Model
 
 trait BatchModel extends Model {
-  val training_set: IndexedSeq[Pattern]
+  val training_set: Vector[Pattern]
 }
 

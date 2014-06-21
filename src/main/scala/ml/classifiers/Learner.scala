@@ -18,7 +18,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml.classifiers
 
 import ml.Pattern
-import ml.models.{BatchModel, IncrementalModel, Model}
+import ml.models.{BatchModel, Model}
 
 trait Learner {
   def EMC(model: Model)(patterns: Seq[Pattern]) : Pattern
@@ -41,20 +41,20 @@ trait Learner {
   def expected_change(model: Model)(pattern: Pattern): Double
 }
 
-trait IncrementalLearner extends Learner {
-  protected def cast2incmodel(model: Model) = model match {
-    case m: IncrementalModel => m
-    case _ => throw new Exception("IncrementalLearner requires IncrementalModel.")
-  }
-}
+//trait IncrementalLearner extends Learner {
+//  protected def cast2incmodel(model: Model) = model match {
+//    case m: IncrementalModel => m
+//    case _ => throw new Exception("IncrementalLearner requires IncrementalModel.")
+//  }
+//}
 
-trait BatchLearner extends Learner {
-  private def cast2batmodel(model: Model) = model match {
-    case m: BatchModel => m
-    case _ => throw new Exception("BatchLearner requires BatchModel.")
-  }
-
-  def update(model: Model)(pattern: Pattern) = build(pattern +: cast2batmodel(model).training_set)
-
-  def updateAll(model: Model)(patterns: Seq[Pattern]) = build(patterns ++ cast2batmodel(model).training_set)
-}
+//trait BatchLearner extends Learner {
+//  private def cast2batmodel(model: Model) = model match {
+//    case m: BatchModel => m
+//    case _ => throw new Exception("BatchLearner requires BatchModel.")
+//  }
+//
+//  def update(model: Model)(pattern: Pattern) = build(pattern +: cast2batmodel(model).training_set)
+//
+//  def updateAll(model: Model)(patterns: Seq[Pattern]) = build(patterns ++ cast2batmodel(model).training_set)
+//}
