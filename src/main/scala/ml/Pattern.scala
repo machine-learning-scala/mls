@@ -17,8 +17,8 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml
 
+import no.uib.cipr.matrix.{DenseMatrix, DenseVector}
 import weka.core._
-import no.uib.cipr.matrix.DenseVector
 
 /**
  * Two Patterns are equal if they have the same id.
@@ -33,15 +33,15 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
   extends DenseInstance(instance_weight, vector.toArray :+ label) {
   lazy val array = vector.toArray
   lazy val arraymtj = new DenseVector(array, false)
-//  lazy val arraymtjmatrix = {
-//    val m = new DenseMatrix(1, nattributes)
-//    var i = 0
-//    while (i < nattributes) {
-//      m.set(0, i, vector(i))
-//      i += 1
-//    }
-//    m
-//  }
+  lazy val arraymtjmatrix = {
+    val m = new DenseMatrix(1, nattributes)
+    var i = 0
+    while (i < nattributes) {
+      m.set(0, i, vector(i))
+      i += 1
+    }
+    m
+  }
 
   lazy val nclasses = numClasses
   //  lazy val unlabel = Pattern(vector, -1, weight, missed, parent, weka)
@@ -86,9 +86,9 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
   //    a
   //  }
 
-//  lazy val weighted_label_array_mtj = new DenseVector(weighted_label_array, false)
-//  lazy val reversed_weighted_label_array_mtj = new DenseVector(reversed_weighted_label_array, false)
-//  lazy val reversed_weighted_label_array_mtjmatrix = new DenseMatrix(reversed_weighted_label_array_mtj, false)
+  //  lazy val weighted_label_array_mtj = new DenseVector(weighted_label_array, false)
+  //  lazy val reversed_weighted_label_array_mtj = new DenseVector(reversed_weighted_label_array, false)
+  //  lazy val reversed_weighted_label_array_mtjmatrix = new DenseMatrix(reversed_weighted_label_array_mtj, false)
 
   //  lazy val weighted_label_array_brz = DenseVector(weighted_label_array)
   //  lazy val reversed_weighted_label_array_brz = DenseVector(reversed_weighted_label_array)

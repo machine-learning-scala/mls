@@ -17,17 +17,17 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package util
 
+import java.io.{BufferedReader, FileReader, IOException}
+
+import ml.{Pattern, PatternParent}
 import weka.core.Instances
-import ml.Pattern
+import weka.core.converters.ArffLoader.ArffReader
+import weka.experiment.InstanceQuery
 import weka.filters.Filter
 import weka.filters.unsupervised.attribute._
-import java.io.{IOException, BufferedReader, FileReader}
-import weka.core.converters.ArffLoader.ArffReader
-import scala.util.Try
+
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.util.Failure
-import ml.PatternParent
 
 object Datasets {
 
@@ -74,6 +74,7 @@ object Datasets {
       val instances = instances1
       if (debug) println("Useless atts removed from " + arq + ".")
       reader.close()
+
       val arff_header = instances.toString.split("\n").takeWhile(!_.contains("@data")).toList ++ List("@data\n")
       val parent = PatternParent(instances)
       val patterns = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //zero is not a valid Pattern id
@@ -142,5 +143,29 @@ object Datasets {
     pc.setInputFormat(ins)
     pc.setMaximumAttributes(n)
     Filter.useFilter(ins, pc)
+  }
+
+  /**
+   * Reads a SQLite dataset.
+   * Assigns the rowid to pattern id.
+   * Assumes there is no duplicates.
+   */
+  def patternsFromSQLite(path: String)(dataset: String) = {
+    val arq = path + dataset + ".db"
+    try {
+      val query = new InstanceQuery()
+      query.setDatabaseURL("jdbc:sqlite:////" + arq)
+      query.setQuery("select * from inst order by rowid")
+      query.setDebug(false)
+      val instances = query.retrieveInstances()
+      instances.setClassIndex(instances.numAttributes() - 1)
+      instances.setRelationName(dataset)
+      val parent = PatternParent(instances)
+      val patterns = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //rowid is always > 0
+      query.close()
+      Right(patterns.toStream)
+    } catch {
+      case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
+    }
   }
 }
