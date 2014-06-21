@@ -34,7 +34,7 @@ object Example extends App {
   }
   util.Datasets.kfoldCV(data, k = 10, parallel = true) { (trainingSet, testingSet, fold, _) =>
     val (model, t) = Tempo.timev(NB().build(trainingSet))
-    val acc = model.accuracy(testingSet)
+    val acc = model.accuracy(testingSet).formatted("%2.2f")
 
     println("Fold " + fold + ": " + acc + " in " + t + "ms.")
   }
