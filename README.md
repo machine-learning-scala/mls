@@ -1,6 +1,8 @@
 mls
 ===
 Wrappers for Weka for Scala (at least at the moment).
+If you use this software in your research paper,
+please cite properly the github repository URL.
 
 Installation
 ------------
