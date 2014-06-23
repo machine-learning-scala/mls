@@ -18,7 +18,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 import ml.classifiers.NB
 import util.{Tempo, Datasets}
 
-object Example extends App {
+object NaiveBayesExample extends App {
   println( """
  mls Copyright (C) 2014 Davi Pereira dos Santos
 --------------------------------------------------------------
