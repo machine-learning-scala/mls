@@ -102,6 +102,20 @@ object Datasets {
     new_instances
   }
 
+  def LOO[T](patterns: Seq[Pattern], parallel: Boolean = false)(f: (Seq[Pattern], Pattern) => T): Seq[T] = {
+    if(parallel) ???
+    var i = 0
+    val n = patterns.size
+    val array = patterns.toArray
+    val list = patterns.toList
+    val q = mutable.Queue[T]()
+    while (i < n) {
+      q += f(list.take(i) ++ list.drop(i + 1), array(i))
+      i += 1
+    }
+    q.toList
+  }
+
   def kfoldCV[T](patterns: Seq[Pattern], k: Int = 10, parallel: Boolean = false)(f: (Seq[Pattern], Seq[Pattern], Int, Int) => T): Seq[T] = {
     val n = patterns.length
     val folds = Array.fill(k)(Seq[Pattern]())
