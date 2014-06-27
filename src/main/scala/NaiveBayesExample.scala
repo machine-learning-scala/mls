@@ -15,7 +15,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-import ml.classifiers.{KNN, NB}
+import ml.classifiers.NB
 import util.{Tempo, Datasets}
 
 object NaiveBayesExample extends App {
@@ -28,12 +28,12 @@ object NaiveBayesExample extends App {
  Refer to LICENSE file for details.
 --------------------------------------------------------------""")
 
-  val data = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/teaching-assistant-evaluation.arff") match {
+  val data = Datasets.arff(bina = true)("iris.arff") match {
     case Right(x) => x
     case Left(str) => println("Could not load iris dataset from the program path: " + str); sys.exit(0)
   }
-  util.Datasets.kfoldCV(data, k = 5, parallel = true) { (trainingSet, testingSet, fold, _) =>
-    val (model, t) = Tempo.timev(KNN(5, "eucl").build(trainingSet))
+  util.Datasets.kfoldCV(data, k = 10, parallel = true) { (trainingSet, testingSet, fold, _) =>
+    val (model, t) = Tempo.timev(NB().build(trainingSet))
     val acc = model.accuracy(testingSet).formatted("%2.2f")
 
     println("Fold " + fold + ": " + acc + " in " + t + "ms.")
