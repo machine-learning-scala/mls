@@ -118,7 +118,7 @@ trait Model {
     instance.label == predict(instance)
   }
 
-  def hits(patterns: Seq[Pattern]) = patterns.par.count(hit)
+  def hits(patterns: Seq[Pattern]) = patterns.count(hit) //weka is not thread-safe to parallelize hits()
 
   def accuracy(patterns: Seq[Pattern], n: Double = -1) = {
     hits(patterns) / (if (n == -1) patterns.length.toDouble else n)
