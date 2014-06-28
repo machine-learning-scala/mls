@@ -17,13 +17,13 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml.classifiers
 
+import ml.Pattern
+import ml.models.Model
 import weka.classifiers.Classifier
 import weka.classifiers.trees.J48
-import ml.models.Model
-import ml.Pattern
 
-case class C45(min_leaf_size: Int=2) extends BatchWekaLearner {
-  override val toString = "C45_" + min_leaf_size
+case class C45(min_leaf_size: Int = 2) extends BatchWekaLearner {
+  override val toString = "C45 l" + min_leaf_size
 
   //  private def complexity(classifier: Classifier) = classifier match {
   //    //      case sgd: SGD =>
