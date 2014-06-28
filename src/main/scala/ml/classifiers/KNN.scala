@@ -17,16 +17,16 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml.classifiers
 
+import ml.Pattern
+import ml.models.{Model, WekaBatModel}
+import util.Datasets
+import weka.classifiers.Classifier
 import weka.classifiers.`lazy`.IBk
 import weka.core.neighboursearch.LinearNNSearch
-import weka.core.{ChebyshevDistance, ManhattanDistance, MinkowskiDistance, EuclideanDistance}
-import ml.Pattern
-import ml.models.{WekaBatModel, Model}
-import weka.classifiers.Classifier
-import util.Datasets
+import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, MinkowskiDistance}
 
 case class KNN(k: Int, distance_name: String, weighted: Boolean = false) extends BatchWekaLearner {
-  override val toString = k + "NN" + (if (weighted) "w" else "_") + distance_name
+  override val toString = k + "NN" + (if (weighted) " weighted " else " (") + distance_name + ")"
 
   def build(patterns: Seq[Pattern]) = {
     val classifier = new IBk
@@ -48,7 +48,7 @@ case class KNN(k: Int, distance_name: String, weighted: Boolean = false) extends
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-  protected def test_subclass(classifier: Classifier)=classifier match {
+  protected def test_subclass(classifier: Classifier) = classifier match {
     case cla: IBk => cla
     case _ => throw new Exception(this + " requires IBk.")
   }
