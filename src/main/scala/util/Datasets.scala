@@ -57,7 +57,7 @@ object Datasets {
    * TODO: read the file like a stream (poker dataset was terribly slow to load, it seems to be ok now :S)
    * @return (processed patterns, arff-header, processed Instances object still with duplicates)
    */
-  def arff(bina: Boolean, limit: Int = -1, debug: Boolean = true)(arq: String) = {
+  def arff(bina: Boolean, limit: Int = -1, debug: Boolean = true)(arq: String, zscored: Boolean = true) = {
     try {
       //Extract instances from file and close it.
       val reader = new BufferedReader(new FileReader(arq))
@@ -67,7 +67,7 @@ object Datasets {
       instances0.setRelationName(arq)
       val instances1 = if (bina) {
         println("z-score will be applied and useless attributes removed...")
-        val res = zscore(binarize(rmUseless(instances0)))
+        val res = if (zscored) zscore(binarize(rmUseless(instances0))) else binarize(rmUseless(instances0))
         if (debug) println(arq + " binarized.")
         res
       } else rmUseless(instances0)
@@ -103,7 +103,7 @@ object Datasets {
   }
 
   def LOO[T](patterns: Seq[Pattern], parallel: Boolean = false)(f: (Seq[Pattern], Pattern) => T): Seq[T] = {
-    if(parallel) ???
+    if (parallel) ???
     var i = 0
     val n = patterns.size
     val array = patterns.toArray
@@ -152,6 +152,23 @@ object Datasets {
     Filter.useFilter(instances, stand_filter)
   }
 
+  def zscoreFilter(patts: Seq[Pattern]) = {
+    val instances = patterns2instances(patts)
+    val stand_filter = new Standardize
+    stand_filter.setInputFormat(instances)
+    stand_filter
+  }
+
+  def applyFilter(patts: Seq[Pattern], filter: Standardize) = {
+    val instances = patterns2instances(patts)
+    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
+    val patterns = newInstances.zip(patts).map {
+        case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
+        case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
+      }
+    patterns
+  }
+
   def pca(ins: Instances, n: Int) = {
     val pc = new PrincipalComponents
     pc.setInputFormat(ins)
@@ -182,4 +199,15 @@ object Datasets {
       case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
     }
   }
+}
+
+object TestFilter extends App {
+  val d = Datasets.arff(true)("/home/davi/wcs/ucipp/uci/iris.arff", false).right.get.toList
+  //.drop(10).take(5).toList
+  val f = Datasets.zscoreFilter(d)
+  val d2 = Datasets.applyFilter(d, f)
+  //  d2.take(10) map (p => println(p.id + " " + p))
+  //  d.take(10) map (p => println(p.id + " " + p))
+  d2.sortBy(_.id).take(10) map (p => println(p.id + " " + p))
+  d.sortBy(_.id).take(10) map (p => println(p.id + " " + p))
 }
