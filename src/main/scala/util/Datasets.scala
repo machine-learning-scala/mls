@@ -79,7 +79,7 @@ object Datasets {
 
       lazy val arff_header = instances.toString.split("\n").takeWhile(!_.contains("@data")).toList ++ List("@data\n")
       val parent = PatternParent(instances)
-      val patterns = instances.sorted.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //zero is not a valid Pattern id
+      val patterns = instances.sortBy(_.toDoubleArray.toList.toString()).zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //zero is not a valid Pattern id
       val distinct = distinctMode(patterns)
       if (instances.numInstances() != distinct.size) {
         println("In dataset " + arq + ": " + (instances.numInstances() - distinct.size) + " duplicate instances eliminated! Distinct = " + distinct.size + " original:" + instances.numInstances())
@@ -155,9 +155,8 @@ object Datasets {
   }
 
   def zscoreFilter(patts: Seq[Pattern]) = {
-    val instances = patterns2instances(patts)
     val stand_filter = new Standardize
-    stand_filter.setInputFormat(instances)
+    stand_filter.setInputFormat(patts.head.dataset())
     stand_filter
   }
 
@@ -168,7 +167,7 @@ object Datasets {
         case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
         case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
       }
-    patterns
+    patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter
   }
 
   def pca(ins: Instances, n: Int) = {
