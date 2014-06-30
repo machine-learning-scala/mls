@@ -17,14 +17,17 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml.classifiers
 
+import util.{Tempo, Datasets}
 import weka.classifiers.Classifier
 import ml.Pattern
 import weka.classifiers.bayes.NaiveBayesUpdateable
 import ml.models.Model
 
+/**
+ * NBinc can be worse than NB because of unavailability of all instances at the build of NBinc.
+ * Since NB does rebuild every new instance, it can perform optimized discretization at all calls to update().
+ */
 case class NBinc() extends IncrementalWekaLearner {
-  //todo: something is wrong with updating, it should give the same results as batch version
-  ???
   override val toString = "NBinc"
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
@@ -37,8 +40,29 @@ case class NBinc() extends IncrementalWekaLearner {
 
   protected def test_subclass(cla: Classifier) = cla match {
     case n: NaiveBayesUpdateable => n
-    case _ => throw new Exception(this +" requires NaiveBayesUpdateable.")
+    case _ => throw new Exception(this + " requires NaiveBayesUpdateable.")
   }
 
   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+}
+
+object TestNBinc extends App {
+  val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff", zscored = false).right.get.toList
+  val f = Datasets.zscoreFilter(d)
+  val df = Datasets.applyFilter(d, f)
+  val l = NB()
+  val linc = NBinc()
+
+  var m = l.build(df.take(1))
+  var minc = linc.build(df.take(1))
+
+  Tempo.start
+  df.drop(1).foreach(p => m = l.update(m,fast_mutable = true)(p))
+  Tempo.print_stop
+
+  Tempo.start
+  df.drop(1).foreach(p => minc = linc.update(minc,fast_mutable = true)(p))
+  Tempo.print_stop
+
+  println(s"l:${m.accuracy(df)} linc:${minc.accuracy(df)}")
 }

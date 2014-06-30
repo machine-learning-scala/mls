@@ -29,7 +29,7 @@ case class NB() extends BatchWekaLearner {
 
   def build(patterns: Seq[Pattern]): Model = {
     val classifier = new NaiveBayes
-    classifier.setUseSupervisedDiscretization(false)
+    classifier.setUseSupervisedDiscretization(false) //true=slow?
     generate_model(classifier, patterns)
   }
 

@@ -43,7 +43,7 @@ trait IncrementalWekaLearner extends WekaLearner {
   }
 
   protected def generate_model(classifier: Classifier with UpdateableClassifier, patterns: Seq[Pattern]) = {
-    classifier.buildClassifier(patterns.head.dataset())
+    classifier.buildClassifier(Datasets.patterns2instances(patterns.take(patterns.head.nclasses)))//head.dataset())
     patterns foreach classifier.updateClassifier
     WekaIncModel(classifier)
   }
@@ -56,8 +56,8 @@ trait IncrementalWekaLearner extends WekaLearner {
   }
 
   def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern) = {
-    val wekabatmodel = cast2wekaincmodel(model)
-    val cla = next_classifier(wekabatmodel, fast_mutable).asInstanceOf[Classifier with UpdateableClassifier]
+    val wekaincmodel = cast2wekaincmodel(model)
+    val cla = next_classifier(wekaincmodel, fast_mutable).asInstanceOf[Classifier with UpdateableClassifier]
     cla.updateClassifier(pattern)
     WekaIncModel(cla)
   }
