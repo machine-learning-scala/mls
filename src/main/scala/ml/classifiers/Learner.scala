@@ -18,12 +18,14 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml.classifiers
 
 import ml.Pattern
-import ml.models.{BatchModel, Model}
+import ml.models.Model
 
 trait Learner {
-  def EMC(model: Model)(patterns: Seq[Pattern]) : Pattern
+  val notes: String
 
-//  def diff(modelA: Model, modelB: Model): Double
+  def EMC(model: Model)(patterns: Seq[Pattern]): Pattern
+
+  //  def diff(modelA: Model, modelB: Model): Double
 
   /**
    * Every call to build generates a model from scratch
@@ -35,7 +37,7 @@ trait Learner {
 
   def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
 
-//  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]): Model
+  //  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]): Model
   def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]): Model
 
   def expected_change(model: Model)(pattern: Pattern): Double

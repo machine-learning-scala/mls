@@ -24,57 +24,49 @@
 
 package weka.core.converters;
 
-import weka.core.Attribute;
-import weka.core.Capabilities;
-import weka.core.Instance;
-import weka.core.Instances;
-import weka.core.Option;
-import weka.core.OptionHandler;
-import weka.core.RevisionUtils;
-import weka.core.Utils;
+import weka.core.*;
 import weka.core.Capabilities.Capability;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Vector;
 
 /**
  * <!-- globalinfo-start -->
  * Writes to a database (tested with MySQL, InstantDB, HSQLDB).
- * <p>
+ * <p/>
  * <!-- globalinfo-end -->
- * <p>
+ * <p/>
  * <!-- options-start -->
  * Valid options are: <p/>
- * <p>
+ * <p/>
  * <pre> -url &lt;JDBC URL&gt;
  *  The JDBC URL to connect to.
  *  (default: from DatabaseUtils.props file)</pre>
- * <p>
+ * <p/>
  * <pre> -user &lt;name&gt;
  *  The user to connect with to the database.
  *  (default: none)</pre>
- * <p>
+ * <p/>
  * <pre> -password &lt;password&gt;
  *  The password to connect with to the database.
  *  (default: none)</pre>
- * <p>
+ * <p/>
  * <pre> -T &lt;table name&gt;
  *  The name of the table.
  *  (default: the relation name)</pre>
- * <p>
+ * <p/>
  * <pre> -P
  *  Add an ID column as primary key. The name is specified
  *  in the DatabaseUtils file ('idColumn'). The DatabaseLoader
  *  won't load this column.</pre>
- * <p>
+ * <p/>
  * <pre> -i &lt;input file name&gt;
  *  Input file in arff format that should be saved in database.</pre>
- * <p>
+ * <p/>
  * <!-- options-end -->
  *
  * @author Stefan Mutter (mutter@cs.waikato.ac.nz)
@@ -88,82 +80,10 @@ public class DatabaseSaverForSQLite
      * for serialization.
      */
     static final long serialVersionUID = 863971733782624956L;
-
-    /**
-     * The database connection.
-     */
-    private DatabaseConnection m_DataBaseConnection;
-
-    /**
-     * The name of the table in which the instances should be stored.
-     */
-    private String m_tableName;
-
-    /**
-     * An input arff file (for command line use).
-     */
-    private String m_inputFile;
-
-    /**
-     * The database specific type for a string (read in from the properties file).
-     */
-    private String m_createText;
-
-    /**
-     * The database specific type for a double (read in from the properties file).
-     */
-    private String m_createDouble;
-
-    /**
-     * The database specific type for an int (read in from the properties file).
-     */
-    private String m_createInt;
-
-    /**
-     * The database specific type for a date (read in from the properties file).
-     */
-    private String m_createDate;
-
-    /**
-     * For converting the date value into a database string.
-     */
-    private SimpleDateFormat m_DateFormat;
-
-    /**
-     * The name of the primary key column that will be automatically generated (if enabled). The name is read from DatabaseUtils.
-     */
-    private String m_idColumn;
-
-    /**
-     * counts the rows and used as a primary key value.
-     */
-    private int m_count;
-
-    /**
-     * Flag indicating if a primary key column should be added.
-     */
-    private boolean m_id;
-
-    /**
-     * Flag indicating whether the default name of the table is the relaion name or not.
-     */
-    private boolean m_tabName;
-
-    /**
-     * the user name for the database.
-     */
-    private String m_Username;
-
-    /**
-     * the password for the database.
-     */
-    private String m_Password;
-
     /**
      * The property file for the database connection.
      */
     protected static String PROPERTY_FILE = DatabaseConnection.PROPERTY_FILE;
-
     /**
      * Properties associated with the database connection.
      */
@@ -180,6 +100,63 @@ public class DatabaseSaverForSQLite
             System.err.println(ex);
         }
     }
+
+    /**
+     * The database connection.
+     */
+    private DatabaseConnection m_DataBaseConnection;
+    /**
+     * The name of the table in which the instances should be stored.
+     */
+    private String m_tableName;
+    /**
+     * An input arff file (for command line use).
+     */
+    private String m_inputFile;
+    /**
+     * The database specific type for a string (read in from the properties file).
+     */
+    private String m_createText;
+    /**
+     * The database specific type for a double (read in from the properties file).
+     */
+    private String m_createDouble;
+    /**
+     * The database specific type for an int (read in from the properties file).
+     */
+    private String m_createInt;
+    /**
+     * The database specific type for a date (read in from the properties file).
+     */
+    private String m_createDate;
+    /**
+     * For converting the date value into a database string.
+     */
+    private SimpleDateFormat m_DateFormat;
+    /**
+     * The name of the primary key column that will be automatically generated (if enabled). The name is read from DatabaseUtils.
+     */
+    private String m_idColumn;
+    /**
+     * counts the rows and used as a primary key value.
+     */
+    private int m_count;
+    /**
+     * Flag indicating if a primary key column should be added.
+     */
+    private boolean m_id;
+    /**
+     * Flag indicating whether the default name of the table is the relaion name or not.
+     */
+    private boolean m_tabName;
+    /**
+     * the user name for the database.
+     */
+    private String m_Username;
+    /**
+     * the password for the database.
+     */
+    private String m_Password;
 
     /**
      * Constructor.
@@ -247,6 +224,15 @@ public class DatabaseSaverForSQLite
         return "Writes to a database (tested with MySQL, InstantDB, HSQLDB).";
     }
 
+    /**
+     * Gets the table's name.
+     *
+     * @return the table's name
+     */
+    public String getTableName() {
+
+        return m_tableName;
+    }
 
     /**
      * Sets the table's name.
@@ -256,16 +242,6 @@ public class DatabaseSaverForSQLite
     public void setTableName(String tn) {
 
         m_tableName = tn;
-    }
-
-    /**
-     * Gets the table's name.
-     *
-     * @return the table's name
-     */
-    public String getTableName() {
-
-        return m_tableName;
     }
 
     /**
@@ -279,16 +255,6 @@ public class DatabaseSaverForSQLite
     }
 
     /**
-     * En/Dis-ables the automatic generation of a primary key.
-     *
-     * @param flag flag for automatic key-genereration
-     */
-    public void setAutoKeyGeneration(boolean flag) {
-
-        m_id = flag;
-    }
-
-    /**
      * Gets whether or not a primary key will be generated automatically.
      *
      * @return true if a primary key column will be generated, false otherwise
@@ -296,6 +262,16 @@ public class DatabaseSaverForSQLite
     public boolean getAutoKeyGeneration() {
 
         return m_id;
+    }
+
+    /**
+     * En/Dis-ables the automatic generation of a primary key.
+     *
+     * @param flag flag for automatic key-genereration
+     */
+    public void setAutoKeyGeneration(boolean flag) {
+
+        m_id = flag;
     }
 
     /**
@@ -310,16 +286,6 @@ public class DatabaseSaverForSQLite
     }
 
     /**
-     * En/Dis-ables that the relation name is used for the name of the table (default enabled).
-     *
-     * @param flag if true the relation name is used as table name
-     */
-    public void setRelationForTableName(boolean flag) {
-
-        m_tabName = flag;
-    }
-
-    /**
      * Gets whether or not the relation name is used as name of the table.
      *
      * @return true if the relation name is used as the name of the table, false otherwise
@@ -330,6 +296,16 @@ public class DatabaseSaverForSQLite
     }
 
     /**
+     * En/Dis-ables that the relation name is used for the name of the table (default enabled).
+     *
+     * @param flag if true the relation name is used as table name
+     */
+    public void setRelationForTableName(boolean flag) {
+
+        m_tabName = flag;
+    }
+
+    /**
      * Returns the tip text fo this property.
      *
      * @return the tip text for this property
@@ -337,6 +313,16 @@ public class DatabaseSaverForSQLite
     public String relationForTableNameTipText() {
 
         return "If set to true, the relation name will be used as name for the database table. Otherwise the user has to provide a table name.";
+    }
+
+    /**
+     * Gets the database URL.
+     *
+     * @return the URL
+     */
+    public String getUrl() {
+
+        return m_DataBaseConnection.getDatabaseURL();
     }
 
     /**
@@ -351,16 +337,6 @@ public class DatabaseSaverForSQLite
     }
 
     /**
-     * Gets the database URL.
-     *
-     * @return the URL
-     */
-    public String getUrl() {
-
-        return m_DataBaseConnection.getDatabaseURL();
-    }
-
-    /**
      * Returns the tip text for this property.
      *
      * @return the tip text for this property
@@ -368,16 +344,6 @@ public class DatabaseSaverForSQLite
     public String urlTipText() {
 
         return "The URL of the database";
-    }
-
-    /**
-     * Sets the database user.
-     *
-     * @param user the user name
-     */
-    public void setUser(String user) {
-        m_Username = user;
-        m_DataBaseConnection.setUsername(user);
     }
 
     /**
@@ -391,6 +357,16 @@ public class DatabaseSaverForSQLite
     }
 
     /**
+     * Sets the database user.
+     *
+     * @param user the user name
+     */
+    public void setUser(String user) {
+        m_Username = user;
+        m_DataBaseConnection.setUsername(user);
+    }
+
+    /**
      * Returns the tip text for this property.
      *
      * @return the tip text for this property
@@ -401,6 +377,15 @@ public class DatabaseSaverForSQLite
     }
 
     /**
+     * Returns the database password.
+     *
+     * @return the database password
+     */
+    public String getPassword() {
+        return m_DataBaseConnection.getPassword();
+    }
+
+    /**
      * Sets the database password.
      *
      * @param password the password
@@ -408,15 +393,6 @@ public class DatabaseSaverForSQLite
     public void setPassword(String password) {
         m_Password = password;
         m_DataBaseConnection.setPassword(password);
-    }
-
-    /**
-     * Returns the database password.
-     *
-     * @return the database password
-     */
-    public String getPassword() {
-        return m_DataBaseConnection.getPassword();
     }
 
     /**
@@ -631,49 +607,6 @@ public class DatabaseSaverForSQLite
         return (String[]) options.toArray(new String[options.size()]);
     }
 
-
-    public java.util.Enumeration listOptions() {
-
-        Vector<Option> newVector = new Vector<Option>();
-
-        newVector.addElement(new Option(
-                "\tThe JDBC URL to connect to.\n"
-                        + "\t(default: from DatabaseUtils.props file)",
-                "url", 1, "-url <JDBC URL>"
-        ));
-
-        newVector.addElement(new Option(
-                "\tThe user to connect with to the database.\n"
-                        + "\t(default: none)",
-                "user", 1, "-user <name>"
-        ));
-
-        newVector.addElement(new Option(
-                "\tThe password to connect with to the database.\n"
-                        + "\t(default: none)",
-                "password", 1, "-password <password>"
-        ));
-
-        newVector.addElement(new Option(
-                "\tThe name of the table.\n"
-                        + "\t(default: the relation name)",
-                "T", 1, "-T <table name>"
-        ));
-
-        newVector.addElement(new Option(
-                "\tAdd an ID column as primary key. The name is specified\n"
-                        + "\tin the DatabaseUtils file ('idColumn'). The DatabaseLoader\n"
-                        + "\twon't load this column.",
-                "P", 0, "-P"
-        ));
-
-        newVector.addElement(new Option(
-                "\tInput file in arff format that should be saved in database.",
-                "i", 1, "-i <input file name>"));
-
-        return newVector.elements();
-    }
-
     public void setOptions(String[] options) throws Exception {
 
         String tableString, inputString, tmpStr;
@@ -720,6 +653,48 @@ public class DatabaseSaverForSQLite
         }
     }
 
+    public java.util.Enumeration listOptions() {
+
+        Vector<Option> newVector = new Vector<Option>();
+
+        newVector.addElement(new Option(
+                "\tThe JDBC URL to connect to.\n"
+                        + "\t(default: from DatabaseUtils.props file)",
+                "url", 1, "-url <JDBC URL>"
+        ));
+
+        newVector.addElement(new Option(
+                "\tThe user to connect with to the database.\n"
+                        + "\t(default: none)",
+                "user", 1, "-user <name>"
+        ));
+
+        newVector.addElement(new Option(
+                "\tThe password to connect with to the database.\n"
+                        + "\t(default: none)",
+                "password", 1, "-password <password>"
+        ));
+
+        newVector.addElement(new Option(
+                "\tThe name of the table.\n"
+                        + "\t(default: the relation name)",
+                "T", 1, "-T <table name>"
+        ));
+
+        newVector.addElement(new Option(
+                "\tAdd an ID column as primary key. The name is specified\n"
+                        + "\tin the DatabaseUtils file ('idColumn'). The DatabaseLoader\n"
+                        + "\twon't load this column.",
+                "P", 0, "-P"
+        ));
+
+        newVector.addElement(new Option(
+                "\tInput file in arff format that should be saved in database.",
+                "i", 1, "-i <input file name>"));
+
+        return newVector.elements();
+    }
+
     /**
      * Returns the revision string.
      *
@@ -740,7 +715,8 @@ public class DatabaseSaverForSQLite
         StringBuffer query = new StringBuffer();
         Instances structure = getInstances();
 
-        query.append("CREATE TABLE query ( strategyid INT, run INT, fold INT, position INT, instid INT, unique (strategyid, run, fold, position) on conflict rollback ); ");
+        query.append("CREATE TABLE query ( strategyid INT, learnerid INT, run INT, fold INT, position INT, instid INT, unique (strategyid, learnerid, run, fold, position) on conflict rollback ); ");
+        query.append("CREATE TABLE time ( strategyid INT, learnerid INT, run INT, fold INT, value INT, unique (strategyid, learnerid, run, fold) on conflict rollback ); ");
         //para cada query (position/timestep) havera uma predicao diferente para os itens do fold de teste
         //cada linha representa uma saida da ELM
         query.append("CREATE TABLE prediction ( queryid INT, instid INT, output INT, value FLOAT, unique (queryid, instid, output) on conflict rollback ); ");

@@ -25,8 +25,8 @@ import weka.classifiers.`lazy`.IBk
 import weka.core.neighboursearch.{KDTree, LinearNNSearch}
 import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, MinkowskiDistance}
 
-case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], weighted: Boolean = false) extends IncrementalWekaLearner {
-  override val toString = k + "NN" + (if (weighted) " weighted " else " (") + distance_name + ")"
+case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], notes: String = "", weighted: Boolean = false) extends IncrementalWekaLearner {
+  override val toString = k + "NN" + (if (weighted) " weighted " else " (") + distance_name + s")_$notes"
 
   def build(patterns: Seq[Pattern]) = {
     lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)

@@ -28,8 +28,8 @@ import weka.classifiers.trees.HoeffdingTree
  * Since VFDTBatch does rebuild every new instance, it can perform optimized discretization.
  * GraceTime = math.min(200,nclasses + N/10)
  */
-case class VFDT() extends IncrementalWekaLearner {
-  override val toString = "VFDT"
+case class VFDT(notes: String = "") extends IncrementalWekaLearner {
+  override val toString = s"VFDT_$notes"
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 

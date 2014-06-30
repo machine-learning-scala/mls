@@ -22,8 +22,8 @@ import ml.models.Model
 import weka.classifiers.Classifier
 import weka.classifiers.bayes.NaiveBayes
 
-case class NBBatch0() extends BatchWekaLearner {
-  override val toString = "NBBatch"
+case class NBBatch(notes: String = "") extends BatchWekaLearner {
+  override val toString = s"NBBatch_$notes"
   println("Please use NB which is faster and almost identical.")
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
