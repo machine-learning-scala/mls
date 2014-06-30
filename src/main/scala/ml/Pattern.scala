@@ -107,15 +107,15 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
 
   override def hashCode() = vector.hashCode()
 
-  override def equals(that: Any) = that match {
-    case that: Pattern => id == that.id
-    case _ => false
-  }
-
   //  override def equals(that: Any) = that match {
-  //    case that: Pattern => array.sameElements(that.array)
+  //    case that: Pattern => id == that.id //cannot use this because id is unique and we need to detect duplicates
   //    case _ => false
   //  }
+
+  override def equals(that: Any) = that match {
+    case that: Pattern => array.sameElements(that.array)
+    case _ => false
+  }
 
 
   /**
