@@ -78,13 +78,14 @@ object Datasets {
       if (debug) println("Useless atts removed from " + arq + ".")
       reader.close()
 
-      val arff_header = instances.toString.split("\n").takeWhile(!_.contains("@data")).toList ++ List("@data\n")
+      lazy val arff_header = instances.toString.split("\n").takeWhile(!_.contains("@data")).toList ++ List("@data\n")
       val parent = PatternParent(instances)
       //      val patterns = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //zero is not a valid Pattern id
       val patterns = instances.zip(instancesJustToGetOldIdsFromZscored).map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //zero is not a valid Pattern id
       val distinct = distinctMode(patterns)
       if (instances.numInstances() != distinct.size) {
-        if (debug) println("In dataset " + arq + ": duplicate instances eliminated! Distinct = " + distinct.size + " original:" + instances.numInstances())
+        //        if (debug)
+        println("In dataset " + arq + ": duplicate instances eliminated! Distinct = " + distinct.size + " original:" + instances.numInstances())
       }
       Right(distinct.toStream)
     } catch {
