@@ -66,8 +66,11 @@ object Datasets {
       instances0.setClassIndex(instances0.numAttributes() - 1)
       instances0.setRelationName(arq)
       val instances1 = if (bina) {
-        println("z-score will be applied and useless attributes removed...")
-        val res = if (zscored) zscore(binarize(rmUseless(instances0))) else binarize(rmUseless(instances0))
+        println("useless attributes will be removed...")
+        val res = if (zscored) {
+          println("z-score will be applied")
+          zscore(binarize(rmUseless(instances0)))
+        } else binarize(rmUseless(instances0))
         if (debug) println(arq + " binarized.")
         res
       } else rmUseless(instances0)
