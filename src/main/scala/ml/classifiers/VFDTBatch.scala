@@ -18,17 +18,21 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml.classifiers
 
 import ml.Pattern
-import weka.classifiers.trees.HoeffdingTree
 import ml.models.Model
 import weka.classifiers.Classifier
+import weka.classifiers.trees.HoeffdingTree
 
-case class HT() extends BatchWekaLearner {
-  override val toString = "HT"
+/**
+ * fixed GraceTime = nclasses * 5
+ */
+case class VFDTBatch() extends BatchWekaLearner {
+  override val toString = "VFDTBatch"
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
   def build(patterns: Seq[Pattern]): Model = {
     val classifier = new HoeffdingTree
+    classifier.setGracePeriod(math.min(200, patterns.head.nclasses * 5))
     generate_model(classifier, patterns)
   }
 

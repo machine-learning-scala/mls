@@ -23,7 +23,7 @@ import weka.classifiers.Classifier
 import weka.classifiers.trees.J48
 
 case class C45(min_leaf_size: Int = 2) extends BatchWekaLearner {
-  override val toString = "C45 l" + min_leaf_size
+  override val toString = "C45"
 
   //  private def complexity(classifier: Classifier) = classifier match {
   //    //      case sgd: SGD =>
@@ -37,19 +37,6 @@ case class C45(min_leaf_size: Int = 2) extends BatchWekaLearner {
   //      }
   //      val ands = output.takeWhile(_.contains("=")).map(_.dropRight(1)).mkString.split(')').length.toDouble
   //      ands
-  //  }
-  //
-  // private def expected_change(classifier0: Classifier, instances: Instances)(pa: Pattern) = {
-  //    val old_complexity = complexity(classifier0)
-  //    val classifier = AbstractClassifier.makeCopy(classifier0) //to avoid changing state of original classifier
-  //    ((0 until pa.nclasses).zip(classifier.distributionForInstance(pa)) map {
-  //      case (c, p) =>
-  //        val new_pa = pa.relabeled_reweighted(c, 1, new_missed = false)
-  //        instances.add(new_pa)
-  //        classifier.buildClassifier(instances)
-  //        instances.remove(instances.numInstances() - 1)
-  //        p * (complexity(classifier) - old_complexity).abs
-  //    }).sum
   //  }
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 

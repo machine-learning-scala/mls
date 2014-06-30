@@ -15,8 +15,9 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 import ml.classifiers.NB
-import util.{Tempo, Datasets}
+import util.{Datasets, Tempo}
 
 object NaiveBayesExample extends App {
   println( """

@@ -18,20 +18,25 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml.classifiers
 
 import ml.Pattern
-import ml.models.Model
-import util.{Datasets, Tempo}
+import ml.models.{Model, WekaBatModel}
+import util.Datasets
 import weka.classifiers.Classifier
 import weka.classifiers.`lazy`.IBk
 import weka.core.neighboursearch.{KDTree, LinearNNSearch}
 import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, MinkowskiDistance}
 
-case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], weighted: Boolean = false) extends IncrementalWekaLearner {
-  override val toString = k + "NN" + (if (weighted) " weighted " else " (") + distance_name + ")"
+case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], weighted: Boolean = false) extends BatchWekaLearner {
+  override val toString = k + "NNBatch" + (if (weighted) " weighted " else " (") + distance_name + ")"
+  println("Please use KNN which is faster and probably identical.")
 
   def build(patterns: Seq[Pattern]) = {
     lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)
     val classifier = new IBk
     val distance = distance_name match {
+      //      case "eucl" => new EuclideanDistance()
+      //      case "mink" => new MinkowskiDistance() //defaults to EuclideanDistance   order: 1=manh; 2=eucl; infinity=cheb
+      //      case "manh" => new ManhattanDistance()
+      //      case "cheb" => new ChebyshevDistance()
       case "eucl" => new EuclideanDistance(instancesForCache)
       case "mink" => new MinkowskiDistance(instancesForCache) //defaults to EuclideanDistance   order: 1=manh; 2=eucl; infinity=cheb
       case "manh" => new ManhattanDistance(instancesForCache)
@@ -42,7 +47,9 @@ case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern
     classifier.setNearestNeighbourSearchAlgorithm(search)
     classifier.setKNN(k)
     if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-I"))
-    generate_model(classifier, patterns)
+    val instances = Datasets.patterns2instances(patterns)
+    classifier.buildClassifier(instances)
+    WekaBatModel(classifier, patterns)
   }
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
@@ -53,40 +60,4 @@ case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern
   }
 
   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
-}
-
-
-object TestKNNinc extends App {
-  val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff", zscored = false).right.get.toList
-  val f = Datasets.zscoreFilter(d)
-  val df = Datasets.applyFilter(d, f)
-  lazy val l = KNNBatch(5, "eucl", df)
-  lazy val linc = KNN(5, "eucl", df)
-
-  Tempo.start
-  var m = l.build(df.take(df.head.nclasses))
-  df.drop(df.head.nclasses).foreach(p => m = l.update(m, fast_mutable = true)(p))
-  Tempo.print_stop
-  Tempo.start
-  var minc = linc.build(df.take(df.head.nclasses))
-  df.drop(df.head.nclasses).foreach(p => minc = linc.update(minc, fast_mutable = true)(p))
-  Tempo.print_stop
-  println()
-
-  Tempo.start
-  m.accuracy(df)
-  Tempo.print_stop
-  Tempo.start
-  minc.accuracy(df)
-  Tempo.print_stop
-  println()
-
-  Tempo.start
-  val ma = m.accuracy(df)
-  Tempo.print_stop
-  Tempo.start
-  val mia = minc.accuracy(df)
-  Tempo.print_stop
-
-  println(s"l:${ma} linc:${mia}")
 }

@@ -17,16 +17,16 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml.models
 
-import weka.classifiers.{UpdateableClassifier, Classifier}
 import ml.Pattern
+import weka.classifiers.{Classifier, UpdateableClassifier}
 
 class WekaModel(var classifier: Classifier) extends Model {
 
-  def distribution(pattern: Pattern)=
+  def distribution(pattern: Pattern) =
     if (classifier == null) throw new Exception("Underlying model already changed! Please call update with fast_mutable disabled.")
     else classifier.distributionForInstance(pattern)
 }
 
 case class WekaBatModel(private val batch_classifier: Classifier, training_set: Seq[Pattern]) extends WekaModel(batch_classifier)
 
-case class WekaIncModel(private val incremental_classifier: Classifier with UpdateableClassifier) extends WekaModel(incremental_classifier)
+case class WekaIncModel(private val incremental_classifier: Classifier with UpdateableClassifier, N: Int) extends WekaModel(incremental_classifier)

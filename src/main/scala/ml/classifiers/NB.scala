@@ -17,26 +17,67 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml.classifiers
 
-import weka.classifiers.Classifier
 import ml.Pattern
-import weka.classifiers.bayes.NaiveBayes
 import ml.models.Model
+import util.{Datasets, Tempo}
+import weka.classifiers.Classifier
+import weka.classifiers.bayes.NaiveBayesUpdateable
 
-case class NB() extends BatchWekaLearner {
+/**
+ * NB can be worse than NBBatch because of unavailability of all instances at the build of NB.
+ * Since NBBatch does rebuild every new instance, it can perform optimized discretization at all calls to update().
+ */
+case class NB() extends IncrementalWekaLearner {
   override val toString = "NB"
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
   def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new NaiveBayes
-    classifier.setUseSupervisedDiscretization(false) //true=slow?
+    val classifier = new NaiveBayesUpdateable
+    classifier.setUseSupervisedDiscretization(false)
     generate_model(classifier, patterns)
   }
 
-  protected def test_subclass(classifier: Classifier) = classifier match {
-    case cla: NaiveBayes => cla
-    case _ => throw new Exception(this + " requires NaiveBayes.")
+  protected def test_subclass(cla: Classifier) = cla match {
+    case n: NaiveBayesUpdateable => n
+    case _ => throw new Exception(this + " requires NaiveBayesUpdateable.")
   }
 
   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+}
+
+object TestNBinc extends App {
+  val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff", zscored = false).right.get.toList
+  val f = Datasets.zscoreFilter(d)
+  val df = Datasets.applyFilter(d, f)
+  val l = NBBatch0()
+  val linc = NB()
+
+  var m = l.build(df.take(df.head.nclasses))
+  var minc = linc.build(df.take(df.head.nclasses))
+  val fast_mutable = true
+
+  println(s"only build     l:${m.accuracy(df)} linc:${minc.accuracy(df)}")
+
+  //  df.drop(df.head.nclasses).foreach { p =>
+  //    m = l.update(m, fast_mutable)(p)
+  //    minc = linc.update(minc, fast_mutable)(p)
+  //    println(s"updating      l:${m.accuracy(df)} linc:${minc.accuracy(df)}")
+  // }
+
+  Tempo.start
+  df.drop(df.head.nclasses).foreach(p => m = l.update(m, fast_mutable)(p))
+  Tempo.print_stop
+
+  Tempo.start
+  df.drop(df.head.nclasses).foreach(p => minc = linc.update(minc, fast_mutable)(p))
+  Tempo.print_stop
+
+  println(s"after updates      l:${m.accuracy(df)} linc:${minc.accuracy(df)}")
+
+  //  Tempo.start
+  //  df.drop(10).foreach(p => minc = linc.update(minc, fast_mutable = false)(p))
+  //  Tempo.print_stop
+  //
+  //  println(s"after unlearning     l:${m.accuracy(df)} linc:${minc.accuracy(df)}")
 }

@@ -18,26 +18,25 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml.classifiers
 
 import ml.Pattern
-import weka.classifiers.trees.HoeffdingTree
 import ml.models.Model
 import weka.classifiers.Classifier
+import weka.classifiers.bayes.NaiveBayes
 
-case class HTinc() extends IncrementalWekaLearner {
-  ???
-  //something is wrong with updating
-
-  override val toString = "HTinc"
+case class NBBatch0() extends BatchWekaLearner {
+  override val toString = "NBBatch"
+  println("Please use NB which is faster and almost identical.")
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
   def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new HoeffdingTree
+    val classifier = new NaiveBayes
+    classifier.setUseSupervisedDiscretization(false) //true=slow?
     generate_model(classifier, patterns)
   }
 
-  protected def test_subclass(cla: Classifier) = cla match {
-    case n: HoeffdingTree => n
-    case _ => throw new Exception(this + " requires HoeffdingTree.")
+  protected def test_subclass(classifier: Classifier) = classifier match {
+    case cla: NaiveBayes => cla
+    case _ => throw new Exception(this + " requires NaiveBayes.")
   }
 
   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
