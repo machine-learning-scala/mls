@@ -17,10 +17,15 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml
 
-import weka.core.Instance
-import scala.collection.JavaConversions._
 import util.Datasets
+import weka.core.Instance
 
+import scala.collection.JavaConversions._
+
+/**
+ * Probably only for graphical ends.
+ * @param dataset
+ */
 case class PatternParent(dataset: weka.core.Instances) {
 
   case class Point(p: Instance) {
