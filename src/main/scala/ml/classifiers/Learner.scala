@@ -37,9 +37,6 @@ trait Learner {
 
   def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
 
-  //  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]): Model
-  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]): Model
-
   def expected_change(model: Model)(pattern: Pattern): Double
 }
 
@@ -58,5 +55,4 @@ trait Learner {
 //
 //  def update(model: Model)(pattern: Pattern) = build(pattern +: cast2batmodel(model).training_set)
 //
-//  def updateAll(model: Model)(patterns: Seq[Pattern]) = build(patterns ++ cast2batmodel(model).training_set)
 //}

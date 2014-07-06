@@ -61,12 +61,12 @@ trait IncrementalWekaLearner extends WekaLearner {
     WekaIncModel(classifier, patterns.head.nclasses)
   }
 
-  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]) = {
-    val wekaincmodel = cast2wekaincmodel(model)
-    val cla = next_classifier(wekaincmodel, fast_mutable).asInstanceOf[Classifier with UpdateableClassifier]
-    patterns foreach cla.updateClassifier
-    WekaIncModel(cla, wekaincmodel.N + 1)
-  }
+  //  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]) = {
+  //    val wekaincmodel = cast2wekaincmodel(model)
+  //    val cla = next_classifier(wekaincmodel, fast_mutable).asInstanceOf[Classifier with UpdateableClassifier]
+  //    patterns foreach cla.updateClassifier
+  //    WekaIncModel(cla, wekaincmodel.N + 1)
+  //  }
 
   def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern) = {
     val wekaincmodel = cast2wekaincmodel(model)
@@ -90,11 +90,11 @@ trait BatchWekaLearner extends WekaLearner {
     WekaBatModel(classifier, patterns)
   }
 
-  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]) = {
-    val wekabatmodel = cast2wekabatmodel(model)
-    val nb = next_classifier(wekabatmodel, fast_mutable)
-    generate_model(nb, patterns ++ wekabatmodel.training_set)
-  }
+  //  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]) = {
+  //    val wekabatmodel = cast2wekabatmodel(model)
+  //    val nb = next_classifier(wekabatmodel, fast_mutable)
+  //    generate_model(nb, patterns ++ wekabatmodel.training_set)
+  //  }
 
   def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern) = {
     //todo: VFDTBatch graceTime should be dynamic

@@ -22,7 +22,7 @@ import ml.models.Model
 import util.{Datasets, Tempo}
 import weka.classifiers.Classifier
 import weka.classifiers.`lazy`.IBk
-import weka.core.neighboursearch.KDTree
+import weka.core.neighboursearch.{KDTree, LinearNNSearch}
 import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, MinkowskiDistance}
 
 case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], notes: String = "", weighted: Boolean = false) extends IncrementalWekaLearner {
@@ -37,8 +37,8 @@ case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern
       case "manh" => new ManhattanDistance(instancesForCache)
       case "cheb" => new ChebyshevDistance(instancesForCache)
     }
-    //    val search = if (distance_name != "eucl" || patterns.length / patterns.head.nattributes < 10) new LinearNNSearch else new KDTree
-    val search = new KDTree()
+    val search = if (distance_name != "eucl" || patterns.length / patterns.head.nattributes < 10) new LinearNNSearch else new KDTree
+    //    val search = new KDTree()
     search.setDistanceFunction(distance)
     classifier.setNearestNeighbourSearchAlgorithm(search)
     classifier.setKNN(k)
@@ -57,7 +57,7 @@ case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern
 }
 
 
-object TestKNNinc extends App {
+object TestKNN extends App {
   val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff", zscored = false).right.get.toList
   val f = Datasets.zscoreFilter(d)
   val df = Datasets.applyFilter(d, f)
