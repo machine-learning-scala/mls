@@ -17,7 +17,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package util
 
-import java.io.{BufferedReader, FileReader, IOException}
+import java.io.{BufferedReader, File, FileReader, IOException}
 
 import ml.{Pattern, PatternParent}
 import weka.core.Instances
@@ -183,21 +183,24 @@ object Datasets {
    * Assumes there is no duplicates.
    */
   def patternsFromSQLite(path: String)(dataset: String) = {
-    val arq = path + dataset + ".db"
-    try {
-      val query = new InstanceQuery()
-      query.setDatabaseURL("jdbc:sqlite:////" + arq)
-      query.setQuery("select * from inst order by rowid")
-      query.setDebug(false)
-      val instances = query.retrieveInstances()
-      instances.setClassIndex(instances.numAttributes() - 1)
-      instances.setRelationName(dataset)
-      val parent = PatternParent(instances)
-      val patterns = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //rowid is always > 0
-      query.close()
-      Right(patterns.toStream)
-    } catch {
-      case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
+    val arq = new File(path + "/" + dataset + ".db")
+    if (!arq.exists()) Left(s"Dataset file $arq not found!")
+    else {
+      try {
+        val query = new InstanceQuery()
+        query.setDatabaseURL("jdbc:sqlite:////" + arq)
+        query.setQuery("select * from inst order by rowid")
+        query.setDebug(false)
+        val instances = query.retrieveInstances()
+        instances.setClassIndex(instances.numAttributes() - 1)
+        instances.setRelationName(dataset)
+        val parent = PatternParent(instances)
+        val patterns = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //rowid is always > 0
+        query.close()
+        Right(patterns.toStream)
+      } catch {
+        case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
+      }
     }
   }
 }
