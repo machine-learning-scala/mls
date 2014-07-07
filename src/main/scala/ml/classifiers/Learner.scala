@@ -37,6 +37,8 @@ trait Learner {
 
   def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
 
+  //  def forget(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
+
   def expected_change(model: Model)(pattern: Pattern): Double
 }
 
