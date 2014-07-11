@@ -718,8 +718,8 @@ public class DatabaseSaverForSQLite
         query.append("CREATE TABLE query ( strategyid INT, learnerid INT, run INT, fold INT, position INT, instid INT, unique (strategyid, learnerid, run, fold, position) on conflict rollback ); ");
         query.append("CREATE TABLE time ( strategyid INT, learnerid INT, run INT, fold INT, value INT, unique (strategyid, learnerid, run, fold) on conflict rollback ); ");
         //para cada query (position/timestep) havera uma predicao diferente para os itens do fold de teste
-        //cada linha representa uma saida da ELM
-        query.append("CREATE TABLE prediction ( queryid INT, instid INT, output INT, value FLOAT, unique (queryid, instid, output) on conflict rollback ); ");
+        //cada linha representa uma saida do modelo
+        query.append("CREATE TABLE prediction ( learnerid INT, queryid INT, instid INT, output INT, value FLOAT, unique (learnerid, queryid, instid, output) on conflict rollback ); ");
 
         query.append("CREATE TABLE ");
         if (m_tabName || m_tableName.equals(""))

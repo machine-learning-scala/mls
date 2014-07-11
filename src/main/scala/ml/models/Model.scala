@@ -84,6 +84,8 @@ trait Model {
 
   def distribution(instance: Pattern): Array[Double]
 
+  def output(instance: Pattern): Array[Double]
+
   def predict(instance: Pattern) = {
     val dist = distribution(instance)
     val nclasses = instance.nclasses
@@ -100,18 +102,6 @@ trait Model {
     }
     cmax
   }
-
-  /**
-   * Soft ensemble prediction for a given instance.
-   * In the case of a single model, it is the same as predict() but less efficient.
-   * @param instance
-   * @return
-   */
-  def softPredict(instance: Pattern) = {
-    distribution(instance).zipWithIndex.maxBy(_._1)._2
-  }
-
-  //  def predict(instance: Pattern) = distribution(instance).zipWithIndex.maxBy(_._1)._2
 
   def hit(instance: Pattern) = {
     //    println(instance.label + "  " + instance.label_array.toList)
