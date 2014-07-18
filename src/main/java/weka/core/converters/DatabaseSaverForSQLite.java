@@ -163,7 +163,7 @@ public class DatabaseSaverForSQLite
      *
      * @throws Exception throws Exception if property file cannot be read
      */
-    public DatabaseSaverForSQLite() throws Exception {
+    public DatabaseSaverForSQLite() {
 
         resetOptions();
         m_createText = PROPERTIES.getProperty("CREATE_STRING");
