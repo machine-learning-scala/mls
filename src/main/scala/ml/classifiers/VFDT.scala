@@ -57,7 +57,7 @@ case class VFDT(notes: String = "") extends IncrementalWekaLearner {
 object TestHTinc extends App {
   val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/banana.arff", zscored = false).right.get.toList
   val f = Datasets.zscoreFilter(d)
-  val df = Datasets.applyFilter(d, f)
+  val df = Datasets.applyFilterChangingOrder(d, f)
   val l = VFDTBatch()
   val linc = VFDT()
 

@@ -160,7 +160,7 @@ object Datasets {
     stand_filter
   }
 
-  def applyFilter(patts: Seq[Pattern], filter: Standardize) = {
+  def applyFilterChangingOrder(patts: Seq[Pattern], filter: Standardize) = {
     val instances = patterns2instances(patts)
     val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
     val patterns = newInstances.zip(patts).map {
@@ -168,6 +168,20 @@ object Datasets {
         case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
       }
     patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter
+  }
+
+  def applyFilter(patts: Seq[Pattern], filter: Standardize) = {
+    val ids = patts.map(_.id)
+    val instances = patterns2instances(patts)
+    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
+    val patterns = newInstances.zip(patts).map {
+        case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
+        case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
+      }
+    ids.map(id => patterns.find(_.id == id).getOrElse {
+      println("Impossivel reordenar after z-score filter.")
+      sys.exit(0)
+    })
   }
 
   def pca(ins: Instances, n: Int) = {
@@ -209,7 +223,7 @@ object TestFilter extends App {
   val d = Datasets.arff(true)("/home/davi/wcs/ucipp/uci/iris.arff", false).right.get.toList
   //.drop(10).take(5).toList
   val f = Datasets.zscoreFilter(d)
-  val d2 = Datasets.applyFilter(d, f)
+  val d2 = Datasets.applyFilterChangingOrder(d, f)
   //  d2.take(10) map (p => println(p.id + " " + p))
   //  d.take(10) map (p => println(p.id + " " + p))
   d2.sortBy(_.id).take(10) map (p => println(p.id + " " + p))

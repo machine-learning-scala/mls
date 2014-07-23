@@ -23,7 +23,7 @@ import util.Datasets
 object TestForgetting extends App {
   val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff", zscored = false).right.get.toList.take(500)
   val f = Datasets.zscoreFilter(d)
-  val df = Datasets.applyFilter(d, f)
+  val df = Datasets.applyFilterChangingOrder(d, f)
   val ln = NB() //can forget
 
   val lh = VFDT() //can forget

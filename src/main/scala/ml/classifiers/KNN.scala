@@ -60,7 +60,7 @@ case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern
 object TestKNN extends App {
   val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff", zscored = false).right.get.toList
   val f = Datasets.zscoreFilter(d)
-  val df = Datasets.applyFilter(d, f)
+  val df = Datasets.applyFilterChangingOrder(d, f)
   lazy val l = KNNBatch(5, "eucl", df)
   lazy val linc = KNN(5, "eucl", df)
 
