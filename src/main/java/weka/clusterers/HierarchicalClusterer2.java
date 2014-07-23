@@ -25,44 +25,43 @@ import java.util.*;
 /**
  * <!-- globalinfo-start --> Hierarchical clustering class. Implements a number
  * of classic hierarchical clustering methods. <!-- globalinfo-end -->
- *
+ * <p/>
  * <!-- options-start --> Valid options are:
  * <p/>
- *
+ * <p/>
  * <pre>
  * -N
  *  number of clusters
  * </pre>
- *
- *
+ * <p/>
+ * <p/>
  * <pre>
  * -L
  *  Link type (Single, Complete, Average, Mean, Centroid, Ward, Adjusted complete, Neighbor Joining)
  *  [SINGLE|COMPLETE|AVERAGE|MEAN|CENTROID|WARD|ADJCOMPLETE|NEIGHBOR_JOINING]
  * </pre>
- *
+ * <p/>
  * <pre>
  * -A
  * Distance function to use. (default: weka.core.EuclideanDistance)
  * </pre>
- *
+ * <p/>
  * <pre>
  * -P
  * Print hierarchy in Newick format, which can be used for display in other programs.
  * </pre>
- *
+ * <p/>
  * <pre>
  * -D
  * If set, classifier is run in debug mode and may output additional info to the console.
  * </pre>
- *
+ * <p/>
  * <pre>
  * -B
  * \If set, distance is interpreted as branch length, otherwise it is node height.
  * </pre>
- *
+ * <p/>
  * <!-- options-end -->
- *
  *
  * @author Remco Bouckaert (rrb@xm.co.nz, remco@cs.waikato.ac.nz)
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
@@ -70,37 +69,67 @@ import java.util.*;
  */
 public class HierarchicalClusterer2 extends AbstractClusterer implements
         OptionHandler, CapabilitiesHandler, Drawable {
-    private static final long serialVersionUID = 1L;
+    /**
+     * the various link types
+     */
+    final static int SINGLE = 0;
+    /**
+     * Holds the Link type used calculate distance between clusters
+     */
+    int m_nLinkType = SINGLE;
 
-    /** Whether the classifier is run in debug mode. */
-    protected boolean m_Debug = false;
-
-//    public HierarchicalClusterer2(Instances m_instances) {
+    //    public HierarchicalClusterer2(Instances m_instances) {
 //        this.m_instances = m_instances;
 //    }
-
+    final static int COMPLETE = 1;
+    final static int AVERAGE = 2;
+    final static int MEAN = 3;
+    final static int CENTROID = 4;
+    final static int WARD = 5;
+    final static int ADJCOMPLETE = 6;
+    final static int NEIGHBOR_JOINING = 7;
+    public static final Tag[] TAGS_LINK_TYPE = {new Tag(SINGLE, "SINGLE"),
+            new Tag(COMPLETE, "COMPLETE"), new Tag(AVERAGE, "AVERAGE"),
+            new Tag(MEAN, "MEAN"), new Tag(CENTROID, "CENTROID"),
+            new Tag(WARD, "WARD"), new Tag(ADJCOMPLETE, "ADJCOMPLETE"),
+            new Tag(NEIGHBOR_JOINING, "NEIGHBOR_JOINING")};
+    private static final long serialVersionUID = 1L;
+    /**
+     * Whether the classifier is run in debug mode.
+     */
+    protected boolean m_Debug = false;
     /**
      * Whether the distance represent node height (if false) or branch length (if
      * true).
      */
     protected boolean m_bDistanceIsBranchLength = false;
-
-    /** training data **/
+    /**
+     * distance function used for comparing members of a cluster *
+     */
+    protected DistanceFunction m_DistanceFunction = new EuclideanDistance();
+    protected Node[] m_clusters;
+    /**
+     * training data *
+     */
     Instances m_instances;
-
-    /** number of clusters desired in clustering **/
+    /**
+     * number of clusters desired in clustering *
+     */
     int m_nNumClusters = 2;
+    boolean m_bPrintNewick = true;
+    int[] m_nClusterNr;
 
-    public void setNumClusters(int nClusters) {
-        m_nNumClusters = Math.max(1, nClusters);
+    public static void main(String[] argv) {
+        runClusterer(new HierarchicalClusterer2(), argv);
     }
 
     public int getNumClusters() {
         return m_nNumClusters;
     }
 
-    /** distance function used for comparing members of a cluster **/
-    protected DistanceFunction m_DistanceFunction = new EuclideanDistance();
+    public void setNumClusters(int nClusters) {
+        m_nNumClusters = Math.max(1, nClusters);
+    }
 
     public DistanceFunction getDistanceFunction() {
         return m_DistanceFunction;
@@ -110,61 +139,6 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
         m_DistanceFunction = distanceFunction;
     }
 
-    /**
-     * used for priority queue for efficient retrieval of pair of clusters to
-     * merge
-     **/
-    class Tuple {
-        public Tuple(double d, int i, int j, int nSize1, int nSize2) {
-            m_fDist = d;
-            m_iCluster1 = i;
-            m_iCluster2 = j;
-            m_nClusterSize1 = nSize1;
-            m_nClusterSize2 = nSize2;
-        }
-
-        double m_fDist;
-        int m_iCluster1;
-        int m_iCluster2;
-        int m_nClusterSize1;
-        int m_nClusterSize2;
-    }
-
-    /** comparator used by priority queue **/
-    class TupleComparator implements Comparator<Tuple> {
-        @Override
-        public int compare(Tuple o1, Tuple o2) {
-            if (o1.m_fDist < o2.m_fDist) {
-                return -1;
-            } else if (o1.m_fDist == o2.m_fDist) {
-                return 0;
-            }
-            return 1;
-        }
-    }
-
-    /** the various link types */
-    final static int SINGLE = 0;
-    final static int COMPLETE = 1;
-    final static int AVERAGE = 2;
-    final static int MEAN = 3;
-    final static int CENTROID = 4;
-    final static int WARD = 5;
-    final static int ADJCOMPLETE = 6;
-    final static int NEIGHBOR_JOINING = 7;
-    public static final Tag[] TAGS_LINK_TYPE = { new Tag(SINGLE, "SINGLE"),
-            new Tag(COMPLETE, "COMPLETE"), new Tag(AVERAGE, "AVERAGE"),
-            new Tag(MEAN, "MEAN"), new Tag(CENTROID, "CENTROID"),
-            new Tag(WARD, "WARD"), new Tag(ADJCOMPLETE, "ADJCOMPLETE"),
-            new Tag(NEIGHBOR_JOINING, "NEIGHBOR_JOINING") };
-
-    /**
-     * Holds the Link type used calculate distance between clusters
-     */
-    int m_nLinkType = SINGLE;
-
-    boolean m_bPrintNewick = true;;
-
     public boolean getPrintNewick() {
         return m_bPrintNewick;
     }
@@ -173,18 +147,15 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
         m_bPrintNewick = bPrintNewick;
     }
 
+    public SelectedTag getLinkType() {
+        return new SelectedTag(m_nLinkType, TAGS_LINK_TYPE);
+    }
+
     public void setLinkType(SelectedTag newLinkType) {
         if (newLinkType.getTags() == TAGS_LINK_TYPE) {
             m_nLinkType = newLinkType.getSelectedTag().getID();
         }
     }
-
-    public SelectedTag getLinkType() {
-        return new SelectedTag(m_nLinkType, TAGS_LINK_TYPE);
-    }
-
-    protected Node[] m_clusters;
-    int[] m_nClusterNr;
 
     @Override
     public void buildClusterer(Instances data) throws Exception {
@@ -381,7 +352,7 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
      * Perform clustering using a link method This implementation uses a priority
      * queue resulting in a O(n^2 log(n)) algorithm
      *
-     * @param nClusters number of clusters
+     * @param nClusters    number of clusters
      * @param nClusterID
      * @param clusterNodes
      */
@@ -503,7 +474,9 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
         clusterNodes[iMin1] = node;
     } // merge
 
-    /** calculate distance the first time when setting up the distance matrix **/
+    /**
+     * calculate distance the first time when setting up the distance matrix *
+     */
     double getDistance0(Vector<Integer> cluster1, Vector<Integer> cluster2) {
         double fBestDist = Double.MAX_VALUE;
         switch (m_nLinkType) {
@@ -688,7 +661,9 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
         return fBestDist;
     } // getDistance
 
-    /** calculated error sum-of-squares for instances wrt centroid **/
+    /**
+     * calculated error sum-of-squares for instances wrt centroid *
+     */
     double calcESS(Vector<Integer> cluster) {
         double[] fValues1 = new double[m_instances.numAttributes()];
         for (int i = 0; i < cluster.size(); i++) {
@@ -786,7 +761,8 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
 
         newVector.addElement(new Option(
                 "\tIf set, distance is interpreted as branch length\n"
-                        + "\totherwise it is node height.", "B", 0, "-B"));
+                        + "\totherwise it is node height.", "B", 0, "-B"
+        ));
 
         newVector.addElement(new Option("\tnumber of clusters", "N", 1,
                 "-N <Nr Of Clusters>"));
@@ -800,7 +776,8 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
                         "-L [SINGLE|COMPLETE|AVERAGE|MEAN|CENTROID|WARD|ADJCOMPLETE|NEIGHBOR_JOINING]"));
         newVector.add(new Option("\tDistance function to use.\n"
                 + "\t(default: weka.core.EuclideanDistance)", "A", 1,
-                "-A <classname and options>"));
+                "-A <classname and options>"
+        ));
 
 //        newVector.addAll(Collections.list(super.listOptions()));
 
@@ -808,12 +785,68 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
     }
 
     /**
+     * Gets the current settings of the clusterer.
+     *
+     * @return an array of strings suitable for passing to setOptions()
+     */
+    @Override
+    public String[] getOptions() {
+
+        Vector<String> options = new Vector<String>();
+
+        options.add("-N");
+        options.add("" + getNumClusters());
+
+        options.add("-L");
+        switch (m_nLinkType) {
+            case (SINGLE):
+                options.add("SINGLE");
+                break;
+            case (COMPLETE):
+                options.add("COMPLETE");
+                break;
+            case (AVERAGE):
+                options.add("AVERAGE");
+                break;
+            case (MEAN):
+                options.add("MEAN");
+                break;
+            case (CENTROID):
+                options.add("CENTROID");
+                break;
+            case (WARD):
+                options.add("WARD");
+                break;
+            case (ADJCOMPLETE):
+                options.add("ADJCOMPLETE");
+                break;
+            case (NEIGHBOR_JOINING):
+                options.add("NEIGHBOR_JOINING");
+                break;
+        }
+        if (m_bPrintNewick) {
+            options.add("-P");
+        }
+        if (getDistanceIsBranchLength()) {
+            options.add("-B");
+        }
+
+        options.add("-A");
+        options.add((m_DistanceFunction.getClass().getName() + " " + Utils
+                .joinOptions(m_DistanceFunction.getOptions())).trim());
+
+//        Collections.addAll(options, super.getOptions());
+
+        return options.toArray(new String[0]);
+    }
+
+    /**
      * Parses a given list of options.
      * <p/>
-     *
+     * <p/>
      * <!-- options-start --> Valid options are:
      * <p/>
-     *
+     * <p/>
      * <!-- options-end -->
      *
      * @param options the list of options as an array of strings
@@ -878,62 +911,6 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
 //        super.setOptions(options);
 
         Utils.checkForRemainingOptions(options);
-    }
-
-    /**
-     * Gets the current settings of the clusterer.
-     *
-     * @return an array of strings suitable for passing to setOptions()
-     */
-    @Override
-    public String[] getOptions() {
-
-        Vector<String> options = new Vector<String>();
-
-        options.add("-N");
-        options.add("" + getNumClusters());
-
-        options.add("-L");
-        switch (m_nLinkType) {
-            case (SINGLE):
-                options.add("SINGLE");
-                break;
-            case (COMPLETE):
-                options.add("COMPLETE");
-                break;
-            case (AVERAGE):
-                options.add("AVERAGE");
-                break;
-            case (MEAN):
-                options.add("MEAN");
-                break;
-            case (CENTROID):
-                options.add("CENTROID");
-                break;
-            case (WARD):
-                options.add("WARD");
-                break;
-            case (ADJCOMPLETE):
-                options.add("ADJCOMPLETE");
-                break;
-            case (NEIGHBOR_JOINING):
-                options.add("NEIGHBOR_JOINING");
-                break;
-        }
-        if (m_bPrintNewick) {
-            options.add("-P");
-        }
-        if (getDistanceIsBranchLength()) {
-            options.add("-B");
-        }
-
-        options.add("-A");
-        options.add((m_DistanceFunction.getClass().getName() + " " + Utils
-                .joinOptions(m_DistanceFunction.getOptions())).trim());
-
-//        Collections.addAll(options, super.getOptions());
-
-        return options.toArray(new String[0]);
     }
 
     @Override
@@ -1051,10 +1028,6 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
                 + "based on .";
     }
 
-    public static void main(String[] argv) {
-        runClusterer(new HierarchicalClusterer2(), argv);
-    }
-
     @Override
     public String graph() throws Exception {
         if (numberOfClusters() == 0) {
@@ -1094,5 +1067,40 @@ public class HierarchicalClusterer2 extends AbstractClusterer implements
     @Override
     public String getRevision() {
         return RevisionUtils.extract("$Revision: 10203 $");
+    }
+
+    /**
+     * used for priority queue for efficient retrieval of pair of clusters to
+     * merge
+     */
+    class Tuple {
+        double m_fDist;
+        int m_iCluster1;
+        int m_iCluster2;
+        int m_nClusterSize1;
+        int m_nClusterSize2;
+
+        public Tuple(double d, int i, int j, int nSize1, int nSize2) {
+            m_fDist = d;
+            m_iCluster1 = i;
+            m_iCluster2 = j;
+            m_nClusterSize1 = nSize1;
+            m_nClusterSize2 = nSize2;
+        }
+    }
+
+    /**
+     * comparator used by priority queue *
+     */
+    class TupleComparator implements Comparator<Tuple> {
+        @Override
+        public int compare(Tuple o1, Tuple o2) {
+            if (o1.m_fDist < o2.m_fDist) {
+                return -1;
+            } else if (o1.m_fDist == o2.m_fDist) {
+                return 0;
+            }
+            return 1;
+        }
     }
 } // class HierarchicalClusterer2

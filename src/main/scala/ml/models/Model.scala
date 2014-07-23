@@ -20,67 +20,25 @@ package ml.models
 import ml.Pattern
 
 trait Model {
-  //  val size: Double
-
-  //  def distributions(instance: Pattern): Seq[Array[Double]]
-
-  //  def distribution(instance: Pattern) = {
-  //    val dists = distributions(instance)
-  //    val dist = dists(0)
-  //    val nclasses = instance.nclasses
-  //    var c = 0
-  //    while (c < nclasses) {
-  //      var d = 1
-  //      while (d < size) {
-  //        dist(c) += dists(d)(c)
-  //        d += 1
-  //      }
-  //      dist(c) /= size
-  //      c += 1
-  //    }
-  //    dist
-  //    //    distributions(instance).transpose.map(_.sum / size).toArray
-  //  } //average between distributions (is it the same as adding and normalizing?)
-
-  //  /**
-  //   * Hard prediction for a given instance.
-  //   * In the case of ensembles, hard vote will be performed.
-  //   * @param instance
-  //   * @return
-  //   */
-  //  def predict(instance: Pattern) = {
-  //    val dists = distributions(instance) //weka classifyInstance() also internally falls back to distributionForInstance()
-  //    val nclasses = instance.nclasses
-  //    val votes = new Array[Int](nclasses)
-  //    var d = 0
-  //    while (d < size) {
-  //      var c = 0
-  //      var max = 0d
-  //      var cmax = 0
-  //      while (c < nclasses) {
-  //        val v = dists(d)(c)
-  //        if (v > max) {
-  //          max = v
-  //          cmax = c
-  //        }
-  //        c += 1
-  //      }
-  //      votes(cmax) += 1
-  //      d += 1
-  //    }
-  //    var c = 0
-  //    var max = 0
-  //    var cmax = 0
-  //    while (c < nclasses) {
-  //      val v = votes(c)
-  //      if (v > max) {
-  //        max = v
-  //        cmax = c
-  //      }
-  //      c += 1
-  //    }
-  //    cmax
-  //  }
+  /**
+   * Mostra qtas vezes a classe da linha foi predita como a classe da coluna.
+   * @param patts
+   */
+  def confusion(patts: Seq[Pattern]) = if (patts.isEmpty) {
+    println("Empty list of patterns at confusion matrix.")
+    sys.exit(0)
+  } else {
+    val nc = patts.head.nclasses
+    val n = patts.size
+    val res = Array.fill(nc)(Array.fill(nc)(0))
+    var i = 0
+    while (i < n) {
+      val p = patts(i)
+      res(p.label.toInt)(predict(p)) += 1
+      i += 1
+    }
+    res
+  }
 
   def distribution(instance: Pattern): Array[Double]
 
@@ -131,3 +89,65 @@ trait BatchModel extends Model {
   val training_set: Vector[Pattern]
 }
 
+
+//  val size: Double
+
+//  def distributions(instance: Pattern): Seq[Array[Double]]
+
+//  def distribution(instance: Pattern) = {
+//    val dists = distributions(instance)
+//    val dist = dists(0)
+//    val nclasses = instance.nclasses
+//    var c = 0
+//    while (c < nclasses) {
+//      var d = 1
+//      while (d < size) {
+//        dist(c) += dists(d)(c)
+//        d += 1
+//      }
+//      dist(c) /= size
+//      c += 1
+//    }
+//    dist
+//    //    distributions(instance).transpose.map(_.sum / size).toArray
+//  } //average between distributions (is it the same as adding and normalizing?)
+
+//  /**
+//   * Hard prediction for a given instance.
+//   * In the case of ensembles, hard vote will be performed.
+//   * @param instance
+//   * @return
+//   */
+//  def predict(instance: Pattern) = {
+//    val dists = distributions(instance) //weka classifyInstance() also internally falls back to distributionForInstance()
+//    val nclasses = instance.nclasses
+//    val votes = new Array[Int](nclasses)
+//    var d = 0
+//    while (d < size) {
+//      var c = 0
+//      var max = 0d
+//      var cmax = 0
+//      while (c < nclasses) {
+//        val v = dists(d)(c)
+//        if (v > max) {
+//          max = v
+//          cmax = c
+//        }
+//        c += 1
+//      }
+//      votes(cmax) += 1
+//      d += 1
+//    }
+//    var c = 0
+//    var max = 0
+//    var cmax = 0
+//    while (c < nclasses) {
+//      val v = votes(c)
+//      if (v > max) {
+//        max = v
+//        cmax = c
+//      }
+//      c += 1
+//    }
+//    cmax
+//  }
