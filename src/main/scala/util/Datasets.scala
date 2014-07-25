@@ -97,6 +97,7 @@ object Datasets {
    */
   def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
     println("Empty sequence of patterns; cannot generate Weka Instances object.")
+    throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
     sys.exit(0)
   } else {
     val new_instances = new Instances(patterns.head.dataset, 0, 0)
@@ -160,7 +161,8 @@ object Datasets {
     stand_filter
   }
 
-  def applyFilterChangingOrder(patts: Seq[Pattern], filter: Standardize) = {
+  def applyFilterChangingOrder(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
+  else {
     val instances = patterns2instances(patts)
     val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
     val patterns = newInstances.zip(patts).map {
@@ -170,7 +172,8 @@ object Datasets {
     patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter
   }
 
-  def applyFilter(patts: Seq[Pattern], filter: Standardize) = {
+  def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
+  else {
     val ids = patts.map(_.id)
     val instances = patterns2instances(patts)
     val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
