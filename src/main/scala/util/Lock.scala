@@ -25,7 +25,7 @@ trait Lock {
   private var available = true
 
   def acquire() = {
-    Thread.sleep((rnd.nextDouble() * 100).toInt)
+    Thread.sleep((rnd.nextDouble() * 10).toInt)
     synchronized {
       while (!available) wait()
       available = false
@@ -33,7 +33,7 @@ trait Lock {
   }
 
   def release() = {
-    Thread.sleep((rnd.nextDouble() * 100).toInt)
+    Thread.sleep((rnd.nextDouble() * 10).toInt)
     synchronized {
       available = true
       notify()
