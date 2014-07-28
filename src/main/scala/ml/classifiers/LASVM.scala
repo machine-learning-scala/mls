@@ -1,7 +1,7 @@
 package ml.classifiers
 
 import ml.Pattern
-import ml.models.Model
+import ml.models.{LASVMModel, Model}
 
 /*
 elm-scala: an implementation of ELM in Scala using MTJ
@@ -32,5 +32,6 @@ case class LASVM() extends Learner {
 
   def build(pool: Seq[Pattern]) = {
     ???
+    LASVMModel()
   }
 }
