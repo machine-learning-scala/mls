@@ -24,6 +24,13 @@ trait Lock {
   private val rnd = new Random(10)
   private var available = true
 
+  def safeQuit(msg: String, db: Lock = null) = {
+    println(msg)
+    if (db == null) acquire() else db.acquire()
+    Thread.sleep(1000)
+    sys.exit(0)
+  }
+
   def acquire() = {
     Thread.sleep((rnd.nextDouble() * 10).toInt)
     synchronized {
