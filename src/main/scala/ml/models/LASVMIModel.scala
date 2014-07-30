@@ -19,7 +19,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-case class LASVMModel() extends Model {
+case class LASVMIModel() extends Model {
   def distribution(instance: Pattern) = ???
 
   def output(instance: Pattern) = ???

@@ -1,7 +1,7 @@
 package ml.classifiers
 
 import ml.Pattern
-import ml.models.{LASVMModel, Model}
+import ml.models.{LASVMIModel, Model}
 
 /*
 elm-scala: an implementation of ELM in Scala using MTJ
@@ -20,7 +20,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-case class LASVM() extends Learner {
+case class LASVMI() extends Learner {
   override val toString = "LASVM"
   val notes = ""
 
@@ -31,7 +31,8 @@ case class LASVM() extends Learner {
   def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
   def build(pool: Seq[Pattern]) = {
+
     ???
-    LASVMModel()
+    LASVMIModel()
   }
 }
