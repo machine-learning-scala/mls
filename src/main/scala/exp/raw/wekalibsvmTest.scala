@@ -1,3 +1,5 @@
+package exp.raw
+
 /*
 mls: basic machine learning algorithms for Scala
 Copyright (C) 2014 Davi Pereira dos Santos
@@ -25,21 +27,9 @@ import util.Datasets
 
 import scala.util.Random
 
-object jkernmachsTest extends App {
-  //setting kernel
-  val kernel = new DoubleGaussL2()
-  kernel.setGamma(0.005)
-
-  //setting SVM parameters
-  val svm = new LaSVM(kernel)
-  svm.setC(1000) //C hyperparameter
-  svm.setE(1)
-  //epochs, 1: online
-  //svm.setB() //bias, default em zero, mas no artigo diz que é definido automaticamente
-  // tau = 0.001
-
+object wekalibsvmTest extends App {
   val d = Random.shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris").right.get)
-  d.take(50) foreach (Datasets.pattern2TrainingSample _ andThen svm.train)
-  //  svm.
+  //  val svm = LibSV
+  //  d.take(50) foreach (Datasets.pattern2TrainingSample _ andThen svm.train)
 
 }

@@ -19,6 +19,7 @@ package util
 
 import java.io.{BufferedReader, File, FileReader, IOException}
 
+import fr.lip6.jkernelmachines.`type`.TrainingSample
 import ml.{Pattern, PatternParent}
 import weka.core.Instances
 import weka.core.converters.ArffLoader.ArffReader
@@ -32,23 +33,6 @@ import scala.collection.mutable.ArrayBuffer
 object Datasets {
 
   import scala.collection.JavaConversions._
-
-  def distinctMode(patts: mutable.Buffer[Pattern]) =
-    patts groupBy (x => x) map {
-      case (keyPatt: Pattern, ArrayBuffer(patt: Pattern)) => patt
-      case (keyPatt: Pattern, listPatt: ArrayBuffer[Pattern]) =>
-        val hist = Array.fill(keyPatt.nclasses)(0)
-        listPatt foreach (p => hist(p.label.toInt) += 1)
-        val modeLabel = hist.zipWithIndex.max._2
-        keyPatt.relabeled_reweighted(modeLabel, keyPatt.weight, new_missed = false)
-    }
-
-  def rmUseless(instances: Instances) = {
-    val rmUseless_filter = new RemoveUseless
-    //    stand_filter.setMaximumVariancePercentageAllowed()
-    rmUseless_filter.setInputFormat(instances)
-    Filter.useFilter(instances, rmUseless_filter)
-  }
 
   /**
    * Reads an ARFF file.
@@ -90,20 +74,48 @@ object Datasets {
     }
   }
 
+  def distinctMode(patts: mutable.Buffer[Pattern]) =
+    patts groupBy (x => x) map {
+      case (keyPatt: Pattern, ArrayBuffer(patt: Pattern)) => patt
+      case (keyPatt: Pattern, listPatt: ArrayBuffer[Pattern]) =>
+        val hist = Array.fill(keyPatt.nclasses)(0)
+        listPatt foreach (p => hist(p.label.toInt) += 1)
+        val modeLabel = hist.zipWithIndex.max._2
+        keyPatt.relabeled_reweighted(modeLabel, keyPatt.weight, new_missed = false)
+    }
+
+  def rmUseless(instances: Instances) = {
+    val rmUseless_filter = new RemoveUseless
+    //    stand_filter.setMaximumVariancePercentageAllowed()
+    rmUseless_filter.setInputFormat(instances)
+    Filter.useFilter(instances, rmUseless_filter)
+  }
+
+  def binarize(instances: Instances) = {
+    val bina_filter = new NominalToBinary
+    bina_filter.setInputFormat(instances)
+    Filter.useFilter(instances, bina_filter)
+  }
+
+  def zscore(instances: Instances) = {
+    val stand_filter = new Standardize
+    stand_filter.setInputFormat(instances)
+    Filter.useFilter(instances, stand_filter)
+  }
+
   /**
-   * Create a new Instances that contains Pattern objects instead of Instance objects.
+   * Create a list of TrSamps.
    * @param patterns
    * @return
    */
-  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
-    println("Empty sequence of patterns; cannot generate Weka Instances object.")
-    throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
-    sys.exit(0)
+  def patterns2TrainingSamples(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
+    println("Empty sequence of patterns; cannot generate empty list of TrainingSamples.")
+    throw new Error("Empty sequence of patterns; cannot generate list of TrainingSamples.")
   } else {
-    val new_instances = new Instances(patterns.head.dataset, 0, 0)
-    patterns foreach new_instances.add
-    new_instances
+    patterns.toList map (p => new TrainingSample[Array[Double]](p.array, p.label.toInt))
   }
+
+  def pattern2TrainingSample(pattern: Pattern) = new TrainingSample[Array[Double]](pattern.array, pattern.label.toInt)
 
   def LOO[T](patterns: Seq[Pattern], parallel: Boolean = false)(f: (Seq[Pattern], Pattern) => T): Seq[T] = {
     if (parallel) ???
@@ -135,24 +147,12 @@ object Datasets {
     seq.map(foldnr => f(trainfolds(foldnr), testfolds(foldnr), foldnr, minSize)).toList
   }
 
-  def binarize(instances: Instances) = {
-    val bina_filter = new NominalToBinary
-    bina_filter.setInputFormat(instances)
-    Filter.useFilter(instances, bina_filter)
-  }
-
   def normalize(instances: Instances, scale: Double = 1, translation: Double = 0) = {
     val norm_filter = new Normalize
     norm_filter.setInputFormat(instances)
     norm_filter.setScale(scale)
     norm_filter.setTranslation(translation)
     Filter.useFilter(instances, norm_filter)
-  }
-
-  def zscore(instances: Instances) = {
-    val stand_filter = new Standardize
-    stand_filter.setInputFormat(instances)
-    Filter.useFilter(instances, stand_filter)
   }
 
   def zscoreFilter(patts: Seq[Pattern]) = {
@@ -185,6 +185,21 @@ object Datasets {
       println("Impossivel reordenar after z-score filter.")
       sys.exit(0)
     })
+  }
+
+  /**
+   * Create a new Instances that contains Pattern objects instead of Instance objects.
+   * @param patterns
+   * @return
+   */
+  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
+    println("Empty sequence of patterns; cannot generate Weka Instances object.")
+    throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
+    sys.exit(0)
+  } else {
+    val new_instances = new Instances(patterns.head.dataset, 0, 0)
+    patterns foreach new_instances.add
+    new_instances
   }
 
   def pca(ins: Instances, n: Int) = {
