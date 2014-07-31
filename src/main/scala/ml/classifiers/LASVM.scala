@@ -1,7 +1,7 @@
 package ml.classifiers
 
 import ml.Pattern
-import ml.models.{LASVMIModel, Model}
+import ml.models.{LASVMModel, Model}
 
 /*
 mls: basic machine learning algorithms for Scala
@@ -20,7 +20,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-case class LASVMI() extends Learner {
+case class LASVM() extends Learner {
   override val toString = "LASVM"
   val notes = ""
 
@@ -33,6 +33,6 @@ case class LASVMI() extends Learner {
   def build(pool: Seq[Pattern]) = {
     //todo: preciso que jkernelmachines tenha suporte a "multiclass probability output" e que seja mais rapido que libsvm; caso não seja mais rápido ele poderia ser adaptado para ser realmente incremental.
     ???
-    LASVMIModel()
+    LASVMModel()
   }
 }
