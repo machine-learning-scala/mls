@@ -3,7 +3,7 @@ package ml.models
 import ml.Pattern
 
 /*
-elm-scala: an implementation of ELM in Scala using MTJ
+mls: basic machine learning algorithms for Scala
 Copyright (C) 2014 Davi Pereira dos Santos
 
   This program is free software: you can redistribute it and/or modify

@@ -4,7 +4,7 @@ import ml.Pattern
 import ml.models.{LASVMIModel, Model}
 
 /*
-elm-scala: an implementation of ELM in Scala using MTJ
+mls: basic machine learning algorithms for Scala
 Copyright (C) 2014 Davi Pereira dos Santos
 
   This program is free software: you can redistribute it and/or modify
@@ -31,7 +31,7 @@ case class LASVMI() extends Learner {
   def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
   def build(pool: Seq[Pattern]) = {
-
+    //todo: preciso que jkernelmachines tenha suporte a "multiclass probability output" e que seja mais rapido que libsvm; caso não seja mais rápido ele poderia ser adaptado para ser realmente incremental.
     ???
     LASVMIModel()
   }

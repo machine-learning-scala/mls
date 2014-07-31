@@ -18,18 +18,29 @@ Copyright (C) 2014 Davi Pereira dos Santos
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import fr.lip6.jkernelmachines.classifier.LaSVM
-import fr.lip6.jkernelmachines.evaluation.ApEvaluator
-import fr.lip6.jkernelmachines.io.LibSVMImporter
-import fr.lip6.jkernelmachines.kernel.typed.DoubleGaussL2
-import fr.lip6.jkernelmachines.`type`.TrainingSample
-import util.Datasets
+import util.{Tempo, Datasets}
+import weka.classifiers.functions.LibSVM
+import weka.core.SelectedTag
 
 import scala.util.Random
 
 object wekalibsvmTest extends App {
-  val d = Random.shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris").right.get)
-  //  val svm = LibSV
+  val d = Random.shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get)
+  val tr = Datasets.patterns2instances(d.take(1000))
+  val ts = Datasets.patterns2instances(d.drop(1000))
+  val svm = new LibSVM()
+  svm.setDoNotReplaceMissingValues(true)
+  svm.setNormalize(false)
+  svm.setProbabilityEstimates(true)
+  svm.setDoNotCheckCapabilities(true)
+  svm.setDebug(false)
+  svm.setSeed(0)
+  Tempo.start
+  svm.buildClassifier(tr)
+  Tempo.print_stop
+  print(svm.distributionForInstance(ts.firstInstance()).toList)
+
+  //  svm.setSVMType(new SelectedTag(LibSVM.SVMTYPE_C_SVC,    LibSVM.TAGS_SVMTYPE))
   //  d.take(50) foreach (Datasets.pattern2TrainingSample _ andThen svm.train)
 
 }
