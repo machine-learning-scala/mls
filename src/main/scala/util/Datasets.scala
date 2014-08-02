@@ -224,7 +224,7 @@ object Datasets {
     //not todo: lazy requer que não retorne Either/Option
     val arq = new File(path + "/" + dataset + ".db")
     if (!arq.exists()) {
-      Left(s"Dataset file $arq not found!")
+      println(s"Dataset file $arq not found!")
       Thread.sleep(1000)
       sys.exit(0)
     } else {
@@ -244,7 +244,8 @@ object Datasets {
           res.toStream
         }
         catch {
-          case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
+          case ex: IOException =>
+            println("Problems reading file " + arq + ": " + ex.getMessage)
             Thread.sleep(1000)
             sys.exit(0)
         }
