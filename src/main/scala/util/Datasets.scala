@@ -178,21 +178,6 @@ object Datasets {
     patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter behavior (it is probably multithreaded)
   }
 
-  def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
-  else {
-    val ids = patts.map(_.id)
-    val instances = patterns2instances(patts)
-    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
-    val patterns = newInstances.zip(patts).map {
-        case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
-        case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
-      }
-    ids.map(id => patterns.find(_.id == id).getOrElse {
-      println("Impossivel reordenar after z-score filter.")
-      sys.exit(0)
-    })
-  }
-
   /**
    * Create a new Instances that contains Pattern objects instead of Instance objects.
    * @param patterns
@@ -208,6 +193,21 @@ object Datasets {
     new_instances
   }
 
+  def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
+  else {
+    val ids = patts.map(_.id)
+    val instances = patterns2instances(patts)
+    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
+    val patterns = newInstances.zip(patts).map {
+        case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
+        case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
+      }
+    ids.map(id => patterns.find(_.id == id).getOrElse {
+      println("Impossivel reordenar after z-score filter.")
+      sys.exit(0)
+    })
+  }
+
   def pca(ins: Instances, n: Int) = {
     val pc = new PrincipalComponents
     pc.setInputFormat(ins)
@@ -215,7 +215,7 @@ object Datasets {
     Filter.useFilter(ins, pc)
   }
 
-  def patternsFromSQLiteFullPath(dataset: String) = patternsFromSQLite("")(dataset)
+  def patternsFromSQLiteFullPath(dataset: String) = patternsFromSQLite("")(dataset.dropRight(3))
   /**
    * Reads a SQLite dataset.
    * Assigns the rowid to pattern id.
