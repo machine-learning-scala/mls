@@ -178,21 +178,6 @@ object Datasets {
     patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter behavior (it is probably multithreaded)
   }
 
-  def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
-  else {
-    val ids = patts.map(_.id)
-    val instances = patterns2instances(patts)
-    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
-    val patterns = newInstances.zip(patts).map {
-        case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
-        case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
-      }
-    ids.map(id => patterns.find(_.id == id).getOrElse {
-      println("Impossivel reordenar after z-score filter.")
-      sys.exit(0)
-    })
-  }
-
   /**
    * Create a new Instances that contains Pattern objects instead of Instance objects.
    * @param patterns
@@ -208,6 +193,21 @@ object Datasets {
     new_instances
   }
 
+  def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
+  else {
+    val ids = patts.map(_.id)
+    val instances = patterns2instances(patts)
+    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
+    val patterns = newInstances.zip(patts).map {
+        case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
+        case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
+      }
+    ids.map(id => patterns.find(_.id == id).getOrElse {
+      println("Impossivel reordenar after z-score filter.")
+      sys.exit(0)
+    })
+  }
+
   def pca(ins: Instances, n: Int) = {
     val pc = new PrincipalComponents
     pc.setInputFormat(ins)
@@ -221,11 +221,15 @@ object Datasets {
    * Assumes there is no duplicates.
    */
   def patternsFromSQLite(path: String)(dataset: String) = {
+    //not todo: lazy requer que não retorne Either/Option
     val arq = new File(path + "/" + dataset + ".db")
-    if (!arq.exists()) Left(s"Dataset file $arq not found!")
-    else {
-      try {
-        lazy val patterns = {
+    if (!arq.exists()) {
+      Left(s"Dataset file $arq not found!")
+      Thread.sleep(1000)
+      sys.exit(0)
+    } else {
+      lazy val patterns = {
+        try {
           println(s"Opening $arq")
           val query = new InstanceQuery()
           query.setDatabaseURL("jdbc:sqlite:////" + arq)
@@ -237,12 +241,15 @@ object Datasets {
           val parent = PatternParent(instances)
           val res = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //rowid is always > 0
           query.close()
-          res
+          res.toStream
         }
-        Right(Lazy(patterns.toStream))
-      } catch {
-        case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
+        catch {
+          case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
+            Thread.sleep(1000)
+            sys.exit(0)
+        }
       }
+      Lazy(patterns)
     }
   }
 }
