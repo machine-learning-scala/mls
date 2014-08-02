@@ -178,21 +178,6 @@ object Datasets {
     patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter behavior (it is probably multithreaded)
   }
 
-  /**
-   * Create a new Instances that contains Pattern objects instead of Instance objects.
-   * @param patterns
-   * @return
-   */
-  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
-    println("Empty sequence of patterns; cannot generate Weka Instances object.")
-    throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
-    sys.exit(0)
-  } else {
-    val new_instances = new Instances(patterns.head.dataset, 0, 0)
-    patterns foreach new_instances.add
-    new_instances
-  }
-
   def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
   else {
     val ids = patts.map(_.id)
@@ -208,6 +193,21 @@ object Datasets {
     })
   }
 
+  /**
+   * Create a new Instances that contains Pattern objects instead of Instance objects.
+   * @param patterns
+   * @return
+   */
+  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
+    println("Empty sequence of patterns; cannot generate Weka Instances object.")
+    throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
+    sys.exit(0)
+  } else {
+    val new_instances = new Instances(patterns.head.dataset, 0, 0)
+    patterns foreach new_instances.add
+    new_instances
+  }
+
   def pca(ins: Instances, n: Int) = {
     val pc = new PrincipalComponents
     pc.setInputFormat(ins)
@@ -215,6 +215,7 @@ object Datasets {
     Filter.useFilter(ins, pc)
   }
 
+  def patternsFromSQLiteFullPath(dataset: String) = patternsFromSQLite("")(dataset)
   /**
    * Reads a SQLite dataset.
    * Assigns the rowid to pattern id.
