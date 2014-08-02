@@ -27,7 +27,7 @@ trait Lock {
   def safeQuit(msg: String, db: Lock = null) = {
     println(msg)
     if (db == null) acquire() else db.acquire()
-    Thread.sleep(500)
+    Thread.sleep(0)
     sys.exit(0)
   }
 
