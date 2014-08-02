@@ -226,6 +226,7 @@ object Datasets {
     else {
       try {
         lazy val patterns = {
+          println(s"Opening $arq")
           val query = new InstanceQuery()
           query.setDatabaseURL("jdbc:sqlite:////" + arq)
           query.setQuery("select * from inst order by rowid")
