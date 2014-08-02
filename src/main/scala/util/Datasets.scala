@@ -169,22 +169,7 @@ object Datasets {
         case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
         case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
       }
-    patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter
-  }
-
-  def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
-  else {
-    val ids = patts.map(_.id)
-    val instances = patterns2instances(patts)
-    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
-    val patterns = newInstances.zip(patts).map {
-        case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
-        case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
-      }
-    ids.map(id => patterns.find(_.id == id).getOrElse {
-      println("Impossivel reordenar after z-score filter.")
-      sys.exit(0)
-    })
+    patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter behavior (it is probably multithreaded)
   }
 
   /**
@@ -200,6 +185,21 @@ object Datasets {
     val new_instances = new Instances(patterns.head.dataset, 0, 0)
     patterns foreach new_instances.add
     new_instances
+  }
+
+  def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
+  else {
+    val ids = patts.map(_.id)
+    val instances = patterns2instances(patts)
+    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
+    val patterns = newInstances.zip(patts).map {
+        case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
+        case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
+      }
+    ids.map(id => patterns.find(_.id == id).getOrElse {
+      println("Impossivel reordenar after z-score filter.")
+      sys.exit(0)
+    })
   }
 
   def pca(ins: Instances, n: Int) = {
