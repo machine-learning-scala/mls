@@ -38,7 +38,7 @@ object jkernmachsTest extends App {
   //svm.setB() //bias, default em zero, mas no artigo diz que é definido automaticamente
   // tau = 0.001
 
-  val d = Random.shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris").right.get)
+  val d = Random.shuffle(Datasets.patternsFromSQLite("/home/davi/wcs/ucipp/uci")("iris").right.get.value)
   d.take(50) foreach (Datasets.pattern2TrainingSample _ andThen svm.train)
   //  svm.
 

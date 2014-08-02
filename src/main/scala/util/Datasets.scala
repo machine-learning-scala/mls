@@ -26,7 +26,6 @@ import weka.core.converters.ArffLoader.ArffReader
 import weka.experiment.InstanceQuery
 import weka.filters.Filter
 import weka.filters.unsupervised.attribute._
-
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -131,20 +130,27 @@ object Datasets {
     q.toList
   }
 
-  def kfoldCV[T](patterns: Seq[Pattern], k: Int = 10, parallel: Boolean = false)(f: (Seq[Pattern], Seq[Pattern], Int, Int) => T): Seq[T] = {
-    val n = patterns.length
-    val folds = Array.fill(k)(Seq[Pattern]())
-    val grouped = patterns.groupBy(_.label).values.flatten.toArray
-    var i = 0
-    while (i < n) {
-      folds(i % k) +:= grouped(i)
-      i += 1
+  def kfoldCV[T](patterns: => Seq[Pattern], k: Int = 10, parallel: Boolean = false)(f: (=> Seq[Pattern], => Seq[Pattern], Int, Int) => T) {
+    lazy val folds = {
+      val n = patterns.length
+      val tmp = Array.fill(k)(Seq[Pattern]())
+      val grouped = patterns.groupBy(_.label).values.flatten.toArray
+      var i = 0
+      while (i < n) {
+        tmp(i % k) +:= grouped(i)
+        i += 1
+      }
+      tmp
     }
-    val testfolds = folds
-    val trainfolds = for (fo <- 0 until k) yield folds.filterNot(_.sameElements(testfolds(fo))).flatten
+    lazy val testfolds = folds
+    lazy val trainfolds = for (fo <- 0 until k) yield folds.filterNot(_.sameElements(testfolds(fo))).flatten
     val minSize = trainfolds.map(_.length).min
     val seq = if (parallel) (0 until k).par else 0 until k
-    seq.map(foldnr => f(trainfolds(foldnr), testfolds(foldnr), foldnr, minSize)).toList
+    seq.foreach { foldnr =>
+      lazy val tr = trainfolds(foldnr)
+      lazy val ts = testfolds(foldnr)
+      f(tr, ts, foldnr, minSize)
+    }
   }
 
   def normalize(instances: Instances, scale: Double = 1, translation: Double = 0) = {
@@ -172,21 +178,6 @@ object Datasets {
     patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter behavior (it is probably multithreaded)
   }
 
-  /**
-   * Create a new Instances that contains Pattern objects instead of Instance objects.
-   * @param patterns
-   * @return
-   */
-  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
-    println("Empty sequence of patterns; cannot generate Weka Instances object.")
-    throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
-    sys.exit(0)
-  } else {
-    val new_instances = new Instances(patterns.head.dataset, 0, 0)
-    patterns foreach new_instances.add
-    new_instances
-  }
-
   def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
   else {
     val ids = patts.map(_.id)
@@ -200,6 +191,21 @@ object Datasets {
       println("Impossivel reordenar after z-score filter.")
       sys.exit(0)
     })
+  }
+
+  /**
+   * Create a new Instances that contains Pattern objects instead of Instance objects.
+   * @param patterns
+   * @return
+   */
+  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
+    println("Empty sequence of patterns; cannot generate Weka Instances object.")
+    throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
+    sys.exit(0)
+  } else {
+    val new_instances = new Instances(patterns.head.dataset, 0, 0)
+    patterns foreach new_instances.add
+    new_instances
   }
 
   def pca(ins: Instances, n: Int) = {
@@ -219,17 +225,20 @@ object Datasets {
     if (!arq.exists()) Left(s"Dataset file $arq not found!")
     else {
       try {
-        val query = new InstanceQuery()
-        query.setDatabaseURL("jdbc:sqlite:////" + arq)
-        query.setQuery("select * from inst order by rowid")
-        query.setDebug(false)
-        val instances = query.retrieveInstances()
-        instances.setClassIndex(instances.numAttributes() - 1)
-        instances.setRelationName(dataset)
-        val parent = PatternParent(instances)
-        val patterns = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //rowid is always > 0
-        query.close()
-        Right(patterns.toStream)
+        lazy val patterns = {
+          val query = new InstanceQuery()
+          query.setDatabaseURL("jdbc:sqlite:////" + arq)
+          query.setQuery("select * from inst order by rowid")
+          query.setDebug(false)
+          val instances = query.retrieveInstances()
+          instances.setClassIndex(instances.numAttributes() - 1)
+          instances.setRelationName(dataset)
+          val parent = PatternParent(instances)
+          val res = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //rowid is always > 0
+          query.close()
+          res
+        }
+        Right(Lazy(patterns.toStream))
       } catch {
         case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
       }
