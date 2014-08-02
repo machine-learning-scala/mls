@@ -178,21 +178,6 @@ object Datasets {
     patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter behavior (it is probably multithreaded)
   }
 
-  /**
-   * Create a new Instances that contains Pattern objects instead of Instance objects.
-   * @param patterns
-   * @return
-   */
-  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
-    println("Empty sequence of patterns; cannot generate Weka Instances object.")
-    throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
-    sys.exit(0)
-  } else {
-    val new_instances = new Instances(patterns.head.dataset, 0, 0)
-    patterns foreach new_instances.add
-    new_instances
-  }
-
   def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
   else {
     val ids = patts.map(_.id)
@@ -206,6 +191,21 @@ object Datasets {
       println("Impossivel reordenar after z-score filter.")
       sys.exit(0)
     })
+  }
+
+  /**
+   * Create a new Instances that contains Pattern objects instead of Instance objects.
+   * @param patterns
+   * @return
+   */
+  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
+    println("Empty sequence of patterns; cannot generate Weka Instances object.")
+    throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
+    sys.exit(0)
+  } else {
+    val new_instances = new Instances(patterns.head.dataset, 0, 0)
+    patterns foreach new_instances.add
+    new_instances
   }
 
   def pca(ins: Instances, n: Int) = {
@@ -227,7 +227,7 @@ object Datasets {
     println(s"Opening $arq")
     if (!arq.exists()) {
       println(s"Dataset file $arq not found!")
-      Thread.sleep(1000)
+      Thread.sleep(10)
       sys.exit(0)
     } else {
       lazy val patterns = {
@@ -247,7 +247,7 @@ object Datasets {
         catch {
           case ex: IOException =>
             println("Problems reading file " + arq + ": " + ex.getMessage)
-            Thread.sleep(1000)
+            Thread.sleep(10)
             sys.exit(0)
         }
       }

@@ -27,12 +27,12 @@ trait Lock {
   def safeQuit(msg: String, db: Lock = null) = {
     println(msg)
     if (db == null) acquire() else db.acquire()
-    Thread.sleep(1000)
+    Thread.sleep(500)
     sys.exit(0)
   }
 
   def acquire() = {
-    Thread.sleep((rnd.nextDouble() * 50).toInt)
+    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       while (!available) wait()
       available = false
@@ -40,7 +40,7 @@ trait Lock {
   }
 
   def release() = {
-    Thread.sleep((rnd.nextDouble() * 50).toInt)
+    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       available = true
       notify()
