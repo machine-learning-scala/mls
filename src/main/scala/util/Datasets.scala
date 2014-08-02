@@ -223,6 +223,7 @@ object Datasets {
   def patternsFromSQLite(path: String)(dataset: String) = {
     //not todo: lazy requer que não retorne Either/Option
     val arq = new File(path + "/" + dataset + ".db")
+    println(s"Opening $arq")
     if (!arq.exists()) {
       println(s"Dataset file $arq not found!")
       Thread.sleep(1000)
@@ -230,7 +231,6 @@ object Datasets {
     } else {
       lazy val patterns = {
         try {
-          println(s"Opening $arq")
           val query = new InstanceQuery()
           query.setDatabaseURL("jdbc:sqlite:////" + arq)
           query.setQuery("select * from inst order by rowid")
