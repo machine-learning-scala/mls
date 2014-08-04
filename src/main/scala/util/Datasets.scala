@@ -223,13 +223,12 @@ object Datasets {
    * Assumes there is no duplicates.
    */
   def patternsFromSQLite(path: String)(dataset: String) = {
-    //not todo: lazy requer que não retorne Either/Option
     val arq = new File(path + "/" + dataset + ".db")
     println(s"Opening $arq")
     if (!arq.exists()) Left(s"Dataset file $arq not found!")
     else {
       try {
-        lazy val patterns = {
+        val patterns = {
           val query = new InstanceQuery()
           query.setDatabaseURL("jdbc:sqlite:////" + arq)
           query.setQuery("select * from inst order by rowid")
@@ -242,7 +241,7 @@ object Datasets {
           query.close()
           res.toStream
         }
-        Right(Lazy(patterns))
+        Right(patterns)
       } catch {
         case ex: IOException =>
           Left("Problems reading file " + arq + ": " + ex.getMessage)
