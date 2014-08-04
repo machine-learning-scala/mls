@@ -29,6 +29,9 @@ trait Lock {
     println(msg)
     //    if (db == null) acquire() else db.acquire()
     if (db != null && !db.readOnly) db.acquire()
+    else {
+      if (!readOnly) acquire()
+    }
     sys.exit(0)
   }
 
