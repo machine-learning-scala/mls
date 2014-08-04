@@ -21,13 +21,14 @@ package util
 import scala.util.Random
 
 trait Lock {
+  val readOnly: Boolean
   private val rnd = new Random(10)
   private var available = true
 
   def safeQuit(msg: String, db: Lock = null) = {
     println(msg)
-    if (db == null) acquire() else db.acquire()
-    Thread.sleep(0)
+    //    if (db == null) acquire() else db.acquire()
+    if (db != null && !db.readOnly) db.acquire()
     sys.exit(0)
   }
 
