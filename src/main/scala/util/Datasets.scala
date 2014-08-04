@@ -186,7 +186,7 @@ object Datasets {
   def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
     println("Empty sequence of patterns; cannot generate Weka Instances object.")
     throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
-    sys.exit(0)
+    sys.exit(1)
   } else {
     val new_instances = new Instances(patterns.head.dataset, 0, 0)
     patterns foreach new_instances.add
@@ -204,7 +204,7 @@ object Datasets {
       }
     ids.map(id => patterns.find(_.id == id).getOrElse {
       println("Impossivel reordenar after z-score filter.")
-      sys.exit(0)
+      sys.exit(1)
     })
   }
 

@@ -31,7 +31,7 @@ object NaiveBayesExample extends App {
 
   val data = Datasets.arff(bina = true)("iris.arff") match {
     case Right(x) => x
-    case Left(str) => println("Could not load iris dataset from the program path: " + str); sys.exit(0)
+    case Left(str) => println("Could not load iris dataset from the program path: " + str); sys.exit(1)
   }
   util.Datasets.kfoldCV(data, k = 10, parallel = true) { (trainingSet, testingSet, fold, _) =>
     val (model, t) = Tempo.timev(NB().build(trainingSet))

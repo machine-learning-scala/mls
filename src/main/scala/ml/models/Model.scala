@@ -26,7 +26,7 @@ trait Model {
    */
   def confusion(patts: Seq[Pattern]) = if (patts.isEmpty) {
     println("Empty list of patterns at confusion matrix.")
-    sys.exit(0)
+    sys.exit(1)
   } else {
     val nc = patts.head.nclasses
     val n = patts.size

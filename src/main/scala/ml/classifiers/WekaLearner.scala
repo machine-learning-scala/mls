@@ -54,7 +54,7 @@ trait IncrementalWekaLearner extends WekaLearner {
   protected def generate_model(classifier: Classifier with UpdateableClassifier, patterns: Seq[Pattern]) = {
     if (patterns.size < patterns.head.nclasses) {
       println("build() needs at least |Y| patterns.")
-      sys.exit(0)
+      sys.exit(1)
     }
     classifier.buildClassifier(Datasets.patterns2instances(patterns.take(patterns.head.nclasses))) //no more head.dataset()
     patterns.drop(patterns.head.nclasses) foreach classifier.updateClassifier

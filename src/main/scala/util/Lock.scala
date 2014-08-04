@@ -32,7 +32,7 @@ trait Lock {
     else {
       if (!readOnly) acquire()
     }
-    sys.exit(0)
+    sys.exit(1)
   }
 
   def acquire() = {
