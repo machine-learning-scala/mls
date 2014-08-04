@@ -20,6 +20,7 @@ package ml.models
 import ml.Pattern
 
 trait Model {
+  val L: Int
   /**
    * Mostra qtas vezes a classe da linha foi predita como a classe da coluna.
    * @param patts

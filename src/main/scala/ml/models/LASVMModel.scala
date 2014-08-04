@@ -20,6 +20,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 case class LASVMModel() extends Model {
+  val L = -1
   def distribution(instance: Pattern) = ???
 
   def output(instance: Pattern) = ???
