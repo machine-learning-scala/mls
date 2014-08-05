@@ -215,7 +215,7 @@ object Datasets {
     Filter.useFilter(ins, pc)
   }
 
-  def patternsFromSQLiteFullPath(dataset: String) = patternsFromSQLite("")(dataset.dropRight(3))
+  //  def patternsFromSQLiteFullPath(dataset: String) = patternsFromSQLite("")(dataset.dropRight(3))
 
   /**
    * Reads a SQLite dataset.
