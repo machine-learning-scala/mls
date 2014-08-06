@@ -130,7 +130,7 @@ object Datasets {
     q.toList
   }
 
-  def kfoldCV[T](patterns: => Seq[Pattern], k: Int = 10, parallel: Boolean = false)(f: (=> Seq[Pattern], => Seq[Pattern], Int, Int) => T) {
+  def kfoldCV[T](patterns: => Seq[Pattern], k: Int = 10, parallel: Boolean = false)(f: (=> Seq[Pattern], => Seq[Pattern], Int, Int) => T) = {
     lazy val folds = {
       val n = patterns.length
       val tmp = Array.fill(k)(Seq[Pattern]())
@@ -146,7 +146,7 @@ object Datasets {
     lazy val trainfolds = for (fo <- 0 until k) yield folds.filterNot(_.sameElements(testfolds(fo))).flatten
     val minSize = trainfolds.map(_.length).min
     val seq = if (parallel) (0 until k).par else 0 until k
-    seq.foreach { foldnr =>
+    seq.map { foldnr =>
       lazy val tr = trainfolds(foldnr)
       lazy val ts = testfolds(foldnr)
       f(tr, ts, foldnr, minSize)
