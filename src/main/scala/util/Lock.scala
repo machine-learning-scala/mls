@@ -22,6 +22,7 @@ import scala.util.Random
 
 trait Lock {
   val readOnly: Boolean
+  var fileLocked: Boolean
 
   def hardClose(): Unit
   private val rnd = new Random(10)
@@ -31,11 +32,21 @@ trait Lock {
     println(msg)
     if (db != null) {
       if (!db.readOnly) db.acquire()
-      db.hardClose()
+      if (fileLocked) db.hardClose()
+      else {
+        //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
+        db.acquire()
+        sys.exit(1)
+      }
     }
 
     if (!readOnly) acquire()
-    hardClose()
+    if (fileLocked) hardClose()
+    else {
+      //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
+      acquire()
+      sys.exit(1)
+    }
 
     println("Safe quit!")
     sys.exit(1)
