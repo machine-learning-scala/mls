@@ -28,15 +28,33 @@ trait Lock {
 
   def hardClose(): Unit
 
+  def exiting() = !running
+
   private val rnd = new Random(10)
   private var available = true
+  private var availableOp = true
   var running = true
 
   def safeQuit(msg: String, db: Lock = null) = {
     println(msg)
+
+    //todo: essas linhas aqui supõe que sempre haverá uma thread de trabalho (query, hit por exemplo) capacitada a emitir o releaseOp(), do contrário, espera-se infinitamente
+    if (db != null) db.acquireOp() else acquireOp() //passa direto
     running = false
+    if (db != null) db.acquireOp() else acquireOp() //trava aqui até que um dos processos perceba que estamos em exiting (pode haver mais de um processo em paralelo nessa situação, somente o mais rápido tem garantias de usufruir)
+
+    //Aguarda um pouco pra talvez pegar outros processos mais lentos. New jobs are blocked by an IF at their implementation (savequeries, savehits)
+    println("Vou esperar 1h, caso veja que nada mais está rodando e deseje antecipar o destravamento das bases, crie um arquivo /tmp/unsafeQuit.davi .")
+    def running2 = !new File("/tmp/unsafeQuit.davi").exists()
+    var min = 0
+    1 to 60 takeWhile { min => //1h
+      Thread.sleep(60000) //1min.
+      println(s"$min minutos corridos ")
+      running2
+    }
+
     if (db != null) {
-      db.acquire()
+      db.acquire() //aguarda caso ainda haja algo importante rolando (disco , ...)
       if (!db.readOnly) {
         db.hardClose()
         println("Safe quit 1!!")
@@ -64,6 +82,22 @@ trait Lock {
     Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       available = true
+      notify()
+    }
+  }
+
+  def acquireOp() = {
+    //    Thread.sleep((rnd.nextDouble() * 30).toInt)
+    synchronized {
+      while (!availableOp) wait()
+      availableOp = false
+    }
+  }
+
+  def releaseOp() = {
+    //    Thread.sleep((rnd.nextDouble() * 30).toInt)
+    synchronized {
+      availableOp = true
       notify()
     }
   }
