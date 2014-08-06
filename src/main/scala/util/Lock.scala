@@ -18,6 +18,8 @@
 
 package util
 
+import java.io.File
+
 import scala.util.Random
 
 trait Lock {
@@ -28,7 +30,7 @@ trait Lock {
 
   private val rnd = new Random(10)
   private var available = true
-  var running: Boolean
+  var running = true
 
   def safeQuit(msg: String, db: Lock = null) = {
     println(msg)
@@ -37,15 +39,15 @@ trait Lock {
       db.acquire()
       if (!db.readOnly) {
         db.hardClose()
-        println("Safe quit!!")
-      } else println("violent quit")
+        println("Safe quit 1!!")
+      } else println("violent quit 1")
     } else {
-      acquire()
+      acquire() //aguarda caso haja algo importante rolando (disco , ...)
       if (!readOnly) {
         hardClose()
-        println("Safe quit!!")
+        println("Safe quit 2!!")
       }
-      else println("violent quit")
+      else println("violent quit 2")
     }
     sys.exit(1)
   }
@@ -64,7 +66,6 @@ trait Lock {
       available = true
       notify()
     }
-
   }
 }
 
