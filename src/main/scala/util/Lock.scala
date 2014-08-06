@@ -25,30 +25,28 @@ trait Lock {
   var fileLocked: Boolean
 
   def hardClose(): Unit
+
   private val rnd = new Random(10)
   private var available = true
+  var running: Boolean
 
   def safeQuit(msg: String, db: Lock = null) = {
     println(msg)
+    running = false
     if (db != null) {
-      if (!db.readOnly) db.acquire()
-      if (fileLocked) db.hardClose()
-      else {
-        //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-        db.acquire()
-        sys.exit(1)
-      }
-    }
-
-    if (!readOnly) acquire()
-    if (fileLocked) hardClose()
-    else {
-      //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
+      db.acquire()
+      if (!db.readOnly) {
+        db.hardClose()
+        println("Safe quit!!")
+      } else println("violent quit")
+    } else {
       acquire()
-      sys.exit(1)
+      if (!readOnly) {
+        hardClose()
+        println("Safe quit!!")
+      }
+      else println("violent quit")
     }
-
-    println("Safe quit!")
     sys.exit(1)
   }
 
