@@ -35,23 +35,23 @@ trait Lock {
   private var availableOp = true
   var running = true
 
+  def unsafeQuit(msg: String, db: Lock = null) = {
+
+  }
+
   def safeQuit(msg: String, db: Lock = null) = {
     println(msg)
 
-    //todo: essas linhas aqui supõe que sempre haverá uma thread de trabalho (query, hit por exemplo) capacitada a emitir o releaseOp(), do contrário, espera-se infinitamente
-    if (db != null) db.acquireOp() else acquireOp() //passa direto
-    running = false
-    if (db != null) db.acquireOp() else acquireOp() //trava aqui até que um dos processos perceba que estamos em exiting (pode haver mais de um processo em paralelo nessa situação, somente o mais rápido tem garantias de usufruir)
+    //todo: essas linhas aqui supõem que sempre haverá um db (fazendo query ou hit por exemplo) capacitado a emitir o releaseOp(), do contrário, espera-se infinitamente
+    if (db != null) db.running = false else running = false //interrompe todas as threads do db; elas já acquireOp() durante open()
+    if (db != null) db.acquireOp() //threads interrompidas esperam aqui até que as restantes cheguem ao db.close() em comum que é o único releaseOp() existente; safeQuit chamado de dentro do db não precisa aguardar close(), pois não vai existir
+    // só há 4 términos para uma thread:
+    // quando o serviço termina;
+    // por safeQuit(), que aguarda outras threads, destrava arquivo db e apaga copyDb;
+    // por unsafeQuit(), que apenas destrava arquivo db e apaga copyDb;
+    // por sys.exit(1), que interrompe tudo abruptamente, para bugs que não afetem outras threads.
 
-    //Aguarda um pouco pra talvez pegar outros processos mais lentos. New jobs are blocked by an IF at their implementation (savequeries, savehits)
-    println("Vou esperar 1h, caso veja que nada mais está rodando e deseje antecipar o destravamento das bases, crie um arquivo /tmp/unsafeQuit.davi .")
-    def running2 = !new File("/tmp/unsafeQuit.davi").exists()
-    var min = 0
-    1 to 60 takeWhile { min => //1h
-      Thread.sleep(60000) //1min.
-      println(s"$min minutos corridos ")
-      running2
-    }
+    //se todas as threads chamarem safequit, então pode-se e deve-se sair imediatamente
 
     if (db != null) {
       db.acquire() //aguarda caso ainda haja algo importante rolando (disco , ...)
