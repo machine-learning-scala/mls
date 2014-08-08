@@ -32,6 +32,7 @@ trait Lock {
   def incCounter(): Unit = {
     acq()
     closeCounter += 1
+    println(closeCounter)
     rel()
   }
 
@@ -76,9 +77,9 @@ trait Lock {
   private var availableOp = true
   var running = true
 
-  def unsafeQuit(msg: String, db: Lock = null) = {
-    if (db == null) close() else db.close()
-    justQuit(s"Quiting (no waiting for other jobs): $msg")
+  def unsafeQuit(msg: String) = {
+    close()
+    justQuit(s"Quiting : $msg")
   }
 
   // só há 4 términos para uma thread:
@@ -86,17 +87,16 @@ trait Lock {
   // por safeQuit(), que aguarda outras threads, destrava arquivo db e apaga copyDb; bom quando há trabalho a ser gravado
   // por unsafeQuit(), que apenas destrava arquivo db e apaga copyDb; bom para encerrar quando a conexão foi aberta, mas não há trabalhos (p.ex. se fechou por erro)
   // por sys.exit(1), que interrompe tudo abruptamente, para bugs graves onde é melhor nem prosseguir com o programa em nenhum trabalho (p.ex. inconsistências por concorrência externa).
-  def safeQuit(msg: String, db: Lock = null) = {
-    println(s"Safe quiting (waiting for other jobs): $msg ...")
+  def safeQuit(msg: String) = {
+    println(s"Safe quiting (waiting for $closeCounter other jobs): $msg ...")
 
-    //todo: essas linhas aqui supõem que sempre haverá um db (fazendo query ou hit por exemplo) capacitado a emitir o releaseOp() no close(), do contrário, espera-se infinitamente
-    //interrompe todas as threads do db
-    if (db != null) db.running = false else running = false
+    //interrompe todas os loops dentro de threads do db
+    running = false
 
     //segura aqui enquanto houver threads terminando coisas importantes
     while (closeCounter > 0) Thread.sleep(1000)
 
-    unsafeQuit("No more jobs to wait, no need for safe quiting.")
+    unsafeQuit("No more jobs to wait!")
   }
 
   def acquire() = {
