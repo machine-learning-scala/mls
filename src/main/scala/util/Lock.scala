@@ -18,6 +18,8 @@
 
 package util
 
+import java.io.File
+
 import scala.util.Random
 
 trait Lock {
@@ -25,30 +27,46 @@ trait Lock {
   var fileLocked: Boolean
 
   def hardClose(): Unit
+
+  def exiting() = !running
+
   private val rnd = new Random(10)
   private var available = true
+  private var availableOp = true
+  var running = true
+
+  def unsafeQuit(msg: String, db: Lock = null) = {
+
+  }
 
   def safeQuit(msg: String, db: Lock = null) = {
     println(msg)
+
+    //todo: essas linhas aqui supõem que sempre haverá um db (fazendo query ou hit por exemplo) capacitado a emitir o releaseOp(), do contrário, espera-se infinitamente
+    if (db != null) db.running = false else running = false //interrompe todas as threads do db; elas já acquireOp() durante open()
+    if (db != null) db.acquireOp() //threads interrompidas esperam aqui até que as restantes cheguem ao db.close() em comum que é o único releaseOp() existente; safeQuit chamado de dentro do db não precisa aguardar close(), pois não vai existir
+    // só há 4 términos para uma thread:
+    // quando o serviço termina;
+    // por safeQuit(), que aguarda outras threads, destrava arquivo db e apaga copyDb;
+    // por unsafeQuit(), que apenas destrava arquivo db e apaga copyDb;
+    // por sys.exit(1), que interrompe tudo abruptamente, para bugs que não afetem outras threads.
+
+    //se todas as threads chamarem safequit, então pode-se e deve-se sair imediatamente
+
     if (db != null) {
-      if (!db.readOnly) db.acquire()
-      if (fileLocked) db.hardClose()
-      else {
-        //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-        db.acquire()
-        sys.exit(1)
+      db.acquire() //aguarda caso ainda haja algo importante rolando (disco , ...)
+      if (!db.readOnly) {
+        db.hardClose()
+        println("Safe quit 1!!")
+      } else println("violent quit 1")
+    } else {
+      acquire() //aguarda caso haja algo importante rolando (disco , ...)
+      if (!readOnly) {
+        hardClose()
+        println("Safe quit 2!!")
       }
+      else println("violent quit 2")
     }
-
-    if (!readOnly) acquire()
-    if (fileLocked) hardClose()
-    else {
-      //saida completa quando não se trata de problema de concorrência: acquire, conn, apaga copy, unlock, exit
-      acquire()
-      sys.exit(1)
-    }
-
-    println("Safe quit!")
     sys.exit(1)
   }
 
@@ -66,7 +84,22 @@ trait Lock {
       available = true
       notify()
     }
+  }
 
+  def acquireOp() = {
+    //    Thread.sleep((rnd.nextDouble() * 30).toInt)
+    synchronized {
+      while (!availableOp) wait()
+      availableOp = false
+    }
+  }
+
+  def releaseOp() = {
+    //    Thread.sleep((rnd.nextDouble() * 30).toInt)
+    synchronized {
+      availableOp = true
+      notify()
+    }
   }
 }
 
