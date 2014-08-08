@@ -31,7 +31,8 @@ case class LASVM() extends Learner {
   def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
   def build(pool: Seq[Pattern]) = {
-    //todo: preciso que jkernelmachines tenha suporte a "multiclass probability output" e que seja mais rapido que libsvm; caso não seja mais rápido ele poderia ser adaptado para ser realmente incremental.
+    //todo: preciso que jkernelmachines tenha suporte a "multiclass probability output" e que seja mais rapido que libsvm; caso não seja mais rápido ele pode ser descartado, já que diz o autor que ele já é realmente incremental.
+    //build deve começar com |Y| exemplos e depois incrementar o resto por motivos de replicabilidade/resumable.
     ???
     LASVMModel()
   }

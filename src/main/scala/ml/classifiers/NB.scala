@@ -25,7 +25,7 @@ import weka.classifiers.bayes.NaiveBayesUpdateable
 
 /**
  * NB can be worse than NBBatch because of unavailability of all instances at the build of NB.
- * Since NBBatch does rebuild every new instance, it can perform optimized discretization at all calls to update().
+ * Since NBBatch does rebuild at every new instance, it can perform optimized discretization at all calls to update().
  */
 case class NB(notes: String = "") extends IncrementalWekaLearner {
   override val toString = s"NB_$notes"
