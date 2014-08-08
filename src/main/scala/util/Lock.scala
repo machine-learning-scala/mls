@@ -32,7 +32,6 @@ trait Lock {
   def incCounter(): Unit = {
     acq()
     closeCounter += 1
-    println(closeCounter)
     rel()
   }
 
@@ -64,7 +63,9 @@ trait Lock {
   var fileLocked: Boolean
   //  val threadsToWait: Int
 
-  def close(): Unit
+  def close()
+
+  def isOpen(): Boolean
 
   def exiting() = !running
 
@@ -78,7 +79,7 @@ trait Lock {
   var running = true
 
   def unsafeQuit(msg: String) = {
-    close()
+    if (isOpen()) close()
     justQuit(s"Quiting : $msg")
   }
 
