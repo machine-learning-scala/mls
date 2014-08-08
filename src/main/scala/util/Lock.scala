@@ -23,51 +23,80 @@ import java.io.File
 import scala.util.Random
 
 trait Lock {
+  private val rnd = new Random(10)
+
+  //semaphore
+  var closeCounter = 0
+  private var ava = true
+
+  def incCounter(): Unit = {
+    acq()
+    closeCounter += 1
+    rel()
+  }
+
+  def decCounter(): Unit = {
+    acq()
+    closeCounter -= 1
+    rel()
+  }
+
+  private def acq() = {
+    Thread.sleep((rnd.nextDouble() * 30).toInt)
+    synchronized {
+      while (!ava) wait()
+      ava = false
+    }
+  }
+
+  private def rel() = {
+    Thread.sleep((rnd.nextDouble() * 30).toInt)
+    synchronized {
+      ava = true
+      notify()
+    }
+  }
+
+  //-----------------------------------------------
+
   val readOnly: Boolean
   var fileLocked: Boolean
+  //  val threadsToWait: Int
 
-  def hardClose(): Unit
+  def close(): Unit
 
   def exiting() = !running
 
-  private val rnd = new Random(10)
+  def justQuit(str: String) = {
+    println(str)
+    sys.exit(1)
+  }
+
   private var available = true
   private var availableOp = true
   var running = true
 
   def unsafeQuit(msg: String, db: Lock = null) = {
-
+    if (db == null) close() else db.close()
+    justQuit(s"Quiting (no waiting for other jobs): $msg")
   }
 
+  // só há 4 términos para uma thread:
+  // quando o serviço termina;
+  // por safeQuit(), que aguarda outras threads, destrava arquivo db e apaga copyDb; bom quando há trabalho a ser gravado
+  // por unsafeQuit(), que apenas destrava arquivo db e apaga copyDb; bom para encerrar quando a conexão foi aberta, mas não há trabalhos (p.ex. se fechou por erro)
+  // por sys.exit(1), que interrompe tudo abruptamente, para bugs graves onde é melhor nem prosseguir com o programa em nenhum trabalho (p.ex. inconsistências por concorrência externa).
   def safeQuit(msg: String, db: Lock = null) = {
-    println(msg)
+    println(s"Safe quiting (waiting for other jobs): $msg ...")
 
-    //todo: essas linhas aqui supõem que sempre haverá um db (fazendo query ou hit por exemplo) capacitado a emitir o releaseOp(), do contrário, espera-se infinitamente
-    if (db != null) db.running = false else running = false //interrompe todas as threads do db; elas já acquireOp() durante open()
-    if (db != null) db.acquireOp() //threads interrompidas esperam aqui até que as restantes cheguem ao db.close() em comum que é o único releaseOp() existente; safeQuit chamado de dentro do db não precisa aguardar close(), pois não vai existir
-    // só há 4 términos para uma thread:
-    // quando o serviço termina;
-    // por safeQuit(), que aguarda outras threads, destrava arquivo db e apaga copyDb;
-    // por unsafeQuit(), que apenas destrava arquivo db e apaga copyDb;
-    // por sys.exit(1), que interrompe tudo abruptamente, para bugs que não afetem outras threads.
+    //todo: essas linhas aqui supõem que sempre haverá um db (fazendo query ou hit por exemplo) capacitado a emitir o releaseOp() no close(), do contrário, espera-se infinitamente
+    //interrompe todas as threads do db
+    if (db != null) db.running = false else running = false
 
-    //se todas as threads chamarem safequit, então pode-se e deve-se sair imediatamente
+    //segura aqui enquanto houver threads terminando coisas importantes
+    while (closeCounter > 0) Thread.sleep(1000)
 
-    if (db != null) {
-      db.acquire() //aguarda caso ainda haja algo importante rolando (disco , ...)
-      if (!db.readOnly) {
-        db.hardClose()
-        println("Safe quit 1!!")
-      } else println("violent quit 1")
-    } else {
-      acquire() //aguarda caso haja algo importante rolando (disco , ...)
-      if (!readOnly) {
-        hardClose()
-        println("Safe quit 2!!")
-      }
-      else println("violent quit 2")
-    }
-    sys.exit(1)
+    unsafeQuit("No more jobs to wait, no need for safe quiting.")
   }
 
   def acquire() = {
@@ -87,7 +116,8 @@ trait Lock {
   }
 
   def acquireOp() = {
-    //    Thread.sleep((rnd.nextDouble() * 30).toInt)
+    incCounter()
+    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       while (!availableOp) wait()
       availableOp = false
@@ -95,7 +125,8 @@ trait Lock {
   }
 
   def releaseOp() = {
-    //    Thread.sleep((rnd.nextDouble() * 30).toInt)
+    decCounter()
+    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       availableOp = true
       notify()
