@@ -58,7 +58,7 @@ trait IncrementalWekaLearner extends WekaLearner {
     }
     classifier.buildClassifier(Datasets.patterns2instances(patterns.take(patterns.head.nclasses))) //no more head.dataset()
     patterns.drop(patterns.head.nclasses) foreach classifier.updateClassifier
-    WekaIncModel(classifier, patterns.head.nclasses)
+    WekaIncModel(classifier, patterns.size)
   }
 
   //  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]) = {
