@@ -26,8 +26,8 @@ import weka.core.neighboursearch.{KDTree, LinearNNSearch}
 import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, MinkowskiDistance}
 
 case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], notes: String = "", weighted: Boolean = false) extends BatchWekaLearner {
-  override val toString = k + "NNBatch" + (if (weighted) " weighted " else " (") + distance_name + s")_$notes"
-  println("Please use KNN which is faster and probably identical.")
+  override val toString = k + "NN" + (if (weighted) " weighted " else " (") + distance_name + s")_$notes"
+  //  println("Please use KNN which is faster and probably identical.")
 
   def build(patterns: Seq[Pattern]) = {
     lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)
@@ -42,7 +42,7 @@ case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pa
       case "manh" => new ManhattanDistance(instancesForCache)
       case "cheb" => new ChebyshevDistance(instancesForCache)
     }
-    val search = if (distance_name != "eucl" || patterns.length / patterns.head.nattributes < 10) new LinearNNSearch else new KDTree
+    val search = if (distance_name != "eucl" || pattsForDistanceCache.length / pattsForDistanceCache.head.nattributes < 10) new LinearNNSearch else new KDTree
     search.setDistanceFunction(distance)
     classifier.setNearestNeighbourSearchAlgorithm(search)
     classifier.setKNN(k)

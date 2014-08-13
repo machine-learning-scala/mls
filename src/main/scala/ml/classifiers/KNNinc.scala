@@ -25,8 +25,9 @@ import weka.classifiers.`lazy`.IBk
 import weka.core.neighboursearch.{KDTree, LinearNNSearch}
 import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, MinkowskiDistance}
 
-case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], notes: String = "", weighted: Boolean = false) extends IncrementalWekaLearner {
-  override val toString = k + "NN" + (if (weighted) " weighted " else " (") + distance_name + s")_$notes"
+case class KNNinc(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], notes: String = "", weighted: Boolean = false) extends IncrementalWekaLearner {
+  override val toString = k + "NNinc" + (if (weighted) " weighted " else " (") + distance_name + s")_$notes"
+  println("Please use KNNBatch which should have the same speed and is consistent across resumings.")
 
   def build(patterns: Seq[Pattern]) = {
     lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)
@@ -37,7 +38,7 @@ case class KNN(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern
       case "manh" => new ManhattanDistance(instancesForCache)
       case "cheb" => new ChebyshevDistance(instancesForCache)
     }
-    val search = if (distance_name != "eucl" || patterns.length / patterns.head.nattributes < 10) new LinearNNSearch else new KDTree
+    val search = if (distance_name != "eucl" || pattsForDistanceCache.length / pattsForDistanceCache.head.nattributes < 10) new LinearNNSearch else new KDTree
     //    val search = new KDTree()
     search.setDistanceFunction(distance)
     classifier.setNearestNeighbourSearchAlgorithm(search)
@@ -62,7 +63,7 @@ object TestKNN extends App {
   val f = Datasets.zscoreFilter(d)
   val df = Datasets.applyFilterChangingOrder(d, f)
   lazy val l = KNNBatch(5, "eucl", df)
-  lazy val linc = KNN(5, "eucl", df)
+  lazy val linc = KNNinc(5, "eucl", df)
 
   Tempo.start
   var m = l.build(df.take(df.head.nclasses))

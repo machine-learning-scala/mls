@@ -28,7 +28,7 @@ object TestForgetting extends App {
 
   val lh = VFDT() //can forget
 
-  val lk = KNN(5, "eucl", df) //KNN cannot forget
+  val lk = KNNinc(5, "eucl", df) //KNN cannot forget
 
   var n = ln.build(df.take(df.head.nclasses))
   var h = lh.build(df.take(df.head.nclasses))
