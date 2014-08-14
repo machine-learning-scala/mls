@@ -77,6 +77,7 @@ trait Lock {
 
   private var available = true
   private var availableOp = true
+  private var availableOp2 = true
   var running = true
 
   def unsafeQuit(msg: String) = {
@@ -122,7 +123,6 @@ trait Lock {
   }
 
   def acquireOp() = {
-    //    incCounter()
     Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       while (!availableOp) wait()
@@ -135,6 +135,22 @@ trait Lock {
     Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       availableOp = true
+      notify()
+    }
+  }
+
+  def acquireOp2() = {
+    Thread.sleep((rnd.nextDouble() * 30).toInt)
+    synchronized {
+      while (!availableOp2) wait()
+      availableOp2 = false
+    }
+  }
+
+  def releaseOp2() = {
+    Thread.sleep((rnd.nextDouble() * 30).toInt)
+    synchronized {
+      availableOp2 = true
       notify()
     }
   }
