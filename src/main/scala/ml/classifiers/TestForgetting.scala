@@ -76,9 +76,14 @@ object TestSingleForgetting extends App {
   //põe-tira
   var n2 = ln.build(dtr.take(dtr.head.nclasses))
   var h2 = lh.build(dtr.take(dtr.head.nclasses))
-
   val l1 = dtr.drop(dtr.head.nclasses).map { p =>
-
+    dts.foreach { p2 =>
+      n2 = ln.update(n2, fast_mutable)(p2)
+      h2 = lh.update(h2, fast_mutable)(p2)
+      val np = p2.relabeled_reweighted(p2.label, -p2.weight(), new_missed = false)
+      n2 = ln.update(n2, fast_mutable)(np)
+      h2 = lh.update(h2, fast_mutable)(np)
+    }
     n2 = ln.update(n2, fast_mutable)(p)
     h2 = lh.update(h2, fast_mutable)(p)
     (n2.accuracy(dts), h2.accuracy(dts))
