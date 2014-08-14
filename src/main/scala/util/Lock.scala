@@ -88,7 +88,7 @@ trait Lock {
   // quando o serviço termina;
   // por safeQuit(), que aguarda outras threads, destrava arquivo db e apaga copyDb; bom quando há trabalho a ser gravado
   // por unsafeQuit(), que apenas destrava arquivo db e apaga copyDb; bom para encerrar quando a conexão foi aberta, mas não há trabalhos (p.ex. se fechou por erro)
-  // por sys.exit(1), que interrompe tudo abruptamente, para bugs graves onde é melhor nem prosseguir com o programa em nenhum trabalho (p.ex. inconsistências por concorrência externa).
+  // por justQuit(1), que interrompe tudo abruptamente, para bugs graves onde é melhor nem prosseguir com o programa em nenhum trabalho (p.ex. inconsistências por concorrência externa).
   def safeQuit(msg: String) = {
     println(s"Safe quiting (waiting for $closeCounter other jobs): $msg ...")
 
@@ -120,7 +120,7 @@ trait Lock {
   }
 
   def acquireOp() = {
-    incCounter()
+    //    incCounter()
     Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       while (!availableOp) wait()
