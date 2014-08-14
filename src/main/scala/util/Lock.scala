@@ -99,8 +99,10 @@ trait Lock {
     val tmpLockingFileUnsafe = new File(fileToStopProgramUnsafe)
     while (closeCounter > 0 && !tmpLockingFileUnsafe.exists()) Thread.sleep(1000)
 
-    println(s"$tmpLockingFileUnsafe file found!")
-    unsafeQuit("No more jobs to wait!")
+    if (tmpLockingFileUnsafe.exists()) {
+      tmpLockingFileUnsafe.delete()
+      unsafeQuit(s"$tmpLockingFileUnsafe file found! Giving up waiting for $closeCounter jobs...")
+    } else unsafeQuit("No more jobs to wait!")
   }
 
   def acquire() = {
