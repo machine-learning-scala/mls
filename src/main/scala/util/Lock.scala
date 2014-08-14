@@ -23,6 +23,7 @@ import java.io.File
 import scala.util.Random
 
 trait Lock {
+  val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
   private val rnd = new Random(10)
 
   //semaphore
@@ -95,8 +96,10 @@ trait Lock {
     running = false
 
     //segura aqui enquanto houver threads terminando coisas importantes
-    while (closeCounter > 0) Thread.sleep(1000)
+    val tmpLockingFileUnsafe = new File(fileToStopProgramUnsafe)
+    while (closeCounter > 0 && !tmpLockingFileUnsafe.exists()) Thread.sleep(1000)
 
+    println(s"$tmpLockingFileUnsafe file found!")
     unsafeQuit("No more jobs to wait!")
   }
 
