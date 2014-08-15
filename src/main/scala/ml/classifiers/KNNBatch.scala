@@ -25,6 +25,14 @@ import weka.classifiers.`lazy`.IBk
 import weka.core.neighboursearch.{KDTree, LinearNNSearch}
 import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, MinkowskiDistance}
 
+/**
+ * Weights by (1-d) if desired.
+ * @param k
+ * @param distance_name
+ * @param pattsForDistanceCache
+ * @param notes
+ * @param weighted
+ */
 case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], notes: String = "", weighted: Boolean = false) extends BatchWekaLearner {
   override val toString = k + "NN" + (if (weighted) " weighted " else " (") + distance_name + s")_$notes"
   //  println("Please use KNN which is faster and probably identical.")
@@ -46,7 +54,7 @@ case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pa
     search.setDistanceFunction(distance)
     classifier.setNearestNeighbourSearchAlgorithm(search)
     classifier.setKNN(k)
-    if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-I"))
+    if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-F"))
     val instances = Datasets.patterns2instances(patterns)
     classifier.buildClassifier(instances)
     WekaBatModel(classifier, patterns)
