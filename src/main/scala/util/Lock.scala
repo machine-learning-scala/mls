@@ -98,7 +98,10 @@ trait Lock {
 
     //segura aqui enquanto houver threads terminando coisas importantes
     val tmpLockingFileUnsafe = new File(fileToStopProgramUnsafe)
-    while (closeCounter > 0 && !tmpLockingFileUnsafe.exists()) Thread.sleep(1000)
+    while (closeCounter > 0 && !tmpLockingFileUnsafe.exists()) {
+      Thread.sleep(3000)
+      println(s"Waiting for $closeCounter other jobs to quit ...")
+    }
 
     if (tmpLockingFileUnsafe.exists()) {
       tmpLockingFileUnsafe.delete()
