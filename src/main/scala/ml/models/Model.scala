@@ -21,6 +21,9 @@ import ml.Pattern
 
 trait Model {
   val L: Int
+
+  def predict(instance: Pattern): Double
+
   /**
    * Mostra qtas vezes a classe da linha foi predita como a classe da coluna.
    * @param patts
@@ -35,7 +38,7 @@ trait Model {
     var i = 0
     while (i < n) {
       val p = patts(i)
-      res(p.label.toInt)(predict(p)) += 1
+      res(p.label.toInt)(predict(p).toInt) += 1
       i += 1
     }
     res
@@ -43,29 +46,27 @@ trait Model {
 
   def distribution(instance: Pattern): Array[Double]
 
+
   def output(instance: Pattern): Array[Double]
 
-  def predict(instance: Pattern) = {
-    val dist = distribution(instance)
-    val nclasses = instance.nclasses
-    var c = 0
-    var max = 0d
-    var cmax = 0
-    while (c < nclasses) {
-      val v = dist(c)
-      if (v > max) {
-        max = v
-        cmax = c
-      }
-      c += 1
-    }
-    cmax
-  }
+  //  {
+  //    val dist = distribution(instance)
+  //    val nclasses = instance.nclasses
+  //    var c = 0
+  //    var max = 0d
+  //    var cmax = 0
+  //    while (c < nclasses) {
+  //      val v = dist(c)
+  //      if (v > max) {
+  //        max = v
+  //        cmax = c
+  //      }
+  //      c += 1
+  //    }
+  //    cmax
+  //  }
 
-  def hit(instance: Pattern) = {
-    //    println(instance.label + "  " + instance.label_array.toList)
-    instance.label == predict(instance)
-  }
+  def hit(instance: Pattern) = instance.label == predict(instance)
 
   def hits(patterns: Seq[Pattern]) = patterns.count(hit) //weka is not thread-safe to parallelize hits()
 

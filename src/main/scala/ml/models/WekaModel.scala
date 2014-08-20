@@ -28,6 +28,10 @@ class WekaModel(var classifier: Classifier) extends Model {
   def distribution(pattern: Pattern) =
     if (classifier == null) throw new Exception("Underlying model already changed! Please call update with fast_mutable disabled.")
     else classifier.distributionForInstance(pattern)
+
+  def predict(instance: Pattern) =
+    if (classifier == null) throw new Exception("Underlying model already changed! Please call update with fast_mutable disabled.")
+    else classifier.classifyInstance(instance)
 }
 
 case class WekaBatModel(private val batch_classifier: Classifier, training_set: Seq[Pattern]) extends WekaModel(batch_classifier)

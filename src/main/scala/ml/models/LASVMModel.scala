@@ -21,7 +21,10 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 case class LASVMModel() extends Model {
   val L = -1
+
   def distribution(instance: Pattern) = ???
 
   def output(instance: Pattern) = ???
+
+  def predict(instance: Pattern) = ???
 }
