@@ -20,8 +20,8 @@ package ml.classifiers
 import java.io.{OutputStream, PrintStream}
 
 import ml.Pattern
-import ml.models.{WekaBatModel, Model}
-import util.{Tempo, Datasets}
+import ml.models.{Model, WekaBatModel}
+import util.Datasets
 import weka.classifiers.Classifier
 import weka.classifiers.functions.LibSVM
 
@@ -29,7 +29,7 @@ import weka.classifiers.functions.LibSVM
  * SVM conventional (batch training)
  * Usa LibSVM wrapper for Weka.
  */
-case class SVM(seed: Int = 42, notes: String = "") extends BatchWekaLearner {
+case class SVMLib(seed: Int = 42, notes: String = "") extends BatchWekaLearner {
   override val toString = "SVM"
   val originalStream = System.out
   val dummyStream = new PrintStream(new OutputStream() {
@@ -68,7 +68,7 @@ object TestSVM extends App {
   val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff", zscored = false).right.get.toList.take(1000)
   val f = Datasets.zscoreFilter(d)
   val df = Datasets.applyFilterChangingOrder(d, f)
-  lazy val l = SVM()
+  lazy val l = SVMLib()
 
   var m = l.build(df.take(df.head.nclasses))
   df.drop(df.head.nclasses).foreach { p => m = l.update(m, fast_mutable = true)(p)

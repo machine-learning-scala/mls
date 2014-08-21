@@ -721,7 +721,12 @@ public class DatabaseSaverForSQLite
         //confusion matrix
         query.append("CREATE TABLE hit ( strategyid INT, learnerid INT, run INT, fold INT, position INT, expe INT, pred INT, value INT, unique (strategyid, learnerid, run, fold, position, expe, pred) on conflict rollback ); ");
 
-        //para cada query (position/timestep) havera uma predicao diferente para os itens do fold de teste
+        //short aliases
+        query.append("create view q as select strategyid as s, learnerid as l, run as r, fold as f, position as p, instid as i from query");
+        query.append("create view h as select strategyid as s, learnerid as l, run as r, fold as f, position as p, expe as e, pred as p, value as v from hit");
+        query.append("create view i as select Class as c from inst");
+
+        //space intractable: para cada query (position/timestep) havera uma predicao diferente para os itens do fold de teste
         //cada linha representa uma saida do modelo
 //        query.append("CREATE TABLE prediction ( learnerid INT, queryid INT, instid INT, output INT, value FLOAT, unique (learnerid, queryid, instid, output) on conflict rollback ); ");
 
