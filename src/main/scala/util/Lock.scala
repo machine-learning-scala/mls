@@ -24,8 +24,8 @@ import scala.io.Source
 import scala.util.Random
 
 trait Lock {
-  val runs = Source.fromFile("runs.txt")
-  val folds = Source.fromFile("folds.txt")
+  val runs = Source.fromFile("runs.txt").getLines().toList.head.toInt
+  val folds = Source.fromFile("folds.txt").getLines().toList.head.toInt
   val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
   private val rnd = new Random(10)
 
