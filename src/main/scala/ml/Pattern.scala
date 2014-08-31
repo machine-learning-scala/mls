@@ -105,7 +105,7 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
   def this(id: Int, instance: Instance, missed: Boolean, parent: PatternParent) =
     this(id, instance.toDoubleArray.toList.dropRight(1), instance.classValue, instance.weight, missed, parent, true)
 
-  override def hashCode() = vector.hashCode()
+  override lazy val hashCode = vector.hashCode()
 
   //  override def equals(that: Any) = that match {
   //    case that: Pattern => id == that.id //cannot use this because id is unique and we need to detect duplicates
