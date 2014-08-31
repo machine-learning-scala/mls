@@ -43,7 +43,10 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
     m
   }
 
-  lazy val nclasses = numClasses
+  lazy val nclasses = if (parent == null) {
+    println("Non weka instances! Assuming 3 classes!")
+    3
+  } else numClasses
   //  lazy val unlabel = Pattern(vector, -1, weight, missed, parent, weka)
   lazy val label_array = {
     val a = Array.fill(nclasses)(0d)
