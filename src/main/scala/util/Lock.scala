@@ -134,8 +134,8 @@ trait Lock {
     Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       while (!availableOp) {
-        println("waiting")
-        Thread.sleep(1000)
+        //        println("waiting")
+        //        Thread.sleep(1000)
         wait()
       }
       availableOp = false
