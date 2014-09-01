@@ -36,6 +36,7 @@ trait Lock {
       val buffer = new Array[Byte](4)
       val is = new FileInputStream(f)
       if (is.read(buffer) != buffer.length) {
+        print("   nonecxiste   ")
       }
       is.close()
       true
@@ -55,9 +56,9 @@ trait Lock {
   }
 
   def decCounter(): Unit = {
-    //    acq()
+    acq()
     closeCounter -= 1
-    //    rel()
+    rel()
   }
 
   private def acq() = {
@@ -89,7 +90,7 @@ trait Lock {
   def exiting() = !running
 
   def justQuit(str: String) = {
-    running = false
+    //    running = false
     println(str)
     sys.exit(1)
   }
@@ -157,9 +158,9 @@ trait Lock {
   }
 
   def releaseOp() = {
+    decCounter()
     Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
-      decCounter() //??
       availableOp = true
       notify()
     }
@@ -191,5 +192,5 @@ object ExistsTest extends Lock with App {
 
   var fileLocked: Boolean = _
 
-  println(checkExistsForNFS(new File("/tmp/a")))
+  println(checkExistsForNFS(new File("/tmp/asd")))
 }

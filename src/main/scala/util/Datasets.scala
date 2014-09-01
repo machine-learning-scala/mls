@@ -29,7 +29,7 @@ import weka.filters.unsupervised.attribute._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-object Datasets {
+object Datasets extends Lock {
 
   import scala.collection.JavaConversions._
 
@@ -225,7 +225,7 @@ object Datasets {
   def patternsFromSQLite(path: String)(dataset: String) = {
     val arq = new File(path + "/" + dataset + ".db")
     println(s"Opening $arq")
-    if (!arq.exists()) Left(s"Dataset file $arq not found!")
+    if (!checkExistsForNFS(arq)) Left(s"Dataset file $arq not found!")
     else {
       try {
         val patterns = {
@@ -248,6 +248,14 @@ object Datasets {
       }
     }
   }
+
+  //useless
+  val readOnly: Boolean = true
+  var fileLocked: Boolean = false
+
+  def isOpen() = ???
+
+  def close() = ???
 }
 
 object TestFilter extends App {
