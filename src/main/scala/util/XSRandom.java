@@ -43,11 +43,12 @@ public class XSRandom extends Random {
     /**
      * Creates a new pseudo random number generator, starting with the specified
      * seed, using <code>setSeed(seed);</code>.
+     * Adding 1 to avoid zeros.
      *
      * @param seed the initial seed
      */
     public XSRandom(long seed) {
-        this.seed = seed;
+        this.seed = seed + 1;
     }
 
     /**
@@ -67,8 +68,8 @@ public class XSRandom extends Random {
      * @param s the new seed
      */
     public synchronized void setSeed(long seed) {
-        this.seed = seed;
-        super.setSeed(seed);
+        this.seed = seed + 1;
+        super.setSeed(seed + 1);
     }
 
     /**
