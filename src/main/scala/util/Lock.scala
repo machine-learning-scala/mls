@@ -75,6 +75,7 @@ trait Lock {
   def exiting() = !running
 
   def justQuit(str: String) = {
+    running = false
     println(str)
     sys.exit(1)
   }
@@ -97,7 +98,7 @@ trait Lock {
   def safeQuit(msg: String) = {
     println(s"Safe quiting (waiting for $closeCounter other jobs): $msg ...")
 
-    //interrompe todas os loops dentro de threads do db
+    //interrompe todos os loops dentro de threads do db
     running = false
 
     //segura aqui enquanto houver threads terminando coisas importantes
