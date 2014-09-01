@@ -48,7 +48,7 @@ trait Lock {
   private var ava = true
 
   def incCounter(): Unit = {
-    //    acq()
+    acq()
     closeCounter += 1
     rel()
   }
@@ -56,7 +56,7 @@ trait Lock {
   def decCounter(): Unit = {
     //    acq()
     closeCounter -= 1
-    rel()
+    //    rel()
   }
 
   private def acq() = {
@@ -157,8 +157,8 @@ trait Lock {
 
   def releaseOp() = {
     Thread.sleep((rnd.nextDouble() * 30).toInt)
-    decCounter()
     synchronized {
+      decCounter() //??
       availableOp = true
       notify()
     }
