@@ -182,3 +182,14 @@ trait Lock {
   }
 }
 
+object ExistsTest extends Lock with App {
+  val readOnly: Boolean = true
+
+  def isOpen() = ???
+
+  def close() = ???
+
+  var fileLocked: Boolean = _
+
+  println(checkExistsForNFS(new File("/tmp/a")))
+}
