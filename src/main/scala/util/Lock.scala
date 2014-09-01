@@ -18,7 +18,7 @@
 
 package util
 
-import java.io.File
+import java.io.{InputStream, FileInputStream, File}
 
 import scala.io.Source
 import scala.util.Random
@@ -29,6 +29,19 @@ trait Lock {
   val folderToCopyDb = Source.fromFile("dbcopy.txt").getLines().toList.head
   val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
   private val rnd = new Random(10)
+
+  def checkExistsForNFS(f: File) = {
+    try {
+      val buffer = new Array[Byte](4)
+      val is = new FileInputStream(f)
+      if (is.read(buffer) != buffer.length) {
+      }
+      is.close()
+      true
+    } catch {
+      case _: Throwable => false
+    }
+  }
 
   //semaphore
   var closeCounter = 0
@@ -108,7 +121,7 @@ trait Lock {
       println(s"Waiting for $closeCounter other jobs to quit ...")
     }
 
-    if (tmpLockingFileUnsafe.exists()) {
+    if (checkExistsForNFS(tmpLockingFileUnsafe)) {
       tmpLockingFileUnsafe.delete()
       unsafeQuit(s"$tmpLockingFileUnsafe file found! Giving up waiting for $closeCounter jobs...")
     } else unsafeQuit("No more jobs to wait!")
