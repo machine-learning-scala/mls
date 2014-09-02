@@ -91,6 +91,7 @@ trait Lock {
   def justQuit(str: String) = {
     println(str)
     running = false
+    Thread.sleep(3000)
     sys.exit(1)
   }
 
