@@ -89,8 +89,8 @@ trait Lock {
   def exiting() = !running
 
   def justQuit(str: String) = {
-    //    running = false
     println(str)
+    running = false
     sys.exit(1)
   }
 
