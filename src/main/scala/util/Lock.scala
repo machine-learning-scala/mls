@@ -62,7 +62,6 @@ trait Lock {
   }
 
   private def acq() = {
-    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       while (!ava) wait()
       ava = false
@@ -70,7 +69,6 @@ trait Lock {
   }
 
   private def rel() = {
-    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       ava = true
       notify()
@@ -130,7 +128,6 @@ trait Lock {
   }
 
   def acquire() = {
-    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       while (!available) wait()
       available = false
@@ -138,7 +135,6 @@ trait Lock {
   }
 
   def release() = {
-    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       available = true
       notify()
@@ -146,20 +142,14 @@ trait Lock {
   }
 
   def acquireOp() = {
-    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
-      while (!availableOp) {
-        //        println("waiting")
-        //        Thread.sleep(1000)
-        wait()
-      }
+      while (!availableOp) wait()
       availableOp = false
     }
   }
 
   def releaseOp() = {
     decCounter()
-    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       availableOp = true
       notify()
@@ -167,7 +157,6 @@ trait Lock {
   }
 
   def acquireOp2() = {
-    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       while (!availableOp2) wait()
       availableOp2 = false
@@ -175,7 +164,6 @@ trait Lock {
   }
 
   def releaseOp2() = {
-    Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       availableOp2 = true
       notify()
