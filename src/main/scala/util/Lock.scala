@@ -50,13 +50,13 @@ trait Lock {
   private var ava = true
 
   def incCounter(): Unit = {
-    //    acq()
+    acq()
     closeCounter += 1
     rel()
   }
 
   def decCounter(): Unit = {
-    //    acq()
+    acq()
     closeCounter -= 1
     rel()
   }
