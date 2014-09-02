@@ -158,7 +158,7 @@ trait Lock {
   }
 
   def releaseOp() = {
-    decCounter()
+    //    decCounter()
     Thread.sleep((rnd.nextDouble() * 30).toInt)
     synchronized {
       availableOp = true
