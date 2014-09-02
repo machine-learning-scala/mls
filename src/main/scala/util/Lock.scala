@@ -31,7 +31,7 @@ trait Lock {
   val rnd = new Random(10)
 
   def checkExistsForNFS(f: File) = {
-    Thread.sleep(50)
+    Thread.sleep((rnd.nextDouble() * 30).toInt)
     try {
       val buffer = new Array[Byte](4)
       val is = new FileInputStream(f)
