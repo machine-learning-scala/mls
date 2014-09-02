@@ -28,7 +28,7 @@ trait Lock {
   val folds = Source.fromFile("folds.txt").getLines().toList.head.toInt
   val folderToCopyDb = Source.fromFile("dbcopy.txt").getLines().toList.head
   val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
-  private val rnd = new Random(10)
+  val rnd = new Random(10)
 
   def checkExistsForNFS(f: File) = {
     Thread.sleep(50)
