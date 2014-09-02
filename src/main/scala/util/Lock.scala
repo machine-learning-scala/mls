@@ -24,11 +24,12 @@ import scala.io.Source
 import scala.util.Random
 
 trait Lock {
-  val runs = Source.fromFile("runs.txt").getLines().toList.head.toInt
-  val folds = Source.fromFile("folds.txt").getLines().toList.head.toInt
-  val folderToCopyDb = Source.fromFile("dbcopy.txt").getLines().toList.head
-  val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
-  val rnd = new Random(System.nanoTime())
+  lazy val debug = Source.fromFile("debug.txt").getLines().toList.head.toBoolean
+  lazy val runs = Source.fromFile("runs.txt").getLines().toList.head.toInt
+  lazy val folds = Source.fromFile("folds.txt").getLines().toList.head.toInt
+  lazy val folderToCopyDb = Source.fromFile("dbcopy.txt").getLines().toList.head
+  lazy val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
+  lazy val rnd = new Random(System.nanoTime())
 
   def checkExistsForNFS(f: File, delay: Int = 40) = {
     Thread.sleep((rnd.nextDouble() * delay).toInt)
