@@ -30,7 +30,7 @@ trait Lock {
   val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
   val rnd = new Random(System.nanoTime())
 
-  def checkExistsForNFS(f: File, delay: Int = 300) = {
+  def checkExistsForNFS(f: File, delay: Int = 40) = {
     Thread.sleep((rnd.nextDouble() * delay).toInt)
     try {
       val buffer = new Array[Byte](4)
