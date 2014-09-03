@@ -31,8 +31,12 @@ trait Lock {
   lazy val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
   lazy val rnd = new Random(System.nanoTime())
 
+  def rndDelay(seconds: Double = 0.02) = {
+    Thread.sleep((rnd.nextDouble() * seconds * 1000d).toInt)
+  }
+
   def checkExistsForNFS(f: File, delay: Int = 40) = {
-    Thread.sleep((rnd.nextDouble() * delay).toInt)
+    rndDelay(delay)
     try {
       val buffer = new Array[Byte](4)
       val is = new FileInputStream(f)
@@ -144,6 +148,7 @@ trait Lock {
   }
 
   def acquireOp() = {
+    rndDelay()
     synchronized {
       while (!availableOp) wait()
       availableOp = false
@@ -159,6 +164,7 @@ trait Lock {
   }
 
   def acquireOp2() = {
+    rndDelay()
     synchronized {
       while (!availableOp2) wait()
       availableOp2 = false
