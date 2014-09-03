@@ -31,11 +31,11 @@ trait Lock {
   lazy val fileToStopProgramUnsafe = "/tmp/unsafeQuit.davi"
   lazy val rnd = new Random(System.nanoTime())
 
-  def rndDelay(seconds: Double = 0.02) = {
-    Thread.sleep((rnd.nextDouble() * seconds * 1000d).toInt)
+  def rndDelay(seconds: Double = 0.02, offset: Double = 0) = {
+    Thread.sleep((rnd.nextDouble() * seconds * 1000d + offset * 1000d).toInt)
   }
 
-  def checkExistsForNFS(f: File, delay: Int = 0.04) = {
+  def checkExistsForNFS(f: File, delay: Double = 0.04) = {
     rndDelay(delay)
     try {
       val buffer = new Array[Byte](4)
