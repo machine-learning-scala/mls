@@ -35,7 +35,7 @@ trait Lock {
     Thread.sleep((rnd.nextDouble() * seconds * 1000d).toInt)
   }
 
-  def checkExistsForNFS(f: File, delay: Int = 40) = {
+  def checkExistsForNFS(f: File, delay: Int = 0.04) = {
     rndDelay(delay)
     try {
       val buffer = new Array[Byte](4)
@@ -164,7 +164,6 @@ trait Lock {
   }
 
   def acquireOp2() = {
-    rndDelay()
     synchronized {
       while (!availableOp2) wait()
       availableOp2 = false
