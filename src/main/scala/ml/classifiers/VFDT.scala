@@ -24,9 +24,9 @@ import weka.classifiers.Classifier
 import weka.classifiers.trees.HoeffdingTree
 
 /**
- * VFDT can be worse than VFDTBatch because of unavailability of all instances at the build of NBinc.
- * Since VFDTBatch does rebuild every new instance, it can perform optimized discretization.
- * GraceTime = math.min(200,nclasses + N/10)
+ * Can VFDT be worse than VFDTBatch because of unavailability of all instances at the build of VFDT?
+ * No, I dont think there is any optimized discretization.
+ * GraceTime = math.min(200,nclasses + N/20)
  */
 case class VFDT(notes: String = "") extends IncrementalWekaLearner {
   override val toString = s"VFDT_$notes"

@@ -41,7 +41,6 @@ trait Lock {
       val buffer = new Array[Byte](4)
       val is = new FileInputStream(f)
       if (is.read(buffer) != buffer.length) {
-        print("   nonecxiste   ")
       }
       is.close()
       true
