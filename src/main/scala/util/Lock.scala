@@ -171,6 +171,7 @@ trait Lock {
   }
 
   def releaseOp2() = {
+    rndDelay()
     synchronized {
       availableOp2 = true
       notify()
