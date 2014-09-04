@@ -164,6 +164,7 @@ trait Lock {
   }
 
   def acquireOp2() = {
+    rndDelay()
     synchronized {
       while (!availableOp2) wait()
       availableOp2 = false
@@ -171,7 +172,6 @@ trait Lock {
   }
 
   def releaseOp2() = {
-    rndDelay()
     synchronized {
       availableOp2 = true
       notify()
