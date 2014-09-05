@@ -96,11 +96,14 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
   //  lazy val weighted_label_array_brz = DenseVector(weighted_label_array)
   //  lazy val reversed_weighted_label_array_brz = DenseVector(reversed_weighted_label_array)
 
+  //  override def toString(attIndex: Int, afterDecimalPoint: Int) = if (attIndex == classIndex()) label.toString else super.toString(attIndex, afterDecimalPoint)
   lazy val nattributes = numAttributes - 1
   lazy val nnumeric = (for (i <- 0 until nattributes) yield attribute(i).isNumeric) count (_ == true)
   lazy val nnominal = (for (i <- 0 until nattributes) yield attribute(i).isNominal) count (_ == true)
   lazy val toStrWithMissed = toString + "%als:" + missed
   lazy val toString_without_class = (0 until numAttributes() - 1) map treat_nominal mkString ","
+  lazy val toStringCerto = ((0 until numAttributes() - 1) map treat_nominal mkString ",") + " " + label
+
   lazy val x = parent.xy(this).x
   lazy val y = parent.xy(this).y
   if (weka) setDataset(parent.dataset)

@@ -40,7 +40,7 @@ object Datasets extends Lock {
    * TODO: read the file like a stream (poker dataset was terribly slow to load, it seems to be ok now :S)
    * @return (processed patterns, arff-header, processed Instances object still with duplicates)
    */
-  def arff(bina: Boolean, limit: Int = -1, debug: Boolean = true)(arq: String, zscored: Boolean = true) = {
+  def arff(bina: Boolean, limit: Int = -1, debug: Boolean = true)(arq: String, zscored: Boolean = true, preserveClassOrderFromARFFHeader: Boolean = true) = {
     try {
       //Extract instances from file and close it.
       val reader = new BufferedReader(new FileReader(arq))
@@ -74,7 +74,8 @@ object Datasets extends Lock {
       //new (to match SQLite rowids):
       val patterns = instances.sortBy(_.toDoubleArray.toList.toString()).zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
       val distinct0 = distinctMode(patterns)
-      val distinct = distinct0.zipWithIndex.map { case (p, idx) => Pattern(idx + 1, p.vector, p.label, p.weight(), p.missed, p.parent, p.weka)}
+      val conv = distinct0.map(_.label).toSeq.distinct.zipWithIndex.map { case (c, i) => c -> i}.toMap
+      val distinct = distinct0.zipWithIndex.map { case (p, idx) => Pattern(idx + 1, p.vector, if (preserveClassOrderFromARFFHeader) p.classValue() else conv(p.classValue()), p.weight(), p.missed, p.parent, p.weka)}
 
       //      println(patterns.diff(distinct.toList))
       if (instances.numInstances() != distinct.size) {
@@ -144,6 +145,7 @@ object Datasets extends Lock {
   }
 
   def kfoldCV[T](patterns: => Seq[Pattern], k: Int = 10, parallel: Boolean = false)(f: (=> Seq[Pattern], => Seq[Pattern], Int, Int) => T) = {
+    //    patterns.take(4) foreach (x => println(x.toStringCerto))
     lazy val folds = {
       val n = patterns.length
       val tmp = Array.fill(k)(Seq[Pattern]())

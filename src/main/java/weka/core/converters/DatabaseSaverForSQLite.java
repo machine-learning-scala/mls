@@ -37,36 +37,36 @@ import java.util.Vector;
 /**
  * <!-- globalinfo-start -->
  * Writes to a database (tested with MySQL, InstantDB, HSQLDB).
- * <p/>
+ * <p>
  * <!-- globalinfo-end -->
- * <p/>
+ * <p>
  * <!-- options-start -->
  * Valid options are: <p/>
- * <p/>
+ * <p>
  * <pre> -url &lt;JDBC URL&gt;
  *  The JDBC URL to connect to.
  *  (default: from DatabaseUtils.props file)</pre>
- * <p/>
+ * <p>
  * <pre> -user &lt;name&gt;
  *  The user to connect with to the database.
  *  (default: none)</pre>
- * <p/>
+ * <p>
  * <pre> -password &lt;password&gt;
  *  The password to connect with to the database.
  *  (default: none)</pre>
- * <p/>
+ * <p>
  * <pre> -T &lt;table name&gt;
  *  The name of the table.
  *  (default: the relation name)</pre>
- * <p/>
+ * <p>
  * <pre> -P
  *  Add an ID column as primary key. The name is specified
  *  in the DatabaseUtils file ('idColumn'). The DatabaseLoader
  *  won't load this column.</pre>
- * <p/>
+ * <p>
  * <pre> -i &lt;input file name&gt;
  *  Input file in arff format that should be saved in database.</pre>
- * <p/>
+ * <p>
  * <!-- options-end -->
  *
  * @author Stefan Mutter (mutter@cs.waikato.ac.nz)
@@ -722,9 +722,8 @@ public class DatabaseSaverForSQLite
         query.append("CREATE TABLE hit ( strategyid INT, learnerid INT, run INT, fold INT, position INT, expe INT, pred INT, value INT, unique (strategyid, learnerid, run, fold, position, expe, pred) on conflict rollback ); ");
 
         //short aliases
-        query.append("create view q as select strategyid as s, learnerid as l, run as r, fold as f, position as p, instid as i from query");
-        query.append("create view h as select strategyid as s, learnerid as l, run as r, fold as f, position as p, expe as e, pred as p, value as v from hit");
-        query.append("create view i as select Class as c from inst");
+        query.append("create view q as select strategyid as s, learnerid as l, run as r, fold as f, position as p, instid as i from query;");
+        query.append("create view h as select strategyid as s, learnerid as l, run as r, fold as f, position as p, expe as e, pred as p, value as v from hit;");
 
         //space intractable: para cada query (position/timestep) havera uma predicao diferente para os itens do fold de teste
         //cada linha representa uma saida do modelo
@@ -777,7 +776,10 @@ public class DatabaseSaverForSQLite
             if (i != structure.numAttributes() - 1)
                 query.append(", ");
         }
-        query.append(" )");
+        query.append(" );");
+
+        query.append("create view i as select Class as c from inst;");
+
 //        System.out.println(query.toString());
         m_DataBaseConnection.update(query.toString());
         m_DataBaseConnection.close();
