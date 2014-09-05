@@ -44,26 +44,39 @@ object Datasets extends Lock {
     try {
       //Extract instances from file and close it.
       val reader = new BufferedReader(new FileReader(arq))
-      val instances0 = if (limit == -1) new ArffReader(reader).getData else new Instances(new ArffReader(reader).getData, 0, limit)
-      //      println("ARFF read.")
-      instances0.setClassIndex(instances0.numAttributes() - 1)
-      instances0.setRelationName(arq)
+      val instances00 = if (limit == -1) new ArffReader(reader).getData else new Instances(new ArffReader(reader).getData, 0, limit)
+      instances00.setClassIndex(instances00.numAttributes() - 1)
+      instances00.setRelationName(arq)
+      println("useless attributes will be removed...")
+      val instances0 = rmUseless(instances00)
       val instances = if (bina) {
-        println("useless attributes will be removed...")
         val res = if (zscored) {
           println("z-score will be applied")
-          zscore(binarize(rmUseless(instances0)))
-        } else binarize(rmUseless(instances0))
+          zscore(binarize(instances0))
+        } else binarize(instances0)
         if (debug) println(arq + " binarized.")
         res
-      } else rmUseless(instances0)
+      } else instances0
       if (debug) println("Useless atts removed from " + arq + ".")
       reader.close()
 
       lazy val arff_header = instances.toString.split("\n").takeWhile(!_.contains("@data")).toList ++ List("@data\n")
       val parent = PatternParent(instances)
-      val patterns = instances.sortBy(_.toDoubleArray.toList.toString()).zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //zero is not a valid Pattern id
-      val distinct = distinctMode(patterns)
+
+      //zero is not a valid Pattern id (the id should be unique and consistent with table that will be written in sqlite database.
+      //The ideal id would map perfectly to the ARFF line or at least to the ARFF ordered by toDoubleArray.toList.toString(), but
+      // the shit is already done in sqlite tables using rowids in the sense that the ids are contiguous and ignore the already removed duplicate patterns.
+
+      //previous (to match ordered ARFF [with duplicates]):
+      //      val patterns = instances.sortBy(_.toDoubleArray.toList.toString()).zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
+      //      val distinct = distinctMode(patterns)
+
+      //new (to match SQLite rowids):
+      val patterns = instances.sortBy(_.toDoubleArray.toList.toString()).zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
+      val distinct0 = distinctMode(patterns)
+      val distinct = distinct0.zipWithIndex.map { case (p, idx) => Pattern(idx + 1, p.vector, p.label, p.weight(), p.missed, p.parent, p.weka)}
+
+      //      println(patterns.diff(distinct.toList))
       if (instances.numInstances() != distinct.size) {
         println("In dataset " + arq + ": " + (instances.numInstances() - distinct.size) + " duplicate instances eliminated! Distinct = " + distinct.size + " original:" + instances.numInstances())
       }
