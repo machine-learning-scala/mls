@@ -92,9 +92,8 @@ trait Lock {
   def exiting() = !running
 
   def justQuit(str: String) = {
-    println(str)
     running = false
-    Thread.sleep(1000) //pra esperar thread monitoradora terminar
+    println(str)
     sys.exit(1)
   }
 
@@ -104,6 +103,8 @@ trait Lock {
   var running = true
 
   def unsafeQuit(msg: String) = {
+    running = false
+    rndDelay(0, 1)
     if (isOpen()) close()
     justQuit(s"Quiting : $msg")
   }
