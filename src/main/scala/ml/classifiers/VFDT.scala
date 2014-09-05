@@ -28,7 +28,7 @@ import weka.classifiers.trees.HoeffdingTree
  * No, I dont think there is any optimized discretization.
  * GraceTime = math.min(200,nclasses + N/20)
  */
-case class VFDT(notes: String = "") extends IncrementalWekaLearner {
+case class VFDT(notes: String = "semzscore") extends IncrementalWekaLearner {
   override val toString = s"VFDT_$notes"
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???

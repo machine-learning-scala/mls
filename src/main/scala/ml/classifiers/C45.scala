@@ -22,7 +22,7 @@ import ml.models.Model
 import weka.classifiers.Classifier
 import weka.classifiers.trees.J48
 
-case class C45(notes: String = "", min_leaf_size: Int = 2) extends BatchWekaLearner {
+case class C45(notes: String = "semzscore", min_leaf_size: Int = 2) extends BatchWekaLearner {
   override val toString = s"C45_$notes"
 
   //  private def complexity(classifier: Classifier) = classifier match {
