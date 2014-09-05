@@ -104,7 +104,7 @@ trait Lock {
 
   def unsafeQuit(msg: String) = {
     running = false
-    rndDelay(0, 1)
+    //    rndDelay(0, 1)
     if (isOpen()) close()
     justQuit(s"Quiting : $msg")
   }
