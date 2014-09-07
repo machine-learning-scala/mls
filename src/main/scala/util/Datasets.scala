@@ -76,8 +76,7 @@ object Datasets extends Lock {
       val distinct0 = distinctMode(patterns)
       val conv = distinct0.map(_.label).toSeq.distinct.zipWithIndex.map { case (c, i) => c -> i}.toMap
       if (conv.size != patterns.head.nclasses) {
-        println(s"Some class absent from dataset ${patterns.head.dataset().relationName()}. Please correct ARFF file header.")
-        sys.exit(1)
+        throw new Error(s"Some class absent from dataset ${patterns.head.dataset().relationName()}. Please correct ARFF file header.")
       }
 
       val distinct = distinct0.zipWithIndex.map { case (p, idx) => Pattern(idx + 1, p.vector, if (preserveClassOrderFromARFFHeader) p.classValue() else conv(p.classValue()), p.weight(), p.missed, p.parent, p.weka)}
