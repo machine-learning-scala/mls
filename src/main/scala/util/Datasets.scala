@@ -28,6 +28,7 @@ import weka.filters.Filter
 import weka.filters.unsupervised.attribute._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.util.{Failure, Success, Try}
 
 object Datasets extends Lock {
 
@@ -49,7 +50,7 @@ object Datasets extends Lock {
       instances00.setRelationName(arq)
       println("useless attributes will be removed...")
       val instances0 = rmUseless(instances00)
-      val instances = if (bina) {
+      val instances1 = if (bina) {
         val res = if (zscored) {
           println("z-score will be applied")
           zscore(binarize(instances0))
@@ -59,6 +60,19 @@ object Datasets extends Lock {
       } else instances0
       if (debug) println("Useless atts removed from " + arq + ".")
       reader.close()
+
+      val instances = if (instances1.numAttributes > 1998) {
+        val filter = new RandomProjection
+        filter.setNumberOfAttributes(1998)
+        filter.setInputFormat(instances1)
+        filter.setSeed(0)
+        Try(Filter.useFilter(instances1, filter)) match {
+          case Success(x) =>
+            println("Reduced attributes from " + instances1.numAttributes + " to " + x.numAttributes + " in '" + arq + "'.")
+            x
+          case Failure(ex) => justQuit("\nSkipping dataset '" + arq + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
+        }
+      } else instances1
 
       lazy val arff_header = instances.toString.split("\n").takeWhile(!_.contains("@data")).toList ++ List("@data\n")
       val parent = PatternParent(instances)
