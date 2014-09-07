@@ -76,6 +76,7 @@ object Datasets extends Lock {
       val distinct0 = distinctMode(patterns)
       val conv = distinct0.map(_.label).toSeq.distinct.zipWithIndex.map { case (c, i) => c -> i}.toMap
       if (conv.size != patterns.head.nclasses) {
+        println(s"Removed duplicate instances: ${instances.toList.diff(distinct0.toList)}")
         throw new Error(s"Some class absent from dataset ${patterns.head.dataset().relationName()} (perhaps due to my internal deduplication). Please correct ARFF file header and/or data.\n" +
           s"header has: ${patterns.head.dataset().classAttribute().enumerateValues().toArray.toList}\n" +
           s"data has: ${conv.toList.sortBy(_._1)}")
