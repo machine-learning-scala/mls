@@ -118,8 +118,11 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
   //    case _ => false
   //  }
 
+  val smallestNumber = 0.0000001
+
   override def equals(that: Any) = that match {
-    case that: Pattern => array.sameElements(that.array)
+    case that: Pattern => array.zip(that.array).forall(x => (x._1 - x._2).abs < smallestNumber)
+    //    case that: Pattern => array.sameElements(that.array)
     case _ => false
   }
 

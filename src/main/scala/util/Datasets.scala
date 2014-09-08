@@ -21,7 +21,7 @@ import java.io.{BufferedReader, File, FileReader, IOException}
 
 import fr.lip6.jkernelmachines.`type`.TrainingSample
 import ml.{Pattern, PatternParent}
-import weka.core.Instances
+import weka.core.{Instance, DenseInstance, Instances}
 import weka.core.converters.ArffLoader.ArffReader
 import weka.experiment.InstanceQuery
 import weka.filters.Filter
@@ -43,6 +43,7 @@ object Datasets extends Lock {
    */
   def arff(bina: Boolean, limit: Int = -1, debug: Boolean = true)(arq: String, zscored: Boolean = true, preserveClassOrderFromARFFHeader: Boolean = true) = {
     try {
+
       //Extract instances from file and close it.
       val reader = new BufferedReader(new FileReader(arq))
       val instances00 = if (limit == -1) new ArffReader(reader).getData else new Instances(new ArffReader(reader).getData, 0, limit)
@@ -61,55 +62,46 @@ object Datasets extends Lock {
       if (debug) println("Useless atts removed from " + arq + ".")
       reader.close()
 
-      //      lazy val arff_header = instances.toString.split("\n").takeWhile(!_.contains("@data")).toList ++ List("@data\n")
+      //ordena
+      val instancesSorted = new Instances(instances, 0, 0)
+      instances.sortBy(_.toDoubleArray.toList.toString()) foreach instancesSorted.add
 
-      //zero is not a valid Pattern id (the id should be unique and consistent with table that will be written in sqlite database.
-      //The ideal id would map perfectly to the ARFF line or at least to the ARFF ordered by toDoubleArray.toList.toString(), but
-      // the shit is already done in sqlite tables using rowids in the sense that the ids are contiguous and ignore the already removed duplicate patterns.
+      //distinctMode
+      val parent = PatternParent(instancesSorted)
+      val patterns = instancesSorted.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, missed = false, parent)}
+      val distinct = distinctMode(patterns)
 
-      //previous (to match reordered ARFF [with duplicates]):
-      //      val patterns = instances.sortBy(_.toDoubleArray.toList.toString()).zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
-      //      val distinct = distinctMode(patterns)
-
-      //new (to match SQLite rowids [reordered ARFF with no duplicates]:
-      val instances1 = new Instances(instances, 0, 0)
-      instances.sortBy(_.toDoubleArray.toList.toString()) foreach instances1.add
-
-      val instances2 = if (instances1.numAttributes > 1998) {
+      //projeta Atts
+      val instances2 = new Instances(instances, 0, 0)
+      distinct foreach instances2.add
+      val projected = if (instances2.numAttributes > 1998) {
         val filter = new RandomProjection
         filter.setNumberOfAttributes(1998)
-        filter.setInputFormat(instances1)
+        filter.setInputFormat(instances2)
         filter.setSeed(0)
-        Try(Filter.useFilter(instances1, filter)) match {
+        Try(Filter.useFilter(instances2, filter)) match {
           case Success(x) =>
-            println("Reduced attributes from " + instances1.numAttributes + " to " + x.numAttributes + " in '" + arq + "'.")
+            println("Reduced attributes from " + instances2.numAttributes + " to " + x.numAttributes + " in '" + arq + "'.")
             x
           case Failure(ex) => justQuit("\nSkipping dataset '" + arq + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
         }
-      } else instances1
+      } else instances2
 
-      val parent = PatternParent(instances2)
-      val patterns = instances2.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
-
-      val distinct0 = distinctMode(patterns)
-      val conv = distinct0.map(_.label).toSeq.distinct.zipWithIndex.map { case (c, i) => c -> i}.toMap
-      if (conv.size != patterns.head.nclasses) {
-        println(s"Removed duplicate instances: ${instances2.toList.diff(distinct0.toList)}")
-        throw new Error(s"Some class absent from dataset ${patterns.head.dataset().relationName()} (perhaps due to my internal deduplication). Please correct ARFF file header and/or data.\n" +
-          s"header has: ${patterns.head.dataset().classAttribute().enumerateValues().toArray.toList}\n" +
+      //converte em patterns com ids e labels corretos
+      val conv = projected.map(_.classValue()).toSeq.distinct.zipWithIndex.map { case (c, i) => c -> i}.toMap
+      if (conv.size != instances.numClasses()) {
+        println(s"Removed duplicate instances: ${instances.toList.diff(projected.toList)}")
+        throw new Error(s"Some class absent from dataset ${instances.head.dataset().relationName()} (perhaps due to my internal deduplication). Please correct ARFF file header and/or data.\n" +
+          s"header has: ${instances.head.dataset().classAttribute().enumerateValues().toArray.toList}\n" +
           s"data has: ${conv.toList.sortBy(_._1)}")
       }
+      val projectedPatts = projected.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance.toDoubleArray.dropRight(1).toList, conv(instance.classValue()), instance.weight(), missed = false, parent, weka = true)}
 
-      val distinct = distinct0.zipWithIndex.map { case (p, idx) =>
-        val la = if (preserveClassOrderFromARFFHeader) p.classValue() else conv(p.classValue())
-        Pattern(idx + 1, p.vector, la, p.weight(), p.missed, p.parent, p.weka)
+      if (instances.numInstances() != projectedPatts.size) {
+        println("In dataset " + arq + ": " + (instances.numInstances() - projectedPatts.size) + " duplicate instances eliminated! Distinct = " + projectedPatts.size + " original:" + instances.numInstances())
       }
 
-      //      println(patterns.diff(distinct.toList))
-      if (instances2.numInstances() != distinct.size) {
-        println("In dataset " + arq + ": " + (instances2.numInstances() - distinct.size) + " duplicate instances eliminated! Distinct = " + distinct.size + " original:" + instances2.numInstances())
-      }
-      Right(distinct.toStream)
+      Right(projectedPatts.toStream)
     } catch {
       case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
     }
