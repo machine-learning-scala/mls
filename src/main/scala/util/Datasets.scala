@@ -50,7 +50,7 @@ object Datasets extends Lock {
       instances00.setRelationName(arq)
       println("useless attributes will be removed...")
       val instances0 = rmUseless(instances00)
-      val instances1 = if (bina) {
+      val instances = if (bina) {
         val res = if (zscored) {
           println("z-score will be applied")
           zscore(binarize(instances0))
@@ -61,7 +61,21 @@ object Datasets extends Lock {
       if (debug) println("Useless atts removed from " + arq + ".")
       reader.close()
 
-      val instances = if (instances1.numAttributes > 1998) {
+      //      lazy val arff_header = instances.toString.split("\n").takeWhile(!_.contains("@data")).toList ++ List("@data\n")
+
+      //zero is not a valid Pattern id (the id should be unique and consistent with table that will be written in sqlite database.
+      //The ideal id would map perfectly to the ARFF line or at least to the ARFF ordered by toDoubleArray.toList.toString(), but
+      // the shit is already done in sqlite tables using rowids in the sense that the ids are contiguous and ignore the already removed duplicate patterns.
+
+      //previous (to match reordered ARFF [with duplicates]):
+      //      val patterns = instances.sortBy(_.toDoubleArray.toList.toString()).zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
+      //      val distinct = distinctMode(patterns)
+
+      //new (to match SQLite rowids [reordered ARFF with no duplicates]:
+      val instances1 = new Instances(instances, 0, 0)
+      instances.sortBy(_.toDoubleArray.toList.toString()) foreach instances1.add
+
+      val instances2 = if (instances1.numAttributes > 1998) {
         val filter = new RandomProjection
         filter.setNumberOfAttributes(1998)
         filter.setInputFormat(instances1)
@@ -74,33 +88,26 @@ object Datasets extends Lock {
         }
       } else instances1
 
-      lazy val arff_header = instances.toString.split("\n").takeWhile(!_.contains("@data")).toList ++ List("@data\n")
-      val parent = PatternParent(instances)
+      val parent = PatternParent(instances2)
+      val patterns = instances2.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
 
-      //zero is not a valid Pattern id (the id should be unique and consistent with table that will be written in sqlite database.
-      //The ideal id would map perfectly to the ARFF line or at least to the ARFF ordered by toDoubleArray.toList.toString(), but
-      // the shit is already done in sqlite tables using rowids in the sense that the ids are contiguous and ignore the already removed duplicate patterns.
-
-      //previous (to match ordered ARFF [with duplicates]):
-      //      val patterns = instances.sortBy(_.toDoubleArray.toList.toString()).zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
-      //      val distinct = distinctMode(patterns)
-
-      //new (to match SQLite rowids):
-      val patterns = instances.sortBy(_.toDoubleArray.toList.toString()).zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
       val distinct0 = distinctMode(patterns)
       val conv = distinct0.map(_.label).toSeq.distinct.zipWithIndex.map { case (c, i) => c -> i}.toMap
       if (conv.size != patterns.head.nclasses) {
-        println(s"Removed duplicate instances: ${instances.toList.diff(distinct0.toList)}")
+        println(s"Removed duplicate instances: ${instances2.toList.diff(distinct0.toList)}")
         throw new Error(s"Some class absent from dataset ${patterns.head.dataset().relationName()} (perhaps due to my internal deduplication). Please correct ARFF file header and/or data.\n" +
           s"header has: ${patterns.head.dataset().classAttribute().enumerateValues().toArray.toList}\n" +
           s"data has: ${conv.toList.sortBy(_._1)}")
       }
 
-      val distinct = distinct0.zipWithIndex.map { case (p, idx) => Pattern(idx + 1, p.vector, if (preserveClassOrderFromARFFHeader) p.classValue() else conv(p.classValue()), p.weight(), p.missed, p.parent, p.weka)}
+      val distinct = distinct0.zipWithIndex.map { case (p, idx) =>
+        val la = if (preserveClassOrderFromARFFHeader) p.classValue() else conv(p.classValue())
+        Pattern(idx + 1, p.vector, la, p.weight(), p.missed, p.parent, p.weka)
+      }
 
       //      println(patterns.diff(distinct.toList))
-      if (instances.numInstances() != distinct.size) {
-        println("In dataset " + arq + ": " + (instances.numInstances() - distinct.size) + " duplicate instances eliminated! Distinct = " + distinct.size + " original:" + instances.numInstances())
+      if (instances2.numInstances() != distinct.size) {
+        println("In dataset " + arq + ": " + (instances2.numInstances() - distinct.size) + " duplicate instances eliminated! Distinct = " + distinct.size + " original:" + instances2.numInstances())
       }
       Right(distinct.toStream)
     } catch {
