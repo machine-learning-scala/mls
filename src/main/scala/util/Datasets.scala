@@ -101,7 +101,8 @@ object Datasets extends Lock {
           s"data has: ${conv.toList.sortBy(_._1)}")
       }
       val parent = PatternParent(projected.head.dataset())
-      val projectedPatts = projected.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance.toDoubleArray.dropRight(1).toList, conv(instance.classValue()), instance.weight(), missed = false, parent, weka = true)}
+      def convo(x: Int) = if (preserveClassOrderFromARFFHeader) x else conv(x)
+      val projectedPatts = projected.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance.toDoubleArray.dropRight(1).toList, convo(instance.classValue().toInt), instance.weight(), missed = false, parent, weka = true)}
 
       if (instances.numInstances() != projectedPatts.size) {
         println("In dataset " + arq + ": " + (instances.numInstances() - projectedPatts.size) + " duplicate instances eliminated! Distinct = " + projectedPatts.size + " original:" + instances.numInstances())
