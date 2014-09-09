@@ -720,6 +720,8 @@ public class DatabaseSaverForSQLite
 
         //confusion matrix
         query.append("CREATE TABLE hit ( strategyid INT, learnerid INT, run INT, fold INT, position INT, expe INT, pred INT, value INT, unique (strategyid, learnerid, run, fold, position, expe, pred) on conflict rollback ); ");
+        query.append("CREATE TABLE res ( m INT, s INT, l INT, r INT, f INT, v FLOAT, unique (m,s,l,r,f) on conflict rollback ); ");
+        query.append("CREATE VIEW i as select Class as c from inst; ");
 
         //short aliases
         query.append("create view q as select strategyid as s, learnerid as l, run as r, fold as f, position as p, instid as i from query;");
