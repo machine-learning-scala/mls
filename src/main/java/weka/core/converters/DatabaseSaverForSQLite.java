@@ -715,7 +715,7 @@ public class DatabaseSaverForSQLite
         StringBuffer query = new StringBuffer();
         Instances structure = getInstances();
 
-        query.append("CREATE TABLE query ( strategyid INT, learnerid INT, run INT, fold INT, position INT, instid INT, unique (strategyid, learnerid, run, fold, position) on conflict rollback ); ");
+        query.append("CREATE TABLE query ( strategyid INT, learnerid INT, run INT, fold INT, position INT, instid INT, unique (strategyid, learnerid, run, fold, position) on conflict rollback, unique (strategyid, learnerid, run, fold, instid) on conflict rollback ); ");
         query.append("CREATE TABLE time ( strategyid INT, learnerid INT, run INT, fold INT, value INT, unique (strategyid, learnerid, run, fold) on conflict rollback ); ");
 
         //confusion matrix
