@@ -163,20 +163,20 @@ trait Lock {
     }
   }
 
-  def acquireOp2() = {
-    rndDelay()
-    synchronized {
-      while (!availableOp2) wait()
-      availableOp2 = false
-    }
-  }
-
-  def releaseOp2() = {
-    synchronized {
-      availableOp2 = true
-      notify()
-    }
-  }
+  //  def acquireOp2() = {
+  //    rndDelay()
+  //    synchronized {
+  //      while (!availableOp2) wait()
+  //      availableOp2 = false
+  //    }
+  //  }
+  //
+  //  def releaseOp2() = {
+  //    synchronized {
+  //      availableOp2 = true
+  //      notify()
+  //    }
+  //  }
 }
 
 object ExistsTest extends Lock with App {
