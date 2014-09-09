@@ -21,11 +21,12 @@ import java.io.{BufferedReader, File, FileReader, IOException}
 
 import fr.lip6.jkernelmachines.`type`.TrainingSample
 import ml.{Pattern, PatternParent}
-import weka.core.{Instance, DenseInstance, Instances}
+import weka.core.Instances
 import weka.core.converters.ArffLoader.ArffReader
 import weka.experiment.InstanceQuery
 import weka.filters.Filter
 import weka.filters.unsupervised.attribute._
+
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success, Try}
@@ -33,6 +34,20 @@ import scala.util.{Failure, Success, Try}
 object Datasets extends Lock {
 
   import scala.collection.JavaConversions._
+
+  def binaSort(bin: Instances, bina: Boolean, instances0: Instances) = {
+    val instances = if (bina) bin
+    else instances0
+
+    //ordena
+    val instancesSorted = new Instances(instances, 0, 0)
+    if (bina) instances.sortBy(_.toDoubleArray.toList.toString()) foreach instancesSorted.add
+    else instances.zip(bin).sortBy(_._2.toDoubleArray.toList.toString()).map(_._1) foreach instancesSorted.add
+
+    //distinctMode
+    val parent = PatternParent(instancesSorted)
+    instancesSorted.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, missed = false, parent)}
+  }
 
   /**
    * Reads an ARFF file.
@@ -46,30 +61,24 @@ object Datasets extends Lock {
 
       //Extract instances from file and close it.
       val reader = new BufferedReader(new FileReader(arq))
-      val instances00 = if (limit == -1) new ArffReader(reader).getData else new Instances(new ArffReader(reader).getData, 0, limit)
-      instances00.setClassIndex(instances00.numAttributes() - 1)
-      instances00.setRelationName(arq)
-      println("useless attributes will be removed...")
-      val instances0 = rmUseless(instances00)
-      val instances = if (bina) {
-        if (debug) println(arq + " binarizing...")
-        binarize(instances0)
-      } else instances0
-      if (debug) println("Useless atts removed from " + arq + ".")
+      val instances = if (limit == -1) new ArffReader(reader).getData else new Instances(new ArffReader(reader).getData, 0, limit)
       reader.close()
+      instances.setClassIndex(instances.numAttributes() - 1)
+      instances.setRelationName(arq)
 
-      //ordena
-      val instancesSorted = new Instances(instances, 0, 0)
-      instances.sortBy(_.toDoubleArray.toList.toString()) foreach instancesSorted.add
-
-      //distinctMode
-      val parent = PatternParent(instancesSorted)
-      val patterns = instancesSorted.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, missed = false, parent)}
-      val distinct = distinctMode(patterns)
+      println("useless attributes will be removed...")
+      val instances0 = rmUseless(instances)
+      val bin = binarize(instances0)
+      val sortedBinaPatterns = binaSort(bin, bina = true, instances0)
+      val (distinct, dataset) = if (bina) (distinctMode(sortedBinaPatterns), sortedBinaPatterns.head.dataset())
+      else {
+        val sortednonBinaPatterns = binaSort(bin, bina = false, instances0)
+        (distinctMode2(sortedBinaPatterns.zip(sortednonBinaPatterns)), sortednonBinaPatterns.head.dataset())
+      }
+      val instances2 = new Instances(dataset, 0, 0)
+      distinct foreach instances2.add
 
       //projeta Atts
-      val instances2 = new Instances(instances, 0, 0)
-      distinct foreach instances2.add
       val projected = if (instances2.numAttributes > 1998) {
         val filter = new RandomProjection
         filter.setNumberOfAttributes(1998)
@@ -91,6 +100,7 @@ object Datasets extends Lock {
           s"header has: ${instances.head.dataset().classAttribute().enumerateValues().toArray.toList}\n" +
           s"data has: ${conv.toList.sortBy(_._1)}")
       }
+      val parent = PatternParent(projected.head.dataset())
       val projectedPatts = projected.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance.toDoubleArray.dropRight(1).toList, conv(instance.classValue()), instance.weight(), missed = false, parent, weka = true)}
 
       if (instances.numInstances() != projectedPatts.size) {
@@ -112,6 +122,26 @@ object Datasets extends Lock {
         val modeLabel = hist.zipWithIndex.max._2
         keyPatt.relabeled_reweighted(modeLabel, keyPatt.weight, new_missed = false)
     }
+
+  /**
+   * Verifica igualdade pelo primeiro da tupla, mas retorna pelo segundo.
+   * @param patts
+   * @return
+   */
+  def distinctMode2(patts: mutable.Buffer[(Pattern, Pattern)]) = {
+    val a = patts.groupBy(x => x._1).map { case (key1, grp12) =>
+      key1 -> grp12.map(_._2)
+    }
+    a.map {
+      case (_: Pattern, ArrayBuffer(patt: Pattern)) => patt
+      case (_: Pattern, listPatt: ArrayBuffer[Pattern]) =>
+        val pat = listPatt.head
+        val hist = Array.fill(pat.nclasses)(0)
+        listPatt foreach (p => hist(p.label.toInt) += 1)
+        val modeLabel = hist.zipWithIndex.max._2
+        pat.relabeled_reweighted(modeLabel, pat.weight, new_missed = false)
+    }
+  }
 
   def rmUseless(instances: Instances) = {
     val rmUseless_filter = new RemoveUseless
