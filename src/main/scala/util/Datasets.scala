@@ -17,13 +17,12 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package util
 
-import java.io.{BufferedReader, File, FileReader, IOException}
+import java.io.{BufferedReader, FileReader, IOException}
 
 import fr.lip6.jkernelmachines.`type`.TrainingSample
 import ml.{Pattern, PatternParent}
 import weka.core.Instances
 import weka.core.converters.ArffLoader.ArffReader
-import weka.experiment.InstanceQuery
 import weka.filters.Filter
 import weka.filters.unsupervised.attribute._
 
@@ -246,41 +245,6 @@ object Datasets extends Lock {
     pc.setInputFormat(ins)
     pc.setMaximumAttributes(n)
     Filter.useFilter(ins, pc)
-  }
-
-  //  def patternsFromSQLiteFullPath(dataset: String) = patternsFromSQLite("")(dataset.dropRight(3))
-
-  /**
-   * Reads a SQLite dataset.
-   * Assigns the rowid to pattern id.
-   * Assumes there is no duplicates.
-   */
-  def patternsFromSQLite(path: String)(dataset: String) = {
-    val arq = new File(path + "/" + dataset + ".db")
-    println(s"Opening $arq")
-    if (!checkExistsForNFS(arq)) Left(s"Dataset file $arq not found!")
-    else {
-      try {
-        val patterns = {
-          val query = new InstanceQuery()
-          query.setDatabaseURL("jdbc:sqlite:////" + arq)
-          query.setQuery("select * from inst order by rowid")
-          query.setDebug(false)
-          val instances = query.retrieveInstances()
-          instances.setClassIndex(instances.numAttributes() - 1)
-          instances.setRelationName(dataset)
-          val parent = PatternParent(instances)
-          ??? ///pegar id da tabela
-          val res = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
-          query.close()
-          res.toStream
-        }
-        Right(patterns)
-      } catch {
-        case ex: IOException =>
-          Left("Problems reading file " + arq + ": " + ex.getMessage)
-      }
-    }
   }
 
   //useless

@@ -759,12 +759,11 @@ public class DatabaseSaverForSQLite
             String attName = att.name();
             attName = attName.replaceAll("[^\\w]", "_");
             attName = m_DataBaseConnection.maskKeyword(attName);
+            String name = attName;
+            if (name.equalsIgnoreCase("class")) attName = "c";
             if (m_DataBaseConnection.getUpperCase()) {
-                String name = attName.toUpperCase();
-                if (name.equalsIgnoreCase("class")) name = "c";
-                query.append(name);
-            } else
-                query.append(attName);
+                query.append(attName.toUpperCase());
+            } else query.append(attName);
             if (att.isDate())
                 query.append(" " + m_createDate);
             else {
@@ -802,9 +801,10 @@ public class DatabaseSaverForSQLite
         insert.append(m_tableName);
         insert.append(" VALUES ( ");
         if (m_id) {
+            m_count = (int) inst.weight();
             insert.append(m_count);
             insert.append(", ");
-            m_count++;
+//            m_count++;
         }
         for (int j = 0; j < inst.numAttributes(); j++) {
             if (inst.isMissing(j))
