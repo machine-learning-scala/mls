@@ -34,9 +34,11 @@ object Datasets extends Lock {
 
   import scala.collection.JavaConversions._
 
-  def rndProjection(instances2: Instances, arq: String) = if (instances2.numAttributes > 1998) {
+  val predAttsLimit = 1000
+
+  def rndProjection(instances2: Instances, arq: String) = if (instances2.numAttributes > predAttsLimit) {
     val filter = new RandomProjection
-    filter.setNumberOfAttributes(1998)
+    filter.setNumberOfAttributes(predAttsLimit)
     filter.setInputFormat(instances2)
     filter.setSeed(0)
     Try(Filter.useFilter(instances2, filter)) match {
@@ -80,12 +82,13 @@ object Datasets extends Lock {
       println("useless attributes will be removed...")
       val instancesUselessRemoved = rmUseless(instances)
 
-      //Random projection of atts.
+      //Random projection of atts. (está roubando um pouco aqui, mas é necessário para que o SQLite aceite o dataset.
+      //Há um limite de 1998 atributos; como já estou interferindo vou reduzir para 1000, pois com 1998 estava muito lento.
+      //Note-se que a projeção resulta em atributos numéricos.
       val projected = rndProjection(instancesUselessRemoved, arq)
 
       //Assigns ids from zero. (should be one of the first things because of weka filters' indeterminism)
       val parent = PatternParent(projected)
-      //      val idInstances = new Instances(projected, 0, 0)
       val idpatts = projected.zipWithIndex.map { case (instance, idx) => Pattern(idx, instance, missed = false, parent)}
 
       //Deduplication.

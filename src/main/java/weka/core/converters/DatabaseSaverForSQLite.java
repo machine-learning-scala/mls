@@ -796,12 +796,15 @@ public class DatabaseSaverForSQLite
      */
     private void writeInstance(Instance inst) throws Exception {
 
-        StringBuilder insert = new StringBuilder();
+        StringBuffer insert = new StringBuffer();
         insert.append("INSERT INTO ");
         insert.append(m_tableName);
         insert.append(" VALUES ( ");
         if (m_id) {
+
             m_count = (int) inst.weight();
+            inst.setWeight(1);
+
             insert.append(m_count);
             insert.append(", ");
 //            m_count++;
@@ -811,12 +814,11 @@ public class DatabaseSaverForSQLite
                 insert.append("NULL");
             else {
                 if ((inst.attribute(j)).isDate())
-                    insert.append("'").append(m_DateFormat.format((long) inst.value(j))).append("'");
+                    insert.append("'" + m_DateFormat.format((long) inst.value(j)) + "'");
                 else if ((inst.attribute(j)).isNumeric())
                     insert.append(inst.value(j));
-                else { //nominal
-                    String stringInsert = Double.toString(inst.classValue());
-//                    String stringInsert = "'" + inst.classValue() + "'";
+                else {
+                    String stringInsert = "'" + inst.stringValue(j) + "'";
                     if (stringInsert.length() > 2)
                         stringInsert = stringInsert.replaceAll("''", "'");
                     insert.append(stringInsert);
@@ -833,6 +835,47 @@ public class DatabaseSaverForSQLite
             m_DataBaseConnection.close();
         }
     }
+
+//    private void writeInstance(Instance inst) throws Exception {
+//
+//        StringBuilder insert = new StringBuilder();
+//        insert.append("INSERT INTO ");
+//        insert.append(m_tableName);
+//        insert.append(" VALUES ( ");
+//        if (m_id) {
+//            m_count = (int) inst.weight();
+//            inst.setWeight(1);
+//            insert.append(m_count);
+//            insert.append(", ");
+////            m_count++;
+//        }
+//        for (int j = 0; j < inst.numAttributes(); j++) {
+//            if (inst.isMissing(j))
+//                insert.append("NULL");
+//            else {
+//                if ((inst.attribute(j)).isDate())
+//                    insert.append("'").append(m_DateFormat.format((long) inst.value(j))).append("'");
+//                else if ((inst.attribute(j)).isNumeric())
+//                    insert.append(inst.value(j));
+//                else { //nominal
+////                    String stringInsert = Double.toString(inst.classValue());
+//                    String stringInsert = "'" + inst.classValue() + "'";
+//                    if (stringInsert.length() > 2)
+//                        stringInsert = stringInsert.replaceAll("''", "'");
+//                    insert.append(stringInsert);
+//                }
+//            }
+//            if (j != inst.numAttributes() - 1)
+//                insert.append(", ");
+//        }
+//        insert.append(" )");
+//        //System.out.println(insert.toString());
+//        if (m_DataBaseConnection.update(insert.toString()) < 1) {
+//            throw new IOException("Tuple cannot be inserted.");
+//        } else {
+//            m_DataBaseConnection.close();
+//        }
+//    }
 
     /**
      * Writes a Batch of instances.
