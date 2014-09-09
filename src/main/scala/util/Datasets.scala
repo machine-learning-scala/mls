@@ -77,28 +77,28 @@ object Datasets extends Lock {
       instances.setClassIndex(instances.numAttributes() - 1)
       instances.setRelationName(arq)
 
-      //Assigns ids from zero. (first thing because of weka filters' indeterminism)
-      val parent = PatternParent(instances)
-      val idInstances = new Instances(instances, 0, 0)
-      instances.zipWithIndex.map { case (instance, idx) => Pattern(idx, instance, missed = false, parent)} foreach idInstances.add
-
       //Removes useless atts.
       println("useless attributes will be removed...")
-      val instancesUselessRemoved = rmUseless(idInstances)
+      val instancesUselessRemoved = rmUseless(instances)
 
       //Random projection of atts.
       val projected = rndProjection(instancesUselessRemoved, arq)
 
+      //Assigns ids from zero. (should be one of the first things because of weka filters' indeterminism)
+      val parent = PatternParent(projected)
+      //      val idInstances = new Instances(projected, 0, 0)
+      val idpatts = projected.zipWithIndex.map { case (instance, idx) => Pattern(idx, instance, missed = false, parent)}
+
       //Deduplication.
       println("Only distinct instances will be kept, but preserving ARFF original line number as id, starting from zero.")
-      val patterns = distinctMode(projected map (_.asInstanceOf[Pattern]))
+      val distinctPatts = distinctMode(idpatts)
 
       //Alerts about how many duplicates were found.
-      if (instances.numInstances() != patterns.size) {
-        println("In dataset " + arq + ": " + (instances.numInstances() - patterns.size) + " duplicate instances eliminated! Distinct = " + patterns.size + " original:" + instances.numInstances())
+      if (instances.numInstances() != distinctPatts.size) {
+        println("In dataset " + arq + ": " + (instances.numInstances() - distinctPatts.size) + " duplicate instances eliminated! Distinct = " + distinctPatts.size + " original:" + instances.numInstances())
       }
 
-      Right(patterns.toStream)
+      Right(distinctPatts.toStream)
     } catch {
       case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
     }
