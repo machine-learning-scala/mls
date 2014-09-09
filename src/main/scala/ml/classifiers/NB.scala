@@ -47,7 +47,7 @@ case class NB(notes: String = "semzscore") extends IncrementalWekaLearner {
 }
 
 object TestNBinc extends App {
-  val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff", zscored = false).right.get.toList
+  val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.toList
   val f = Datasets.zscoreFilter(d)
   val df = Datasets.applyFilterChangingOrder(d, f)
   val l = NBBatch()

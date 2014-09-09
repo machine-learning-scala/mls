@@ -41,7 +41,7 @@ object Datasets extends Lock {
    * TODO: read the file like a stream (poker dataset was terribly slow to load, it seems to be ok now :S)
    * @return (processed patterns, arff-header, processed Instances object still with duplicates)
    */
-  def arff(bina: Boolean, limit: Int = -1, debug: Boolean = true)(arq: String, zscored: Boolean = true, preserveClassOrderFromARFFHeader: Boolean = true) = {
+  def arff(bina: Boolean, limit: Int = -1, debug: Boolean = true)(arq: String, preserveClassOrderFromARFFHeader: Boolean = true) = {
     try {
 
       //Extract instances from file and close it.
@@ -52,12 +52,8 @@ object Datasets extends Lock {
       println("useless attributes will be removed...")
       val instances0 = rmUseless(instances00)
       val instances = if (bina) {
-        val res = if (zscored) {
-          println("z-score will be applied")
-          zscore(binarize(instances0))
-        } else binarize(instances0)
-        if (debug) println(arq + " binarized.")
-        res
+        if (debug) println(arq + " binarizing...")
+        binarize(instances0)
       } else instances0
       if (debug) println("Useless atts removed from " + arq + ".")
       reader.close()
@@ -294,7 +290,7 @@ object Datasets extends Lock {
 }
 
 object TestFilter extends App {
-  val d = Datasets.arff(true)("/home/davi/wcs/ucipp/uci/iris.arff", false).right.get.toList
+  val d = Datasets.arff(true)("/home/davi/wcs/ucipp/uci/iris.arff").right.get.toList
   //.drop(10).take(5).toList
   val f = Datasets.zscoreFilter(d)
   val d2 = Datasets.applyFilterChangingOrder(d, f)
