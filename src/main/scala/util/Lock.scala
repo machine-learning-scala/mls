@@ -23,7 +23,7 @@ import java.io.{InputStream, FileInputStream, File}
 import scala.io.Source
 import scala.util.Random
 
-trait Lock {
+trait Lock extends FileTrait {
   lazy val debug = Source.fromFile("debug.txt").getLines().toList.head.toBoolean
   lazy val runs = Source.fromFile("runs.txt").getLines().toList.head.toInt
   lazy val folds = Source.fromFile("folds.txt").getLines().toList.head.toInt
@@ -81,14 +81,6 @@ trait Lock {
 
   //-----------------------------------------------
 
-  val readOnly: Boolean
-  var fileLocked: Boolean
-  //  val threadsToWait: Int
-
-  def close()
-
-  def isOpen(): Boolean
-
   def exiting() = !running
 
   def justQuit(str: String) = {
@@ -105,7 +97,7 @@ trait Lock {
   def unsafeQuit(msg: String) = {
     running = false
     //    rndDelay(0, 1)
-    if (isOpen()) close()
+    if (isOpen) close()
     justQuit(s"Quiting : $msg")
   }
 

@@ -29,7 +29,7 @@ object NaiveBayesExample extends App {
  Refer to LICENSE file for details.
 --------------------------------------------------------------""")
 
-  val data = Datasets.arff(bina = true)("iris.arff") match {
+  val data = Datasets.arff("iris.arff") match {
     case Right(x) => x
     case Left(str) => println("Could not load iris dataset from the program path: " + str); sys.exit(1)
   }

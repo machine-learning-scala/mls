@@ -65,7 +65,7 @@ case class SVMLib(seed: Int = 42, notes: String = "") extends BatchWekaLearner {
 }
 
 object TestSVM extends App {
-  val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.toList.take(1000)
+  val d = Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.toList.take(1000)
   val f = Datasets.zscoreFilter(d)
   val df = Datasets.applyFilterChangingOrder(d, f)
   lazy val l = SVMLib()

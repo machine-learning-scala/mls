@@ -21,7 +21,7 @@ import util.Datasets
 
 
 object TestForgetting extends App {
-  val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.toList.take(500)
+  val d = Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.toList.take(500)
   val f = Datasets.zscoreFilter(d)
   val df = Datasets.applyFilterChangingOrder(d, f)
   val ln = NB() //can forget
@@ -55,7 +55,7 @@ object TestForgetting extends App {
 }
 
 object TestSingleForgetting extends App {
-  val d = Datasets.arff(bina = true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.toList.take(500)
+  val d = Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.toList.take(500)
   val f = Datasets.zscoreFilter(d)
   val df = Datasets.applyFilterChangingOrder(d, f)
   val dtr = Datasets.applyFilterChangingOrder(d, f).take(250)

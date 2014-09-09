@@ -25,7 +25,7 @@ import weka.core.SelectedTag
 import scala.util.Random
 
 object wekalibsvmTest extends App {
-  val d = Random.shuffle(Datasets.arff(true)("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get)
+  val d = Random.shuffle(Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get)
   val tr = Datasets.patterns2instances(d.take(1000))
   val ts = Datasets.patterns2instances(d.drop(1000))
   val svm = new LibSVM()

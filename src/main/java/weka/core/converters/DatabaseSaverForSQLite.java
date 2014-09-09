@@ -715,21 +715,20 @@ public class DatabaseSaverForSQLite
         StringBuffer query = new StringBuffer();
         Instances structure = getInstances();
 
-        query.append("CREATE TABLE query ( strategyid INT, learnerid INT, run INT, fold INT, position INT, instid INT, unique (strategyid, learnerid, run, fold, position) on conflict rollback, unique (strategyid, learnerid, run, fold, instid) on conflict rollback ); ");
-        query.append("CREATE TABLE time ( strategyid INT, learnerid INT, run INT, fold INT, value INT, unique (strategyid, learnerid, run, fold) on conflict rollback ); ");
+        //pool [strat learner run fold]
+        query.append("CREATE TABLE p ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, s INT, l INT, r INT, f INT ); ");
 
-        //confusion matrix
-        query.append("CREATE TABLE hit ( strategyid INT, learnerid INT, run INT, fold INT, position INT, expe INT, pred INT, value INT, unique (strategyid, learnerid, run, fold, position, expe, pred) on conflict rollback ); ");
-        query.append("CREATE TABLE res ( m INT, s INT, l INT, r INT, f INT, v FLOAT, unique (m,s,l,r,f) on conflict rollback ); ");
-        query.append("CREATE VIEW i as select Class as c from inst; ");
+        //query [pool timeStep instance]
+        query.append("CREATE TABLE q ( p INT, t INT, i INT, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, UNIQUE (p, i) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id), FOREIGN KEY (i) REFERENCES i (id) ); ");
 
-        //short aliases
-        query.append("create view q as select strategyid as s, learnerid as l, run as r, fold as f, position as p, instid as i from query;");
-        query.append("create view h as select strategyid as s, learnerid as l, run as r, fold as f, position as p, expe as e, pred as p, value as v from hit;");
+        //time [pool value] in seconds
+        query.append("CREATE TABLE t ( p INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, v INT, FOREIGN KEY (p) REFERENCES p (id) ); ");
 
-        //space intractable: para cada query (position/timestep) havera uma predicao diferente para os itens do fold de teste
-        //cada linha representa uma saida do modelo
-//        query.append("CREATE TABLE prediction ( learnerid INT, queryid INT, instid INT, output INT, value FLOAT, unique (learnerid, queryid, instid, output) on conflict rollback ); ");
+        //hit [pool timeStep realClass guessedClass value] (confusion matrix cell)
+        query.append("CREATE TABLE h ( p INT, t INT, r INT, g INT, v INT, PRIMARY KEY (p, t, r, g) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) ); ");
+
+        //result [app.measure pool value] (Q, ...)
+        query.append("CREATE TABLE r ( m INT, p INT, v FLOAT, PRIMARY KEY (m, p) ON CONFLICT ROLLBACK, FOREIGN KEY (m) REFERENCES measure (id), FOREIGN KEY (p) REFERENCES p (id) ); ");
 
         query.append("CREATE TABLE ");
         if (m_tabName || m_tableName.equals(""))
@@ -747,7 +746,7 @@ public class DatabaseSaverForSQLite
         if (structure.numAttributes() == 0)
             throw new Exception("Instances have no attribute.");
         if (m_id) {
-            query.append(" ( id INTEGER PRIMARY KEY id, ");
+            query.append(" ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, ");
 //            if (m_DataBaseConnection.getUpperCase())
 //                m_idColumn = m_idColumn.toUpperCase();
 //            query.append(m_DataBaseConnection.maskKeyword(m_idColumn));
@@ -760,9 +759,11 @@ public class DatabaseSaverForSQLite
             String attName = att.name();
             attName = attName.replaceAll("[^\\w]", "_");
             attName = m_DataBaseConnection.maskKeyword(attName);
-            if (m_DataBaseConnection.getUpperCase())
-                query.append(attName.toUpperCase());
-            else
+            if (m_DataBaseConnection.getUpperCase()) {
+                String name = attName.toUpperCase();
+                if (name.equalsIgnoreCase("class")) name = "c";
+                query.append(name);
+            } else
                 query.append(attName);
             if (att.isDate())
                 query.append(" " + m_createDate);
@@ -779,8 +780,6 @@ public class DatabaseSaverForSQLite
                 query.append(", ");
         }
         query.append(" );");
-
-        query.append("create view i as select Class as c from inst;");
 
 //        System.out.println(query.toString());
         m_DataBaseConnection.update(query.toString());

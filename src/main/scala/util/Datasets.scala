@@ -35,6 +35,20 @@ object Datasets extends Lock {
 
   import scala.collection.JavaConversions._
 
+  def rndProjection(instances2: Instances, arq: String) = if (instances2.numAttributes > 1998) {
+    val filter = new RandomProjection
+    filter.setNumberOfAttributes(1998)
+    filter.setInputFormat(instances2)
+    filter.setSeed(0)
+    Try(Filter.useFilter(instances2, filter)) match {
+      case Success(x) =>
+        println("Reduced attributes from " + instances2.numAttributes + " to " + x.numAttributes + " in '" + arq + "'.")
+        x
+      case Failure(ex) => justQuit("\nSkipping dataset '" + arq + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
+    }
+  } else instances2
+
+
   def binaSort(bin: Instances, bina: Boolean, instances0: Instances) = {
     val instances = if (bina) bin
     else instances0
@@ -51,64 +65,40 @@ object Datasets extends Lock {
 
   /**
    * Reads an ARFF file.
-   * Duplicate instances will be removed, only the mode label will be kept.
-   *
-   * TODO: read the file like a stream (poker dataset was terribly slow to load, it seems to be ok now :S)
-   * @return (processed patterns, arff-header, processed Instances object still with duplicates)
+   * Remove useless attributes.
    */
-  def arff(bina: Boolean, limit: Int = -1, debug: Boolean = true)(arq: String, preserveClassOrderFromARFFHeader: Boolean = true) = {
+  def arff(arq: String) = {
     try {
 
       //Extract instances from file and close it.
       val reader = new BufferedReader(new FileReader(arq))
-      val instances = if (limit == -1) new ArffReader(reader).getData else new Instances(new ArffReader(reader).getData, 0, limit)
+      val instances = new ArffReader(reader).getData
       reader.close()
       instances.setClassIndex(instances.numAttributes() - 1)
       instances.setRelationName(arq)
 
+      //Assigns ids from zero. (first thing because of weka filters' indeterminism)
+      val parent = PatternParent(instances)
+      val idInstances = new Instances(instances, 0, 0)
+      instances.zipWithIndex.map { case (instance, idx) => Pattern(idx, instance, missed = false, parent)} foreach idInstances.add
+
+      //Removes useless atts.
       println("useless attributes will be removed...")
-      val instances0 = rmUseless(instances)
-      val bin = binarize(instances0)
-      val sortedBinaPatterns = binaSort(bin, bina = true, instances0)
-      val (distinct, dataset) = if (bina) (distinctMode(sortedBinaPatterns), sortedBinaPatterns.head.dataset())
-      else {
-        val sortednonBinaPatterns = binaSort(bin, bina = false, instances0)
-        (distinctMode2(sortedBinaPatterns.zip(sortednonBinaPatterns)), sortednonBinaPatterns.head.dataset())
-      }
-      val instances2 = new Instances(dataset, 0, 0)
-      distinct foreach instances2.add
+      val instancesUselessRemoved = rmUseless(idInstances)
 
-      //projeta Atts
-      val projected = if (instances2.numAttributes > 1998) {
-        val filter = new RandomProjection
-        filter.setNumberOfAttributes(1998)
-        filter.setInputFormat(instances2)
-        filter.setSeed(0)
-        Try(Filter.useFilter(instances2, filter)) match {
-          case Success(x) =>
-            println("Reduced attributes from " + instances2.numAttributes + " to " + x.numAttributes + " in '" + arq + "'.")
-            x
-          case Failure(ex) => justQuit("\nSkipping dataset '" + arq + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
-        }
-      } else instances2
+      //Random projection of atts.
+      val projected = rndProjection(instancesUselessRemoved, arq)
 
-      //converte em patterns com ids e labels corretos
-      val conv = projected.map(_.classValue()).toSeq.distinct.zipWithIndex.map { case (c, i) => c -> i}.toMap
-      if (conv.size != instances.numClasses()) {
-        println(s"Removed duplicate instances: ${instances.toList.diff(projected.toList)}")
-        throw new Error(s"Some class absent from dataset ${instances.head.dataset().relationName()} (perhaps due to my internal deduplication). Please correct ARFF file header and/or data.\n" +
-          s"header has: ${instances.head.dataset().classAttribute().enumerateValues().toArray.toList}\n" +
-          s"data has: ${conv.toList.sortBy(_._1)}")
-      }
-      val parent = PatternParent(projected.head.dataset())
-      def convo(x: Int) = if (preserveClassOrderFromARFFHeader) x else conv(x)
-      val projectedPatts = projected.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance.toDoubleArray.dropRight(1).toList, convo(instance.classValue().toInt), instance.weight(), missed = false, parent, weka = true)}
+      //Deduplication.
+      println("Only distinct instances will be kept, but preserving ARFF original line number as id, starting from zero.")
+      val patterns = distinctMode(projected map (_.asInstanceOf[Pattern]))
 
-      if (instances.numInstances() != projectedPatts.size) {
-        println("In dataset " + arq + ": " + (instances.numInstances() - projectedPatts.size) + " duplicate instances eliminated! Distinct = " + projectedPatts.size + " original:" + instances.numInstances())
+      //Alerts about how many duplicates were found.
+      if (instances.numInstances() != patterns.size) {
+        println("In dataset " + arq + ": " + (instances.numInstances() - patterns.size) + " duplicate instances eliminated! Distinct = " + patterns.size + " original:" + instances.numInstances())
       }
 
-      Right(projectedPatts.toStream)
+      Right(patterns.toStream)
     } catch {
       case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
     }
@@ -123,26 +113,6 @@ object Datasets extends Lock {
         val modeLabel = hist.zipWithIndex.max._2
         keyPatt.relabeled_reweighted(modeLabel, keyPatt.weight, new_missed = false)
     }
-
-  /**
-   * Verifica igualdade pelo primeiro da tupla, mas retorna pelo segundo.
-   * @param patts
-   * @return
-   */
-  def distinctMode2(patts: mutable.Buffer[(Pattern, Pattern)]) = {
-    val a = patts.groupBy(x => x._1).map { case (key1, grp12) =>
-      key1 -> grp12.map(_._2)
-    }
-    a.map {
-      case (_: Pattern, ArrayBuffer(patt: Pattern)) => patt
-      case (_: Pattern, listPatt: ArrayBuffer[Pattern]) =>
-        val pat = listPatt.head
-        val hist = Array.fill(pat.nclasses)(0)
-        listPatt foreach (p => hist(p.label.toInt) += 1)
-        val modeLabel = hist.zipWithIndex.max._2
-        pat.relabeled_reweighted(modeLabel, pat.weight, new_missed = false)
-    }
-  }
 
   def rmUseless(instances: Instances) = {
     val rmUseless_filter = new RemoveUseless
@@ -248,7 +218,6 @@ object Datasets extends Lock {
   def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
     println("Empty sequence of patterns; cannot generate Weka Instances object.")
     throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
-    sys.exit(1)
   } else {
     val new_instances = new Instances(patterns.head.dataset, 0, 0)
     patterns foreach new_instances.add
@@ -264,6 +233,8 @@ object Datasets extends Lock {
         case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
         case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
       }
+
+    //Reordering to the original order.
     ids.map(id => patterns.find(_.id == id).getOrElse {
       println("Impossivel reordenar after z-score filter.")
       sys.exit(1)
@@ -299,7 +270,8 @@ object Datasets extends Lock {
           instances.setClassIndex(instances.numAttributes() - 1)
           instances.setRelationName(dataset)
           val parent = PatternParent(instances)
-          val res = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)} //rowid is always > 0
+          ??? ///pegar id da tabela
+          val res = instances.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, false, parent)}
           query.close()
           res.toStream
         }
@@ -318,15 +290,4 @@ object Datasets extends Lock {
   def isOpen() = ???
 
   def close() = ???
-}
-
-object TestFilter extends App {
-  val d = Datasets.arff(true)("/home/davi/wcs/ucipp/uci/iris.arff").right.get.toList
-  //.drop(10).take(5).toList
-  val f = Datasets.zscoreFilter(d)
-  val d2 = Datasets.applyFilterChangingOrder(d, f)
-  //  d2.take(10) map (p => println(p.id + " " + p))
-  //  d.take(10) map (p => println(p.id + " " + p))
-  d2.sortBy(_.id).take(10) map (p => println(p.id + " " + p))
-  d.sortBy(_.id).take(10) map (p => println(p.id + " " + p))
 }
