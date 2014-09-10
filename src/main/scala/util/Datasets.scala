@@ -72,7 +72,7 @@ object Datasets extends Lock {
         println("In dataset " + arq + ": " + (instances.numInstances() - distinctPatts.size) + " duplicate instances eliminated! Distinct = " + distinctPatts.size + " original:" + instances.numInstances())
       }
 
-      Right(distinctPatts.toStream)
+      Right(distinctPatts.toVector)
     } catch {
       case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
     }
@@ -106,18 +106,25 @@ object Datasets extends Lock {
     q.toList
   }
 
-  def kfoldCV[T](patterns: => Seq[Pattern], k: Int = 10, parallel: Boolean = false)(f: (=> Seq[Pattern], => Seq[Pattern], Int, Int) => T) = {
+  /**
+   * @param patterns
+   * @param k
+   * @param parallel
+   * @param f f(tr, ts, foldnr, minSize) => T
+   * @return Seq[T]
+   */
+  def kfoldCV[T](patterns: => Vector[Pattern], k: Int = 10, parallel: Boolean = false)(f: (=> Vector[Pattern], => Vector[Pattern], Int, Int) => T) = {
     //    patterns.take(4) foreach (x => println(x.toStringCerto))
     lazy val folds = {
       val n = patterns.length
-      val tmp = Array.fill(k)(Seq[Pattern]())
+      val tmp = Array.fill(k)(Vector[Pattern]())
       val grouped = patterns.groupBy(_.label).values.flatten.toArray
       var i = 0
       while (i < n) {
         tmp(i % k) +:= grouped(i)
         i += 1
       }
-      tmp
+      tmp.toVector
     }
     lazy val testfolds = folds
     lazy val trainfolds = for (fo <- 0 until k) yield folds.filterNot(_.sameElements(testfolds(fo))).flatten
@@ -160,7 +167,7 @@ object Datasets extends Lock {
    * @param filter
    * @return
    */
-  def applyFilter(filter: Filter)(patts: Seq[Pattern]) = if (patts.isEmpty) Seq()
+  def applyFilter(filter: Filter)(patts: Seq[Pattern]) = if (patts.isEmpty) Vector()
   else {
     val instances = patterns2instances(patts)
     instances.zip(patts).foreach { case (ins, pat) =>
@@ -171,7 +178,7 @@ object Datasets extends Lock {
     val res = newInstances.map { case instance => Pattern(instance.weight().toInt, instance, missed = false, PatternParent(instance.dataset()))}
     instances.foreach(_.setWeight(1))
     res.foreach(_.setWeight(1))
-    res
+    res.toVector
   }
 
   //Weka   -----------------------------------
