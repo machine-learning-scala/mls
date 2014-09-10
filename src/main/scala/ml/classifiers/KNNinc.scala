@@ -57,39 +57,3 @@ case class KNNinc(k: Int, distance_name: String, pattsForDistanceCache: Seq[Patt
 
   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }
-
-
-object TestKNN extends App {
-  val d = Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.toList
-  val f = Datasets.zscoreFilter(d)
-  val df = Datasets.applyFilterChangingOrder(d, f)
-  lazy val l = KNNBatch(5, "eucl", df)
-  lazy val linc = KNNinc(5, "eucl", df)
-
-  Tempo.start
-  var m = l.build(df.take(df.head.nclasses))
-  df.drop(df.head.nclasses).foreach(p => m = l.update(m, fast_mutable = true)(p))
-  Tempo.print_stop
-  Tempo.start
-  var minc = linc.build(df.take(df.head.nclasses))
-  df.drop(df.head.nclasses).foreach(p => minc = linc.update(minc, fast_mutable = true)(p))
-  Tempo.print_stop
-  println()
-
-  Tempo.start
-  m.accuracy(df)
-  Tempo.print_stop
-  Tempo.start
-  minc.accuracy(df)
-  Tempo.print_stop
-  println()
-
-  Tempo.start
-  val ma = m.accuracy(df)
-  Tempo.print_stop
-  Tempo.start
-  val mia = minc.accuracy(df)
-  Tempo.print_stop
-
-  println(s"l:${ma} linc:${mia}")
-}

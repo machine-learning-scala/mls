@@ -36,34 +36,6 @@ object Datasets extends Lock {
 
   val predAttsLimit = 1000
 
-  def rndProjection(instances2: Instances, arq: String) = if (instances2.numAttributes > predAttsLimit) {
-    val filter = new RandomProjection
-    filter.setNumberOfAttributes(predAttsLimit)
-    filter.setInputFormat(instances2)
-    filter.setSeed(0)
-    Try(Filter.useFilter(instances2, filter)) match {
-      case Success(x) =>
-        println("Reduced attributes from " + instances2.numAttributes + " to " + x.numAttributes + " in '" + arq + "'.")
-        x
-      case Failure(ex) => justQuit("\nSkipping dataset '" + arq + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
-    }
-  } else instances2
-
-
-  def binaSort(bin: Instances, bina: Boolean, instances0: Instances) = {
-    val instances = if (bina) bin
-    else instances0
-
-    //ordena
-    val instancesSorted = new Instances(instances, 0, 0)
-    if (bina) instances.sortBy(_.toDoubleArray.toList.toString()) foreach instancesSorted.add
-    else instances.zip(bin).sortBy(_._2.toDoubleArray.toList.toString()).map(_._1) foreach instancesSorted.add
-
-    //distinctMode
-    val parent = PatternParent(instancesSorted)
-    instancesSorted.zipWithIndex.map { case (instance, idx) => Pattern(idx + 1, instance, missed = false, parent)}
-  }
-
   /**
    * Reads an ARFF file.
    * Remove useless attributes.
@@ -80,12 +52,12 @@ object Datasets extends Lock {
 
       //Removes useless atts.
       println("useless attributes will be removed...")
-      val instancesUselessRemoved = rmUseless(instances)
+      val instancesUselessRemoved = rmUselessWeka(instances)
 
       //Random projection of atts. (está roubando um pouco aqui, mas é necessário para que o SQLite aceite o dataset.
       //Há um limite de 1998 atributos; como já estou interferindo vou reduzir para 1000, pois com 1998 estava muito lento.
       //Note-se que a projeção resulta em atributos numéricos.
-      val projected = rndProjection(instancesUselessRemoved, arq)
+      val projected = rndProjectionWeka(instancesUselessRemoved, arq)
 
       //Assigns ids from zero. (should be one of the first things because of weka filters' indeterminism)
       val parent = PatternParent(projected)
@@ -106,48 +78,19 @@ object Datasets extends Lock {
     }
   }
 
-  def distinctMode(patts: mutable.Buffer[Pattern]) =
-    patts groupBy (x => x) map {
-      case (keyPatt: Pattern, ArrayBuffer(patt: Pattern)) => patt
-      case (keyPatt: Pattern, listPatt: ArrayBuffer[Pattern]) =>
-        val hist = Array.fill(keyPatt.nclasses)(0)
-        listPatt foreach (p => hist(p.label.toInt) += 1)
-        val modeLabel = hist.zipWithIndex.max._2
-        keyPatt.relabeled_reweighted(modeLabel, keyPatt.weight, new_missed = false)
-    }
-
-  def rmUseless(instances: Instances) = {
-    val rmUseless_filter = new RemoveUseless
-    //    stand_filter.setMaximumVariancePercentageAllowed()
-    rmUseless_filter.setInputFormat(instances)
-    Filter.useFilter(instances, rmUseless_filter)
-  }
-
-  def binarize(instances: Instances) = {
-    val bina_filter = new NominalToBinary
-    bina_filter.setInputFormat(instances)
-    Filter.useFilter(instances, bina_filter)
-  }
-
-  def zscore(instances: Instances) = {
-    val stand_filter = new Standardize
-    stand_filter.setInputFormat(instances)
-    Filter.useFilter(instances, stand_filter)
-  }
-
   /**
-   * Create a list of TrSamps.
-   * @param patterns
+   * Deduplication keeping only the pattern with the mode of the involved labels.
+   * @param patts
    * @return
    */
-  def patterns2TrainingSamples(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
-    println("Empty sequence of patterns; cannot generate empty list of TrainingSamples.")
-    throw new Error("Empty sequence of patterns; cannot generate list of TrainingSamples.")
-  } else {
-    patterns.toList map (p => new TrainingSample[Array[Double]](p.array, p.label.toInt))
+  def distinctMode(patts: mutable.Buffer[Pattern]) = patts groupBy (x => x) map {
+    case (keyPatt: Pattern, ArrayBuffer(patt: Pattern)) => patt
+    case (keyPatt: Pattern, listPatt: ArrayBuffer[Pattern]) =>
+      val hist = Array.fill(keyPatt.nclasses)(0)
+      listPatt foreach (p => hist(p.label.toInt) += 1)
+      val modeLabel = hist.zipWithIndex.max._2
+      keyPatt.relabeled_reweighted(modeLabel, keyPatt.weight, new_missed = false)
   }
-
-  def pattern2TrainingSample(pattern: Pattern) = new TrainingSample[Array[Double]](pattern.array, pattern.label.toInt)
 
   def LOO[T](patterns: Seq[Pattern], parallel: Boolean = false)(f: (Seq[Pattern], Pattern) => T): Seq[T] = {
     if (parallel) ???
@@ -187,29 +130,16 @@ object Datasets extends Lock {
     }
   }
 
-  def normalize(instances: Instances, scale: Double = 1, translation: Double = 0) = {
-    val norm_filter = new Normalize
-    norm_filter.setInputFormat(instances)
-    norm_filter.setScale(scale)
-    norm_filter.setTranslation(translation)
-    Filter.useFilter(instances, norm_filter)
-  }
-
   def zscoreFilter(patts: Seq[Pattern]) = {
     val stand_filter = new Standardize
     stand_filter.setInputFormat(patts.head.dataset())
     stand_filter
   }
 
-  def applyFilterChangingOrder(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
-  else {
-    val instances = patterns2instances(patts)
-    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
-    val patterns = newInstances.zip(patts).map {
-        case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
-        case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
-      }
-    patterns.sortBy(_.vector.toString()) //to avoid undeterminism due to crazy weka filter behavior (it is probably multithreaded)
+  def binarizeFilter(patts: Seq[Pattern]) = {
+    val bina_filter = new NominalToBinary
+    bina_filter.setInputFormat(patts.head.dataset())
+    bina_filter
   }
 
   /**
@@ -217,40 +147,85 @@ object Datasets extends Lock {
    * @param patterns
    * @return
    */
-  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
-    println("Empty sequence of patterns; cannot generate Weka Instances object.")
-    throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
-  } else {
+  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
+  else {
     val new_instances = new Instances(patterns.head.dataset, 0, 0)
     patterns foreach new_instances.add
     new_instances
   }
 
-  def applyFilter(patts: Seq[Pattern], filter: Standardize) = if (patts.isEmpty) Seq()
+  /**
+   * Warning: nondeterministic process regarding patterns resulting order.
+   * @param patts
+   * @param filter
+   * @return
+   */
+  def applyFilter(filter: Filter)(patts: Seq[Pattern]) = if (patts.isEmpty) Seq()
   else {
-    val ids = patts.map(_.id)
     val instances = patterns2instances(patts)
+    instances.zip(patts).foreach { case (ins, pat) =>
+      if (ins.weight() != 1) throw new Error(s"Weight ${ins.weight()} differs from 1! That info would be lost.")
+      ins.setWeight(pat.id)
+    }
     val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
-    val patterns = newInstances.zip(patts).map {
-        case (newinst, patt) => Pattern(patt.id, newinst, false, patt.parent)
-        case x => throw new Error("Problemas desconhecidos aplicando filter: " + x)
-      }
-
-    //Reordering to the original order.
-    ids.map(id => patterns.find(_.id == id).getOrElse {
-      println("Impossivel reordenar after z-score filter.")
-      sys.exit(1)
-    })
+    val res = newInstances.map { case instance => Pattern(instance.weight().toInt, instance, missed = false, PatternParent(instance.dataset()))}
+    instances.foreach(_.setWeight(1))
+    res.foreach(_.setWeight(1))
+    res
   }
 
-  def pca(ins: Instances, n: Int) = {
+  //Weka   -----------------------------------
+  def rndProjectionWeka(instances2: Instances, arq: String) = if (instances2.numAttributes > predAttsLimit) {
+    val filter = new RandomProjection
+    filter.setNumberOfAttributes(predAttsLimit)
+    filter.setInputFormat(instances2)
+    filter.setSeed(0)
+    Try(Filter.useFilter(instances2, filter)) match {
+      case Success(x) =>
+        println("Reduced attributes from " + instances2.numAttributes + " to " + x.numAttributes + " in '" + arq + "'.")
+        x
+      case Failure(ex) => justQuit("\nSkipping dataset '" + arq + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
+    }
+  } else instances2
+
+  def rmUselessWeka(instances: Instances) = {
+    val rmUseless_filter = new RemoveUseless
+    //    rmUseless_filter.setMaximumVariancePercentageAllowed()
+    rmUseless_filter.setInputFormat(instances)
+    Filter.useFilter(instances, rmUseless_filter)
+  }
+
+  def normalizeWeka(instances: Instances, scale: Double = 1, translation: Double = 0) = {
+    val norm_filter = new Normalize
+    norm_filter.setInputFormat(instances)
+    norm_filter.setScale(scale)
+    norm_filter.setTranslation(translation)
+    Filter.useFilter(instances, norm_filter)
+  }
+
+  def pcaWeka(ins: Instances, n: Int) = {
     val pc = new PrincipalComponents
     pc.setInputFormat(ins)
     pc.setMaximumAttributes(n)
     Filter.useFilter(ins, pc)
   }
 
-  //useless
+  //JKernelMachines --------------------------
+  /**
+   * Create a list of TrSamps.
+   * @param patterns
+   * @return
+   */
+  def patterns2TrainingSamples(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
+    println("Empty sequence of patterns; cannot generate empty list of TrainingSamples.")
+    throw new Error("Empty sequence of patterns; cannot generate list of TrainingSamples.")
+  } else {
+    patterns.toList map (p => new TrainingSample[Array[Double]](p.array, p.label.toInt))
+  }
+
+  def pattern2TrainingSample(pattern: Pattern) = new TrainingSample[Array[Double]](pattern.array, pattern.label.toInt)
+
+  //useless ----------------------------------
   val readOnly: Boolean = true
   var fileLocked: Boolean = false
 

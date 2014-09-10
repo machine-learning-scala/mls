@@ -54,39 +54,3 @@ case class VFDT() extends IncrementalWekaLearner {
 
   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }
-
-object TestHTinc extends App {
-  val d = Datasets.arff("/home/davi/wcs/ucipp/uci/banana.arff").right.get.toList
-  val f = Datasets.zscoreFilter(d)
-  val df = Datasets.applyFilterChangingOrder(d, f)
-  val l = VFDTBatch()
-  val linc = VFDT()
-
-  //  Tempo.start
-  //  var m = l.build(df.take(df.head.nclasses))
-  //  df.drop(df.head.nclasses).foreach(p => m = l.update(m, fast_mutable = true)(p))
-  //  Tempo.print_stop
-  Tempo.start
-  var minc = linc.build(df.take(df.head.nclasses))
-  df.drop(df.head.nclasses).foreach(p => minc = linc.update(minc, fast_mutable = true)(p))
-  Tempo.print_stop
-  println()
-
-  Tempo.start
-  //  m.accuracy(df)
-  Tempo.print_stop
-  Tempo.start
-  minc.accuracy(df)
-  Tempo.print_stop
-  println()
-
-  Tempo.start
-  //  val ma = m.accuracy(df)
-  Tempo.print_stop
-  Tempo.start
-  val mia = minc.accuracy(df)
-  Tempo.print_stop
-
-  //  println(s"l:${ma} linc:${mia}")
-  println(s"linc:${mia}")
-}

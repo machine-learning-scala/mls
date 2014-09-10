@@ -33,7 +33,7 @@ case class PatternParent(dataset: weka.core.Instances) {
     val y = p.value(1)
   }
 
-  lazy val instancesPCA = Datasets.normalize(if (dataset.numClasses < 3) dataset else Datasets.pca(dataset, 2), 2, -1)
+  lazy val instancesPCA = Datasets.normalizeWeka(if (dataset.numClasses < 3) dataset else Datasets.pcaWeka(dataset, 2), 2, -1)
   lazy val instancesPCAmap = dataset.map(_.toDoubleArray.dropRight(1).toSeq).zip(instancesPCA map Point).toMap
 
   def xy(pa: Pattern) = instancesPCAmap.get(pa.vector) match {

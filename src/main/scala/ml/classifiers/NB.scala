@@ -46,39 +46,3 @@ case class NB() extends IncrementalWekaLearner {
 
   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }
-
-object TestNBinc extends App {
-  val d = Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.toList
-  val f = Datasets.zscoreFilter(d)
-  val df = Datasets.applyFilterChangingOrder(d, f)
-  val l = NBBatch()
-  val linc = NB()
-
-  var m = l.build(df.take(df.head.nclasses))
-  var minc = linc.build(df.take(df.head.nclasses))
-  val fast_mutable = true
-
-  println(s"only build     l:${m.accuracy(df)} linc:${minc.accuracy(df)}")
-
-  //  df.drop(df.head.nclasses).foreach { p =>
-  //    m = l.update(m, fast_mutable)(p)
-  //    minc = linc.update(minc, fast_mutable)(p)
-  //    println(s"updating      l:${m.accuracy(df)} linc:${minc.accuracy(df)}")
-  // }
-
-  Tempo.start
-  df.drop(df.head.nclasses).foreach(p => m = l.update(m, fast_mutable)(p))
-  Tempo.print_stop
-
-  Tempo.start
-  df.drop(df.head.nclasses).foreach(p => minc = linc.update(minc, fast_mutable)(p))
-  Tempo.print_stop
-
-  println(s"after updates      l:${m.accuracy(df)} linc:${minc.accuracy(df)}")
-
-  //  Tempo.start
-  //  df.drop(10).foreach(p => minc = linc.update(minc, fast_mutable = false)(p))
-  //  Tempo.print_stop
-  //
-  //  println(s"after unlearning     l:${m.accuracy(df)} linc:${minc.accuracy(df)}")
-}

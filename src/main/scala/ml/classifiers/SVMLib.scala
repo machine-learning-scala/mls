@@ -64,15 +64,3 @@ case class SVMLib(seed: Int = 42) extends BatchWekaLearner {
     case _ => throw new Exception(this + " requires LibSVM.")
   }
 }
-
-object TestSVM extends App {
-  val d = Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get.toList.take(1000)
-  val f = Datasets.zscoreFilter(d)
-  val df = Datasets.applyFilterChangingOrder(d, f)
-  lazy val l = SVMLib()
-
-  var m = l.build(df.take(df.head.nclasses))
-  df.drop(df.head.nclasses).foreach { p => m = l.update(m, fast_mutable = true)(p)
-    println(m.accuracy(df))
-  }
-}
