@@ -22,8 +22,9 @@ import ml.models.Model
 import weka.classifiers.Classifier
 import weka.classifiers.rules.JRip
 
-case class RIPPER(notes: String = "") extends BatchWekaLearner {
-  override val toString = s"RIPPER_$notes"
+case class RIPPER() extends BatchWekaLearner {
+  override val toString = s"RIPPER"
+  val id = -4
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 

@@ -27,8 +27,9 @@ import weka.classifiers.bayes.NaiveBayesUpdateable
  * Can NB be worse than NBBatch because of unavailability of all instances at the build of NB?
  * No, because it discretizes by fixed intervals of 0.1 (need to check in weka sources).
  */
-case class NB(notes: String = "semzscore") extends IncrementalWekaLearner {
-  override val toString = s"NB_$notes"
+case class NB() extends IncrementalWekaLearner {
+  override val toString = s"NB"
+  val id = 1
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 

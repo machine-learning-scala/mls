@@ -25,9 +25,10 @@ import weka.classifiers.`lazy`.IBk
 import weka.core.neighboursearch.{KDTree, LinearNNSearch}
 import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, MinkowskiDistance}
 
-case class KNNinc(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], notes: String = "", weighted: Boolean = false) extends IncrementalWekaLearner {
-  override val toString = k + "NNinc" + (if (weighted) " weighted " else " (") + distance_name + s")_$notes"
+case class KNNinc(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], weighted: Boolean = false) extends IncrementalWekaLearner {
+  override val toString = k + "NNinc" + (if (weighted) " weighted " else " (") + distance_name + s")"
   println("Please use KNNBatch which should have the same speed and is consistent across resumings.")
+  val id = -1
 
   def build(patterns: Seq[Pattern]) = {
     lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)

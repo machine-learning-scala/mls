@@ -29,8 +29,9 @@ import weka.classifiers.functions.LibSVM
  * SVM conventional (batch training)
  * Usa LibSVM wrapper for Weka.
  */
-case class SVMLib(seed: Int = 42, notes: String = "") extends BatchWekaLearner {
+case class SVMLib(seed: Int = 42) extends BatchWekaLearner {
   override val toString = "SVM"
+  val id = 5
   val originalStream = System.out
   val dummyStream = new PrintStream(new OutputStream() {
     def write(b: Int) {}

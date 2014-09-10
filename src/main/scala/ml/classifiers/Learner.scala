@@ -21,7 +21,7 @@ import ml.Pattern
 import ml.models.Model
 
 trait Learner {
-  val notes: String
+  val id: Int
 
   def EMC(model: Model)(patterns: Seq[Pattern]): Pattern
 
