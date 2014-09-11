@@ -716,7 +716,7 @@ public class DatabaseSaverForSQLite
         Instances structure = getInstances();
 
         //pool [strat learner run fold]
-        query.append("CREATE TABLE p ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, s INT, l INT, r INT, f INT ); ");
+        query.append("CREATE TABLE p ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, s INT, l INT, r INT, f INT, UNIQUE (s, l, r, f) ON CONFLICT ROLLBACK ); ");
 
         //query [pool timeStep instance]
         query.append("CREATE TABLE q ( p INT, t INT, i INT, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, UNIQUE (p, i) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id), FOREIGN KEY (i) REFERENCES i (id) ); ");
