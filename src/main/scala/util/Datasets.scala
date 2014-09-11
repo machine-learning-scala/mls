@@ -51,13 +51,14 @@ object Datasets extends Lock {
       instances.setRelationName(arq)
 
       //Removes useless atts.
-      println("useless attributes will be removed...")
       val instancesUselessRemoved = rmUselessWeka(instances)
+      if (instances.numAttributes() != instancesUselessRemoved.numAttributes()) println(s"${instances.numAttributes() - instancesUselessRemoved.numAttributes()} useless attributes removed from $arq.")
 
       //Random projection of atts. (está roubando um pouco aqui, mas é necessário para que o SQLite aceite o dataset.
       //Há um limite de 1998 atributos; como já estou interferindo vou reduzir para 1000, pois com 1998 estava muito lento.
       //Note-se que a projeção resulta em atributos numéricos.
       val projected = rndProjectionWeka(instancesUselessRemoved, arq)
+      if (instancesUselessRemoved.numAttributes() != projected.numAttributes()) println(s"random projection applied to shrink ${instancesUselessRemoved.numAttributes()} ${projected.numAttributes()} attributes in $arq.")
 
       //Assigns ids from zero. (should be one of the first things because of weka filters' indeterminism)
       val parent = PatternParent(projected)
