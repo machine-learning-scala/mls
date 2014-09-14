@@ -724,8 +724,8 @@ public class DatabaseSaverForSQLite
         //time [pool value] in seconds
         query.append("CREATE TABLE t ( p INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, v INT, FOREIGN KEY (p) REFERENCES p (id) ); ");
 
-        //hit [pool timeStep realClass guessedClass value] (confusion matrix cell)
-        query.append("CREATE TABLE h ( p INT, t INT, r INT, g INT, v INT, PRIMARY KEY (p, t, r, g) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) ); ");
+        //hit [pool timeStep blobMatrix(realClass X guessedClass values)] (confusion matrix blob)
+        query.append("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) )");
 
         //result [app.measure pool value] (Q, ...)
         query.append("CREATE TABLE r ( m INT, p INT, v FLOAT, PRIMARY KEY (m, p) ON CONFLICT ROLLBACK, FOREIGN KEY (m) REFERENCES measure (id), FOREIGN KEY (p) REFERENCES p (id) ); ");
