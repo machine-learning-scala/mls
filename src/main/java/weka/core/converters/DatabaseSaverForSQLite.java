@@ -711,24 +711,8 @@ public class DatabaseSaverForSQLite
      * @throws Exception if something goes wrong
      */
     private void writeStructure() throws Exception {
-
         StringBuffer query = new StringBuffer();
         Instances structure = getInstances();
-
-        //pool [strat learner run fold]
-        query.append("CREATE TABLE p ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, s INT, l INT, r INT, f INT, UNIQUE (s, l, r, f) ON CONFLICT ROLLBACK ); ");
-
-        //query [pool timeStep instance]
-        query.append("CREATE TABLE q ( p INT, t INT, i INT, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, UNIQUE (p, i) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id), FOREIGN KEY (i) REFERENCES i (id) ); ");
-
-        //time [pool value] in seconds
-        query.append("CREATE TABLE t ( p INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, v INT, FOREIGN KEY (p) REFERENCES p (id) ); ");
-
-        //hit [pool timeStep blobMatrix(realClass X guessedClass values)] (confusion matrix blob)
-        query.append("CREATE TABLE h ( p INT, t INT, mat BLOB, PRIMARY KEY (p, t) ON CONFLICT ROLLBACK, FOREIGN KEY (p) REFERENCES p (id) );");
-
-        //result [app.measure pool value] (Q, ...)
-        query.append("CREATE TABLE r ( m INT, p INT, v FLOAT, PRIMARY KEY (m, p) ON CONFLICT ROLLBACK, FOREIGN KEY (m) REFERENCES measure (id), FOREIGN KEY (p) REFERENCES p (id) ); ");
 
         query.append("CREATE TABLE ");
         if (m_tabName || m_tableName.equals(""))
