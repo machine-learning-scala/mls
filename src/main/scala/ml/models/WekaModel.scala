@@ -32,7 +32,7 @@ class WekaModel(var classifier: Classifier) extends Model {
   def predict(instance: Pattern) =
     if (classifier == null) throw new Exception("Underlying model already changed! Please call update with fast_mutable disabled.")
     else {
-      //      println(instance + " <<<<<<<<<<<<<")
+      //            println(instance + " <<<<<<<<<<<<<")
       classifier.classifyInstance(instance)
     }
 }
