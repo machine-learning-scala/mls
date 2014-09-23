@@ -102,6 +102,7 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
   lazy val nnominal = (for (i <- 0 until nattributes) yield attribute(i).isNominal) count (_ == true)
   lazy val toStrWithMissed = toString + "%als:" + missed
   lazy val toString_without_class = (0 until numAttributes() - 1) map treat_nominal mkString ","
+  lazy val nominalLabel = classAttribute().value(label.toInt)
 
   lazy val x = parent.xy(this).x
   lazy val y = parent.xy(this).y
