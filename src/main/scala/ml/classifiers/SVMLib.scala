@@ -20,9 +20,9 @@ package ml.classifiers
 import java.io.{OutputStream, PrintStream}
 
 import ml.Pattern
-import ml.models.{Model, WekaBatModel}
+import ml.models.{WekaModel, Model, WekaBatModel}
 import util.Datasets
-import weka.classifiers.Classifier
+import weka.classifiers.{AbstractClassifier, Classifier}
 import weka.classifiers.functions.LibSVM
 
 /**
@@ -63,4 +63,15 @@ case class SVMLib(seed: Int = 42) extends BatchWekaLearner {
     case cla: LibSVM => cla
     case _ => throw new Exception(this + " requires LibSVM.")
   }
+
+  //  override protected def next_classifier(wekamodel: WekaModel, fast_mutable: Boolean) = {
+  //    val classifier = new LibSVM()
+  //    classifier.setDoNotCheckCapabilities(true)
+  //    classifier.setOptions(weka.core.Utils.splitOptions("-J"))
+  //    classifier.setOptions(weka.core.Utils.splitOptions("-V"))
+  //    classifier.setSeed(seed)
+  //    classifier.setDebug(false)
+  //    classifier.setProbabilityEstimates(true)
+  //    classifier
+  //  }
 }
