@@ -27,7 +27,9 @@ import weka.classifiers.functions.LibSVM
 
 /**
  * SVM conventional (batch training)
- * Usa LibSVM wrapper for Weka.
+ * Usa LibSVM wrapper for Weka:
+ * libsvm.svm calls Math.random so the model it returns is
+ * usually different for the same training set and svm parameters over time.
  */
 case class SVMLib(seed: Int = 42) extends BatchWekaLearner {
   override val toString = "SVM"
