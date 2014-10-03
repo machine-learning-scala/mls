@@ -41,7 +41,7 @@ case class SVMWeka() extends BatchWekaLearner {
 
   protected def test_subclass(cla: Classifier) = cla match {
     case n: SMO => n
-    case _ => throw new Exception(this + " requires NaiveBayesUpdateable.")
+    case _ => throw new Exception(this + " requires ???.")
   }
 
   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
