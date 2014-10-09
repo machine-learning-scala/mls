@@ -24,14 +24,13 @@ import weka.classifiers.bayes.NaiveBayes
 
 case class NBBatch() extends BatchWekaLearner {
   override val toString = s"NBBatch"
-  println("Please use NB which is faster and almost identical.")
-  val id = -3
+  val id = 12
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
   def build(patterns: Seq[Pattern]): Model = {
     val classifier = new NaiveBayes
-    classifier.setUseSupervisedDiscretization(false) //true=slow?
+    classifier.setUseSupervisedDiscretization(true) //true=slow?
     generate_model(classifier, patterns)
   }
 
