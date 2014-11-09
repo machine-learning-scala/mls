@@ -72,7 +72,7 @@ import java.util.Vector;
  * @author Stefan Mutter (mutter@cs.waikato.ac.nz)
  * @version $Revision: 5953 $
  */
-public class DatabaseSaverForSQLite
+public class DatabaseSaverCustomized
         extends AbstractSaver
         implements BatchConverter, IncrementalConverter, DatabaseConverter, OptionHandler {
 
@@ -163,7 +163,7 @@ public class DatabaseSaverForSQLite
      *
      * @throws Exception throws Exception if property file cannot be read
      */
-    public DatabaseSaverForSQLite() {
+    public DatabaseSaverCustomized() {
 
         resetOptions();
         m_createText = PROPERTIES.getProperty("CREATE_STRING");
