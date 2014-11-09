@@ -730,7 +730,7 @@ public class DatabaseSaverCustomized
         if (structure.numAttributes() == 0)
             throw new Exception("Instances have no attribute.");
         if (m_id) {
-            query.append(" ( id INTEGER PRIMARY KEY ON CONFLICT ROLLBACK, ");
+            query.append(" ( id INTEGER PRIMARY KEY, ");
 //            if (m_DataBaseConnection.getUpperCase())
 //                m_idColumn = m_idColumn.toUpperCase();
 //            query.append(m_DataBaseConnection.maskKeyword(m_idColumn));
