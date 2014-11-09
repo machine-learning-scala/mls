@@ -76,6 +76,7 @@ public class DatabaseSaverCustomized
         extends AbstractSaver
         implements BatchConverter, IncrementalConverter, DatabaseConverter, OptionHandler {
 
+    public String name = null;
     /**
      * for serialization.
      */
@@ -757,7 +758,7 @@ public class DatabaseSaverCustomized
 //                    query.append(" INTEGER");
                 else
 //                    query.append(" " + m_createText);
-                    query.append(" VARCHAR");
+                    query.append(" VARCHAR(60)");
             }
             if (i != structure.numAttributes() - 1)
                 query.append(", ");
@@ -765,11 +766,28 @@ public class DatabaseSaverCustomized
         query.append(" );");
 
 //        System.out.println(query.toString());
+
+        StringBuffer cria = new StringBuffer();
+        cria.append("create database `");
+        cria.append(name);
+        cria.append("`;");
+        m_DataBaseConnection.update(cria.toString());
+        StringBuffer usa = new StringBuffer();
+        usa.append("use `");
+        usa.append(name);
+        usa.append("`;");
+        m_DataBaseConnection.update(usa.toString());
+        m_DataBaseConnection.update("CREATE TABLE p ( id INT NOT NULL AUTO_INCREMENT, s INT NOT NULL, l INT NOT NULL, r INT NOT NULL, f INT NOT NULL, PRIMARY KEY(id), UNIQUE (s, l, r, f) );");
+        m_DataBaseConnection.update("INSERT INTO `p` VALUES(-1,-1,-1,-1,-1);");
+        m_DataBaseConnection.update("CREATE TABLE h ( p INT NOT NULL, t INT NOT NULL, mat BLOB NOT NULL, PRIMARY KEY (p, t), FOREIGN KEY (p) REFERENCES p (id) );");
+        m_DataBaseConnection.update("CREATE TABLE r ( m INT NOT NULL, p INT NOT NULL, v FLOAT NOT NULL, PRIMARY KEY (m, p), FOREIGN KEY (p) REFERENCES p (id) );");
         m_DataBaseConnection.update(query.toString());
+        m_DataBaseConnection.update("CREATE TABLE q ( p INT NOT NULL, t INT NOT NULL, i INT NOT NULL, PRIMARY KEY (p, t), FOREIGN KEY (p) REFERENCES p (id), FOREIGN KEY (i) REFERENCES i (id), UNIQUE (p, i) );");
+        m_DataBaseConnection.update("commit;");
         m_DataBaseConnection.close();
-        if (!m_DataBaseConnection.tableExists(m_tableName)) {
-            throw new IOException("Table cannot be built.");
-        }
+//        if (!m_DataBaseConnection.tableExists(m_tableName)) {
+//            throw new IOException("Table cannot be built.");
+//        }
     }
 
     /**
@@ -820,47 +838,6 @@ public class DatabaseSaverCustomized
         }
     }
 
-//    private void writeInstance(Instance inst) throws Exception {
-//
-//        StringBuilder insert = new StringBuilder();
-//        insert.append("INSERT INTO ");
-//        insert.append(m_tableName);
-//        insert.append(" VALUES ( ");
-//        if (m_id) {
-//            m_count = (int) inst.weight();
-//            inst.setWeight(1);
-//            insert.append(m_count);
-//            insert.append(", ");
-////            m_count++;
-//        }
-//        for (int j = 0; j < inst.numAttributes(); j++) {
-//            if (inst.isMissing(j))
-//                insert.append("NULL");
-//            else {
-//                if ((inst.attribute(j)).isDate())
-//                    insert.append("'").append(m_DateFormat.format((long) inst.value(j))).append("'");
-//                else if ((inst.attribute(j)).isNumeric())
-//                    insert.append(inst.value(j));
-//                else { //nominal
-////                    String stringInsert = Double.toString(inst.classValue());
-//                    String stringInsert = "'" + inst.classValue() + "'";
-//                    if (stringInsert.length() > 2)
-//                        stringInsert = stringInsert.replaceAll("''", "'");
-//                    insert.append(stringInsert);
-//                }
-//            }
-//            if (j != inst.numAttributes() - 1)
-//                insert.append(", ");
-//        }
-//        insert.append(" )");
-//        //System.out.println(insert.toString());
-//        if (m_DataBaseConnection.update(insert.toString()) < 1) {
-//            throw new IOException("Tuple cannot be inserted.");
-//        } else {
-//            m_DataBaseConnection.close();
-//        }
-//    }
-
     /**
      * Writes a Batch of instances.
      *
@@ -880,10 +857,10 @@ public class DatabaseSaverCustomized
         if (!m_DataBaseConnection.isConnected())
             connectToDatabase();
 
-        m_DataBaseConnection.update("begin");
 
         setWriteMode(WRITE);
         writeStructure();
+        m_DataBaseConnection.update("SET autocommit = 0;");
         for (int i = 0; i < instances.numInstances(); i++) {
             Instance inst = instances.instance(i);
 
@@ -895,7 +872,8 @@ public class DatabaseSaverCustomized
             writeInstance(inst);
         }
 
-        m_DataBaseConnection.update("end");
+        m_DataBaseConnection.update("commit;");
+        m_DataBaseConnection.update("SET autocommit = 1;");
 
         m_DataBaseConnection.disconnectFromDatabase();
         setWriteMode(WAIT);

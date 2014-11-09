@@ -34,7 +34,7 @@ object Datasets extends Lock {
 
   import scala.collection.JavaConversions._
 
-  val predAttsLimit = 1000
+  val predAttsLimit = 998
 
   /**
    * Reads an ARFF file.
@@ -55,7 +55,7 @@ object Datasets extends Lock {
       if (instances.numAttributes() != instancesUselessRemoved.numAttributes()) println(s"${instances.numAttributes() - instancesUselessRemoved.numAttributes()} useless attributes removed from $arq.")
 
       //Random projection of atts. (está roubando um pouco aqui, mas é necessário para que o SQLite aceite o dataset.
-      //Há um limite de 1998 atributos; como já estou interferindo vou reduzir para 1000, pois com 1998 estava muito lento.
+      //Há um limite de 1998 atributos; como já estou interferindo vou reduzir para 998 (pois o mysql tem limite de 1000), pois com 1998 estava muito lento.
       //Note-se que a projeção resulta em atributos numéricos.
       val projected = rndProjectionWeka(instancesUselessRemoved, arq)
       if (instancesUselessRemoved.numAttributes() != projected.numAttributes()) println(s"random projection applied to shrink ${instancesUselessRemoved.numAttributes()} ${projected.numAttributes()} attributes in $arq.")
