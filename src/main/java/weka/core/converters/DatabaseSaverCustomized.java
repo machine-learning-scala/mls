@@ -783,8 +783,8 @@ public class DatabaseSaverCustomized
         m_DataBaseConnection.update("CREATE TABLE r ( m INT NOT NULL, p INT NOT NULL, v FLOAT NOT NULL, PRIMARY KEY (m, p), FOREIGN KEY (p) REFERENCES p (id) );");
         m_DataBaseConnection.update(query.toString());
         m_DataBaseConnection.update("CREATE TABLE q ( p INT NOT NULL, t INT NOT NULL, i INT NOT NULL, PRIMARY KEY (p, t), FOREIGN KEY (p) REFERENCES p (id), FOREIGN KEY (i) REFERENCES i (id), UNIQUE (p, i) );");
-        m_DataBaseConnection.update("CREATE TABLE t ( v TIMESTAMP NOT NULL );");
-        m_DataBaseConnection.update("INSERT INTO `t` VALUES(0);");
+        m_DataBaseConnection.update("CREATE TABLE t ( v TIMESTAMP NOT NULL, j BIGINT );");
+        m_DataBaseConnection.update("INSERT INTO `t` VALUES(NOW(), -1);");
         m_DataBaseConnection.update("commit;");
         m_DataBaseConnection.close();
 //        if (!m_DataBaseConnection.tableExists(m_tableName)) {
