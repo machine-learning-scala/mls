@@ -25,6 +25,7 @@ import weka.classifiers.rules.JRip
 case class RIPPER() extends BatchWekaLearner {
   override val toString = s"RIPPER"
   val id = -4
+  val abr = toString
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 

@@ -25,6 +25,7 @@ import weka.classifiers.trees.J48
 case class C45(min_leaf_size: Int = 2) extends BatchWekaLearner {
   override val toString = s"C45"
   val id = if (min_leaf_size == 2) 3 else throw new Error("C45 fora dos parametros esperados!")
+  val abr = toString
 
   //  private def complexity(classifier: Classifier) = classifier match {
   //    //      case sgd: SGD =>

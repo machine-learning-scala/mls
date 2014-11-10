@@ -29,6 +29,7 @@ case class KNNinc(k: Int, distance_name: String, pattsForDistanceCache: Seq[Patt
   override val toString = k + "NNinc" + (if (weighted) " weighted " else " (") + distance_name + s")"
   println("Please use KNNBatch which should have the same speed and is consistent across resumings.")
   val id = -1
+  val abr = "kNNi"
 
   def build(patterns: Seq[Pattern]) = {
     lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)

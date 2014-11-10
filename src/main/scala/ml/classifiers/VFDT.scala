@@ -31,6 +31,7 @@ import weka.classifiers.trees.HoeffdingTree
 case class VFDT() extends IncrementalWekaLearner {
   override val toString = s"VFDT"
   val id = 4
+  val abr = toString
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 

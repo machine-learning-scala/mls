@@ -38,6 +38,7 @@ case class SVMLib(seed: Int = 42) extends BatchWekaLearner {
   val dummyStream = new PrintStream(new OutputStream() {
     def write(b: Int) {}
   })
+  val abr = toString
 
   def expected_change(model: Model)(pattern: Pattern) = ???
 

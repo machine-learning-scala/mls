@@ -22,6 +22,7 @@ import ml.models.Model
 
 trait Learner {
   val id: Int
+  val abr: String
 
   def EMC(model: Model)(patterns: Seq[Pattern]): Pattern
 

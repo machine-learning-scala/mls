@@ -23,6 +23,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 case class LASVM() extends Learner {
   override val toString = "LASVM"
   val id = -2
+  val abr = toString
 
   def update(model: Model, fast_mutable: Boolean)(pattern: Pattern) = ???
 

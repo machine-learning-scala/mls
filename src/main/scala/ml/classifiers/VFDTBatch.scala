@@ -28,6 +28,7 @@ import weka.classifiers.trees.HoeffdingTree
 case class VFDTBatch() extends BatchWekaLearner {
   override val toString = s"VFDTBatch"
   val id = -6
+  val abr = toString
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 

@@ -25,6 +25,7 @@ import weka.classifiers.bayes.NaiveBayes
 case class NBBatch() extends BatchWekaLearner {
   override val toString = s"NBBatch"
   val id = 12
+  val abr = toString
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 

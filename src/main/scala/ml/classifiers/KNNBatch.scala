@@ -36,6 +36,7 @@ import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, Minko
 case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], weighted: Boolean = false) extends BatchWekaLearner {
   override val toString = k + "NN" + (if (weighted) " weighted " else " (") + distance_name + s")"
   val id = if (k == 5 && distance_name == "eucl" && weighted) 2 else throw new Error("KNN fora dos parametros esperados!")
+  val abr = "kNN"
 
   def build(patterns: Seq[Pattern]) = {
     lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)

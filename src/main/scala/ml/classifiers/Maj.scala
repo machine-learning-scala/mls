@@ -25,6 +25,7 @@ import weka.classifiers.rules.ZeroR
 case class Maj() extends BatchWekaLearner {
   override val toString = s"maj"
   val id = 13
+  val abr = toString
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 

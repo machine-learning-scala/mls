@@ -30,6 +30,7 @@ import weka.classifiers.bayes.NaiveBayesUpdateable
 case class NB() extends IncrementalWekaLearner {
   override val toString = s"NB"
   val id = 1
+  val abr = toString
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 

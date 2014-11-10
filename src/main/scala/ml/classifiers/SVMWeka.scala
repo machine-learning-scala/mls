@@ -29,6 +29,7 @@ import weka.classifiers.functions.SMO
 case class SVMWeka() extends BatchWekaLearner {
   override val toString = s"SVMw"
   val id = 11
+  val abr = toString
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
