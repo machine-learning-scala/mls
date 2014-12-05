@@ -32,49 +32,49 @@ import weka.classifiers.functions.LibSVM
  * usually different for the same training set and svm parameters over time.
  */
 case class SVMLib(seed: Int = 42) extends BatchWekaLearner {
-  override val toString = "SVM"
-  val id = 5
-  val originalStream = System.out
-  val dummyStream = new PrintStream(new OutputStream() {
-    def write(b: Int) {}
-  })
-  val abr = toString
+   override val toString = "SVM"
+   val id = 5
+   val originalStream = System.out
+   val dummyStream = new PrintStream(new OutputStream() {
+      def write(b: Int) {}
+   })
+   val abr = toString
 
-  def expected_change(model: Model)(pattern: Pattern) = ???
+   def expected_change(model: Model)(pattern: Pattern) = ???
 
-  def EMC(model: Model)(patterns: Seq[Pattern]) = ???
+   def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
-  def build(pool: Seq[Pattern]) = {
-    val classifier = new LibSVM()
-    classifier.setDoNotCheckCapabilities(true)
-    classifier.setOptions(weka.core.Utils.splitOptions("-J"))
-    classifier.setOptions(weka.core.Utils.splitOptions("-V"))
-    classifier.setSeed(seed)
-    classifier.setDebug(false)
-    classifier.setProbabilityEstimates(true)
-    generate_model(classifier, pool)
-  }
+   def build(pool: Seq[Pattern]) = {
+      val classifier = new LibSVM()
+      classifier.setDoNotCheckCapabilities(true)
+      classifier.setOptions(weka.core.Utils.splitOptions("-J"))
+      classifier.setOptions(weka.core.Utils.splitOptions("-V"))
+      classifier.setSeed(seed)
+      classifier.setDebug(false)
+      classifier.setProbabilityEstimates(true)
+      generate_model(classifier, pool)
+   }
 
-  override protected def generate_model(classifier: Classifier, patterns: Seq[Pattern]) = {
-    System.setOut(dummyStream)
-    classifier.buildClassifier(Datasets.patterns2instances(patterns))
-    System.setOut(originalStream)
-    WekaBatModel(classifier, patterns)
-  }
+   override protected def generate_model(classifier: Classifier, patterns: Seq[Pattern]) = {
+      //    System.setOut(dummyStream)
+      classifier.buildClassifier(Datasets.patterns2instances(patterns))
+      //    System.setOut(originalStream)
+      WekaBatModel(classifier, patterns)
+   }
 
-  protected def test_subclass(classifier: Classifier) = classifier match {
-    case cla: LibSVM => cla
-    case _ => throw new Exception(this + " requires LibSVM.")
-  }
+   protected def test_subclass(classifier: Classifier) = classifier match {
+      case cla: LibSVM => cla
+      case _ => throw new Exception(this + " requires LibSVM.")
+   }
 
-  //  override protected def next_classifier(wekamodel: WekaModel, fast_mutable: Boolean) = {
-  //    val classifier = new LibSVM()
-  //    classifier.setDoNotCheckCapabilities(true)
-  //    classifier.setOptions(weka.core.Utils.splitOptions("-J"))
-  //    classifier.setOptions(weka.core.Utils.splitOptions("-V"))
-  //    classifier.setSeed(seed)
-  //    classifier.setDebug(false)
-  //    classifier.setProbabilityEstimates(true)
-  //    classifier
-  //  }
+   //  override protected def next_classifier(wekamodel: WekaModel, fast_mutable: Boolean) = {
+   //    val classifier = new LibSVM()
+   //    classifier.setDoNotCheckCapabilities(true)
+   //    classifier.setOptions(weka.core.Utils.splitOptions("-J"))
+   //    classifier.setOptions(weka.core.Utils.splitOptions("-V"))
+   //    classifier.setSeed(seed)
+   //    classifier.setDebug(false)
+   //    classifier.setProbabilityEstimates(true)
+   //    classifier
+   //  }
 }
