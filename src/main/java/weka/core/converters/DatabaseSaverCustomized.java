@@ -777,14 +777,45 @@ public class DatabaseSaverCustomized
         usa.append(name);
         usa.append("`;");
         m_DataBaseConnection.update(usa.toString());
+
         m_DataBaseConnection.update("CREATE TABLE p ( id INT NOT NULL AUTO_INCREMENT, s INT NOT NULL, l INT NOT NULL, r INT NOT NULL, f INT NOT NULL, PRIMARY KEY(id), UNIQUE (s, l, r, f) );");
         m_DataBaseConnection.update("INSERT INTO `p` VALUES(-1,-1,-1,-1,-1);");
-        m_DataBaseConnection.update("CREATE TABLE h ( p INT NOT NULL, t INT NOT NULL, mat BLOB NOT NULL, PRIMARY KEY (p, t), FOREIGN KEY (p) REFERENCES p (id) );");
-        m_DataBaseConnection.update("CREATE TABLE r ( m INT NOT NULL, p INT NOT NULL, v FLOAT NOT NULL, PRIMARY KEY (m, p), FOREIGN KEY (p) REFERENCES p (id) );");
+
+        m_DataBaseConnection.update("CREATE TABLE h ( p INT NOT NULL, t INT NOT NULL, mat BLOB NOT NULL, PRIMARY KEY (p, t), FOREIGN KEY (p) REFERENCES p (id) ON DELETE CASCADE );");
+
+        m_DataBaseConnection.update("CREATE TABLE r ( m INT NOT NULL, p INT NOT NULL, vs VARCHAR(50000) NOT NULL, PRIMARY KEY (m, p), FOREIGN KEY (p) REFERENCES p (id) ON DELETE CASCADE );");
         m_DataBaseConnection.update(query.toString());
-        m_DataBaseConnection.update("CREATE TABLE q ( p INT NOT NULL, t INT NOT NULL, i INT NOT NULL, PRIMARY KEY (p, t), FOREIGN KEY (p) REFERENCES p (id), FOREIGN KEY (i) REFERENCES i (id), UNIQUE (p, i) );");
-        m_DataBaseConnection.update("CREATE TABLE t ( v TIMESTAMP NOT NULL, uuid VARCHAR(100) );");
-        m_DataBaseConnection.update("INSERT INTO `t` VALUES(NOW(), \"\");");
+
+        m_DataBaseConnection.update("CREATE TABLE q ( p INT NOT NULL, t INT NOT NULL, i INT NOT NULL, PRIMARY KEY (p, t), FOREIGN KEY (p) REFERENCES p (id) ON DELETE CASCADE, FOREIGN KEY (i) REFERENCES i (id), UNIQUE (p, i) );");
+
+        m_DataBaseConnection.update("CREATE TABLE l ( r INT NOT NULL, f INT NOT NULL, u VARCHAR(100), t TIMESTAMP NOT NULL, PRIMARY KEY (r, f) );");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(0,0,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(0,1,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(0,2,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(0,3,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(0,4,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(1,0,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(1,1,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(1,2,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(1,3,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(1,4,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(2,0,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(2,1,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(2,2,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(2,3,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(2,4,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(3,0,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(3,1,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(3,2,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(3,3,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(3,4,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(4,0,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(4,1,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(4,2,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(4,3,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+        m_DataBaseConnection.update("INSERT INTO `l` VALUES(4,4,\"1417982934949156d074c-be6f-4f32-ade8-d0f1dcd124ba\",NOW());");
+
+        m_DataBaseConnection.update("CREATE TABLE f ( b INT NOT NULL, PRIMARY KEY (b) );");
         m_DataBaseConnection.update("commit;");
         m_DataBaseConnection.close();
 //        if (!m_DataBaseConnection.tableExists(m_tableName)) {
