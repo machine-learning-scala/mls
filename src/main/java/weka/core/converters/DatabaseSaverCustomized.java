@@ -783,7 +783,7 @@ public class DatabaseSaverCustomized
 
         m_DataBaseConnection.update("CREATE TABLE h ( p INT NOT NULL, t INT NOT NULL, mat BLOB NOT NULL, PRIMARY KEY (p, t), FOREIGN KEY (p) REFERENCES p (id) ON DELETE CASCADE );");
 
-        m_DataBaseConnection.update("CREATE TABLE r ( m INT NOT NULL, p INT NOT NULL, vs VARCHAR(50000) NOT NULL, PRIMARY KEY (m, p), FOREIGN KEY (p) REFERENCES p (id) ON DELETE CASCADE );");
+        m_DataBaseConnection.update("CREATE TABLE r ( m INT NOT NULL, p INT NOT NULL, v FLOAT NOT NULL, PRIMARY KEY (m, p), FOREIGN KEY (p) REFERENCES p (id) ON DELETE CASCADE );");
         m_DataBaseConnection.update(query.toString());
 
         m_DataBaseConnection.update("CREATE TABLE q ( p INT NOT NULL, t INT NOT NULL, i INT NOT NULL, PRIMARY KEY (p, t), FOREIGN KEY (p) REFERENCES p (id) ON DELETE CASCADE, FOREIGN KEY (i) REFERENCES i (id), UNIQUE (p, i) );");
