@@ -2,7 +2,8 @@ mls
 ===
 Wrappers for Weka for Scala (at least at the moment).
 If you use this software in your research paper,
-please cite properly the github repository URL.
+please cite properly using the bibtex at the end or the alternatives provided by this DOI link:
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.13735.svg)](http://dx.doi.org/10.5281/zenodo.13735)
 
 Installation
 ------------
@@ -37,3 +38,15 @@ Use as a library
 ```
 
 * Be happy.
+
+```
+@article{doi/ml,
+      author        = "Davi P. Santos and Andr{\'e} Carlos Ponce Leon Ferreira Carvalho",
+      journal = "GitHub Software Repository",
+      title         = "Wrappers for Weka for Scala",
+      month         = "Jan",
+      year          = "2015",
+      doi           = "{10.5281/zenodo.13735}",
+      url           = "{http://dx.doi.org/10.5281/zenodo.13735}",
+}
+```
