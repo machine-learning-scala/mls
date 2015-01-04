@@ -39,6 +39,8 @@ Use as a library
 
 * Be happy.
 
+Reference
+---------
 ```
 @article{doi/ml,
       author        = "Davi P. Santos and Andr{\'e} Carlos Ponce Leon Ferreira Carvalho",
