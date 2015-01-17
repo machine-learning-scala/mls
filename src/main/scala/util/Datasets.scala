@@ -93,11 +93,11 @@ object Datasets extends Lock {
          keyPatt.relabeled_reweighted(modeLabel, keyPatt.weight, new_missed = false)
    }
 
-   def LOO[T](patterns: Seq[Pattern], parallel: Boolean = false)(f: (Seq[Pattern], Pattern) => T): Seq[T] = {
+   def LOO[T, U](patterns: Array[U], parallel: Boolean = false)(f: (Seq[U], U) => T): Seq[T] = {
       if (parallel) ???
       var i = 0
       val n = patterns.size
-      val array = patterns.toArray
+      val array = patterns
       val list = patterns.toList
       val q = mutable.Queue[T]()
       while (i < n) {
