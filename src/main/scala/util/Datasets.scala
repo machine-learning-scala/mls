@@ -32,212 +32,212 @@ import scala.util.{Failure, Success, Try}
 
 object Datasets extends Lock {
 
-  import scala.collection.JavaConversions._
+   import scala.collection.JavaConversions._
 
-  val predAttsLimit = 998
+   val predAttsLimit = 998
 
-  /**
-   * Reads an ARFF file.
-   * Remove useless attributes.
-   */
-  def arff(arq: String) = {
-    try {
+   /**
+    * Reads an ARFF file.
+    * Remove useless attributes.
+    */
+   def arff(arq: String, dedup: Boolean = true) = {
+      try {
 
-      //Extract instances from file and close it.
-      val reader = new BufferedReader(new FileReader(arq))
-      val instances = new ArffReader(reader).getData
-      reader.close()
-      instances.setClassIndex(instances.numAttributes() - 1)
-      instances.setRelationName(arq)
+         //Extract instances from file and close it.
+         val reader = new BufferedReader(new FileReader(arq))
+         val instances = new ArffReader(reader).getData
+         reader.close()
+         instances.setClassIndex(instances.numAttributes() - 1)
+         instances.setRelationName(arq)
 
-      //Removes useless atts.
-      val instancesUselessRemoved = rmUselessWeka(instances)
-      if (instances.numAttributes() != instancesUselessRemoved.numAttributes()) println(s"${instances.numAttributes() - instancesUselessRemoved.numAttributes()} useless attributes removed from $arq.")
+         //Removes useless atts.
+         val instancesUselessRemoved = rmUselessWeka(instances)
+         if (instances.numAttributes() != instancesUselessRemoved.numAttributes()) println(s"${instances.numAttributes() - instancesUselessRemoved.numAttributes()} useless attributes removed from $arq.")
 
-      //Random projection of atts. (está roubando um pouco aqui, mas é necessário para que o SQLite aceite o dataset.
-      //Há um limite de 1998 atributos; como já estou interferindo vou reduzir para 998 (pois o mysql tem limite de 1000), pois com 1998 estava muito lento.
-      //Note-se que a projeção resulta em atributos numéricos.
-      val projected = rndProjectionWeka(instancesUselessRemoved, arq)
-      if (instancesUselessRemoved.numAttributes() != projected.numAttributes()) println(s"random projection applied to shrink ${instancesUselessRemoved.numAttributes()} ${projected.numAttributes()} attributes in $arq.")
+         //Random projection of atts. (está roubando um pouco aqui, mas é necessário para que o SQLite aceite o dataset.
+         //Há um limite de 1998 atributos; como já estou interferindo vou reduzir para 998 (pois o mysql tem limite de 1000), pois com 1998 estava muito lento.
+         //Note-se que a projeção resulta em atributos numéricos.
+         val projected = rndProjectionWeka(instancesUselessRemoved, arq)
+         if (instancesUselessRemoved.numAttributes() != projected.numAttributes()) println(s"random projection applied to shrink ${instancesUselessRemoved.numAttributes()} ${projected.numAttributes()} attributes in $arq.")
 
-      //Assigns ids from zero. (should be one of the first things because of weka filters' indeterminism)
-      val parent = PatternParent(projected)
-      val idpatts = projected.zipWithIndex.map { case (instance, idx) => Pattern(idx, instance, missed = false, parent)}
+         //Assigns ids from zero. (should be one of the first things because of weka filters' indeterminism)
+         val parent = PatternParent(projected)
+         val idpatts = projected.zipWithIndex.map { case (instance, idx) => Pattern(idx, instance, missed = false, parent)}
 
-      //Deduplication.
-      println("Only distinct instances will be kept, but preserving ARFF original line number as id, starting from zero.")
-      val distinctPatts = distinctMode(idpatts)
+         //Deduplication.
+         println("Only distinct instances will be kept, but preserving ARFF original line number as id, starting from zero.")
+         val distinctPatts = if (dedup) distinctMode(idpatts) else idpatts
 
-      //Alerts about how many duplicates were found.
-      if (instances.numInstances() != distinctPatts.size) {
-        println("In dataset " + arq + ": " + (instances.numInstances() - distinctPatts.size) + " duplicate instances eliminated! Distinct = " + distinctPatts.size + " original:" + instances.numInstances())
+         //Alerts about how many duplicates were found.
+         if (instances.numInstances() != distinctPatts.size) {
+            println("In dataset " + arq + ": " + (instances.numInstances() - distinctPatts.size) + " duplicate instances eliminated! Distinct = " + distinctPatts.size + " original:" + instances.numInstances())
+         }
+
+         Right(distinctPatts.toVector)
+      } catch {
+         case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
       }
+   }
 
-      Right(distinctPatts.toVector)
-    } catch {
-      case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
-    }
-  }
+   /**
+    * Deduplication keeping only the pattern with the mode of the involved labels.
+    * @param patts
+    * @return
+    */
+   def distinctMode(patts: mutable.Buffer[Pattern]) = patts groupBy (x => x) map {
+      case (keyPatt: Pattern, ArrayBuffer(patt: Pattern)) => patt
+      case (keyPatt: Pattern, listPatt: ArrayBuffer[Pattern]) =>
+         val hist = Array.fill(keyPatt.nclasses)(0)
+         listPatt foreach (p => hist(p.label.toInt) += 1)
+         val modeLabel = hist.zipWithIndex.max._2
+         keyPatt.relabeled_reweighted(modeLabel, keyPatt.weight, new_missed = false)
+   }
 
-  /**
-   * Deduplication keeping only the pattern with the mode of the involved labels.
-   * @param patts
-   * @return
-   */
-  def distinctMode(patts: mutable.Buffer[Pattern]) = patts groupBy (x => x) map {
-    case (keyPatt: Pattern, ArrayBuffer(patt: Pattern)) => patt
-    case (keyPatt: Pattern, listPatt: ArrayBuffer[Pattern]) =>
-      val hist = Array.fill(keyPatt.nclasses)(0)
-      listPatt foreach (p => hist(p.label.toInt) += 1)
-      val modeLabel = hist.zipWithIndex.max._2
-      keyPatt.relabeled_reweighted(modeLabel, keyPatt.weight, new_missed = false)
-  }
-
-  def LOO[T](patterns: Seq[Pattern], parallel: Boolean = false)(f: (Seq[Pattern], Pattern) => T): Seq[T] = {
-    if (parallel) ???
-    var i = 0
-    val n = patterns.size
-    val array = patterns.toArray
-    val list = patterns.toList
-    val q = mutable.Queue[T]()
-    while (i < n) {
-      q += f(list.take(i) ++ list.drop(i + 1), array(i))
-      i += 1
-    }
-    q.toList
-  }
-
-  /**
-   * @param patterns
-   * @param k
-   * @param parallel
-   * @param f f(tr, ts, foldnr, minSize) => T
-   * @return Seq[T]
-   */
-  def kfoldCV[T](patterns: => Vector[Pattern], k: Int = 10, parallel: Boolean = false)(f: (=> Vector[Pattern], => Vector[Pattern], Int, Int) => T) = {
-    //    patterns.take(4) foreach (x => println(x.toStringCerto))
-    lazy val folds = {
-      val n = patterns.length
-      val tmp = Array.fill(k)(Vector[Pattern]())
-      val grouped = patterns.groupBy(_.label).values.flatten.toArray
+   def LOO[T](patterns: Seq[Pattern], parallel: Boolean = false)(f: (Seq[Pattern], Pattern) => T): Seq[T] = {
+      if (parallel) ???
       var i = 0
+      val n = patterns.size
+      val array = patterns.toArray
+      val list = patterns.toList
+      val q = mutable.Queue[T]()
       while (i < n) {
-        tmp(i % k) +:= grouped(i)
-        i += 1
+         q += f(list.take(i) ++ list.drop(i + 1), array(i))
+         i += 1
       }
-      tmp.toVector
-    }
-    lazy val testfolds = folds
-    lazy val trainfolds = for (fo <- 0 until k) yield folds.filterNot(_.sameElements(testfolds(fo))).flatten
-    val minSize = trainfolds.map(_.length).min
-    val seq = if (parallel) (0 until k).par else 0 until k
-    seq.map { foldnr =>
-      lazy val tr = trainfolds(foldnr)
-      lazy val ts = testfolds(foldnr)
-      f(tr, ts, foldnr, minSize)
-    }
-  }
+      q.toList
+   }
 
-  def zscoreFilter(patts: Seq[Pattern]) = {
-    val stand_filter = new Standardize
-    stand_filter.setInputFormat(patts.head.dataset())
-    stand_filter
-  }
+   /**
+    * @param patterns
+    * @param k
+    * @param parallel
+    * @param f f(tr, ts, foldnr, minSize) => T
+    * @return Seq[T]
+    */
+   def kfoldCV[T](patterns: => Vector[Pattern], k: Int = 10, parallel: Boolean = false)(f: (=> Vector[Pattern], => Vector[Pattern], Int, Int) => T) = {
+      //    patterns.take(4) foreach (x => println(x.toStringCerto))
+      lazy val folds = {
+         val n = patterns.length
+         val tmp = Array.fill(k)(Vector[Pattern]())
+         val grouped = patterns.groupBy(_.label).values.flatten.toArray
+         var i = 0
+         while (i < n) {
+            tmp(i % k) +:= grouped(i)
+            i += 1
+         }
+         tmp.toVector
+      }
+      lazy val testfolds = folds
+      lazy val trainfolds = for (fo <- 0 until k) yield folds.filterNot(_.sameElements(testfolds(fo))).flatten
+      val minSize = trainfolds.map(_.length).min
+      val seq = if (parallel) (0 until k).par else 0 until k
+      seq.map { foldnr =>
+         lazy val tr = trainfolds(foldnr)
+         lazy val ts = testfolds(foldnr)
+         f(tr, ts, foldnr, minSize)
+      }
+   }
 
-  def binarizeFilter(patts: Seq[Pattern]) = {
-    val bina_filter = new NominalToBinary
-    bina_filter.setInputFormat(patts.head.dataset())
-    bina_filter
-  }
+   def zscoreFilter(patts: Seq[Pattern]) = {
+      val stand_filter = new Standardize
+      stand_filter.setInputFormat(patts.head.dataset())
+      stand_filter
+   }
 
-  /**
-   * Create a new Instances that contains Pattern objects instead of Instance objects.
-   * @param patterns
-   * @return
-   */
-  def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
-  else {
-    val new_instances = new Instances(patterns.head.dataset, 0, 0)
-    patterns foreach new_instances.add
-    new_instances
-  }
+   def binarizeFilter(patts: Seq[Pattern]) = {
+      val bina_filter = new NominalToBinary
+      bina_filter.setInputFormat(patts.head.dataset())
+      bina_filter
+   }
 
-  /**
-   * Warning: nondeterministic process regarding patterns resulting order.
-   * @param patts
-   * @param filter
-   * @return
-   */
-  def applyFilter(filter: Filter)(patts: Seq[Pattern]) = if (patts.isEmpty) Vector()
-  else {
-    val instances = patterns2instances(patts)
-    instances.zip(patts).foreach { case (ins, pat) =>
-      if (ins.weight() != 1) throw new Error(s"Weight ${ins.weight()} differs from 1! That info would be lost.")
-      ins.setWeight(pat.id)
-    }
-    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
-    val res = newInstances.map { case instance => Pattern(instance.weight().toInt, instance, missed = false, PatternParent(instance.dataset()))}
-    instances.foreach(_.setWeight(1))
-    res.foreach(_.setWeight(1))
-    res.toVector
-  }
+   /**
+    * Create a new Instances that contains Pattern objects instead of Instance objects.
+    * @param patterns
+    * @return
+    */
+   def patterns2instances(patterns: Seq[Pattern]) = if (patterns.isEmpty) throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
+   else {
+      val new_instances = new Instances(patterns.head.dataset, 0, 0)
+      patterns foreach new_instances.add
+      new_instances
+   }
 
-  //Weka   -----------------------------------
-  def rndProjectionWeka(instances2: Instances, arq: String) = if (instances2.numAttributes > predAttsLimit) {
-    val filter = new RandomProjection
-    filter.setNumberOfAttributes(predAttsLimit)
-    filter.setInputFormat(instances2)
-    filter.setSeed(0)
-    Try(Filter.useFilter(instances2, filter)) match {
-      case Success(x) =>
-        println("Reduced attributes from " + instances2.numAttributes + " to " + x.numAttributes + " in '" + arq + "'.")
-        x
-      case Failure(ex) => justQuit("\nSkipping dataset '" + arq + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
-    }
-  } else instances2
+   /**
+    * Warning: nondeterministic process regarding patterns resulting order.
+    * @param patts
+    * @param filter
+    * @return
+    */
+   def applyFilter(filter: Filter)(patts: Seq[Pattern]) = if (patts.isEmpty) Vector()
+   else {
+      val instances = patterns2instances(patts)
+      instances.zip(patts).foreach { case (ins, pat) =>
+         if (ins.weight() != 1) throw new Error(s"Weight ${ins.weight()} differs from 1! That info would be lost.")
+         ins.setWeight(pat.id)
+      }
+      val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
+      val res = newInstances.map { case instance => Pattern(instance.weight().toInt, instance, missed = false, PatternParent(instance.dataset()))}
+      instances.foreach(_.setWeight(1))
+      res.foreach(_.setWeight(1))
+      res.toVector
+   }
 
-  def rmUselessWeka(instances: Instances) = {
-    val rmUseless_filter = new RemoveUseless
-    //    rmUseless_filter.setMaximumVariancePercentageAllowed()
-    rmUseless_filter.setInputFormat(instances)
-    Filter.useFilter(instances, rmUseless_filter)
-  }
+   //Weka   -----------------------------------
+   def rndProjectionWeka(instances2: Instances, arq: String) = if (instances2.numAttributes > predAttsLimit) {
+      val filter = new RandomProjection
+      filter.setNumberOfAttributes(predAttsLimit)
+      filter.setInputFormat(instances2)
+      filter.setSeed(0)
+      Try(Filter.useFilter(instances2, filter)) match {
+         case Success(x) =>
+            println("Reduced attributes from " + instances2.numAttributes + " to " + x.numAttributes + " in '" + arq + "'.")
+            x
+         case Failure(ex) => justQuit("\nSkipping dataset '" + arq + "' due to " + ex + "\n" + Thread.currentThread().getStackTrace.mkString("\n"))
+      }
+   } else instances2
 
-  def normalizeWeka(instances: Instances, scale: Double = 1, translation: Double = 0) = {
-    val norm_filter = new Normalize
-    norm_filter.setInputFormat(instances)
-    norm_filter.setScale(scale)
-    norm_filter.setTranslation(translation)
-    Filter.useFilter(instances, norm_filter)
-  }
+   def rmUselessWeka(instances: Instances) = {
+      val rmUseless_filter = new RemoveUseless
+      //    rmUseless_filter.setMaximumVariancePercentageAllowed()
+      rmUseless_filter.setInputFormat(instances)
+      Filter.useFilter(instances, rmUseless_filter)
+   }
 
-  def pcaWeka(ins: Instances, n: Int) = {
-    val pc = new PrincipalComponents
-    pc.setInputFormat(ins)
-    pc.setMaximumAttributes(n)
-    Filter.useFilter(ins, pc)
-  }
+   def normalizeWeka(instances: Instances, scale: Double = 1, translation: Double = 0) = {
+      val norm_filter = new Normalize
+      norm_filter.setInputFormat(instances)
+      norm_filter.setScale(scale)
+      norm_filter.setTranslation(translation)
+      Filter.useFilter(instances, norm_filter)
+   }
 
-  //JKernelMachines --------------------------
-  /**
-   * Create a list of TrSamps.
-   * @param patterns
-   * @return
-   */
-  def patterns2TrainingSamples(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
-    println("Empty sequence of patterns; cannot generate empty list of TrainingSamples.")
-    throw new Error("Empty sequence of patterns; cannot generate list of TrainingSamples.")
-  } else {
-    patterns.toList map (p => new TrainingSample[Array[Double]](p.array, p.label.toInt))
-  }
+   def pcaWeka(ins: Instances, n: Int) = {
+      val pc = new PrincipalComponents
+      pc.setInputFormat(ins)
+      pc.setMaximumAttributes(n)
+      Filter.useFilter(ins, pc)
+   }
 
-  def pattern2TrainingSample(pattern: Pattern) = new TrainingSample[Array[Double]](pattern.array, pattern.label.toInt)
+   //JKernelMachines --------------------------
+   /**
+    * Create a list of TrSamps.
+    * @param patterns
+    * @return
+    */
+   def patterns2TrainingSamples(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
+      println("Empty sequence of patterns; cannot generate empty list of TrainingSamples.")
+      throw new Error("Empty sequence of patterns; cannot generate list of TrainingSamples.")
+   } else {
+      patterns.toList map (p => new TrainingSample[Array[Double]](p.array, p.label.toInt))
+   }
 
-  //useless ----------------------------------
-  val readOnly: Boolean = true
-  var fileLocked: Boolean = false
+   def pattern2TrainingSample(pattern: Pattern) = new TrainingSample[Array[Double]](pattern.array, pattern.label.toInt)
 
-  def isOpen() = ???
+   //useless ----------------------------------
+   val readOnly: Boolean = true
+   var fileLocked: Boolean = false
 
-  def close() = ???
+   def isOpen() = ???
+
+   def close() = ???
 }
