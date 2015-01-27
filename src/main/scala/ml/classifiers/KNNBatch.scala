@@ -40,7 +40,7 @@ case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pa
       println("KNN fora dos parametros esperados!");
       22222
    }
-   val abr = "kNN"
+   val abr = "5NN"
 
    def build(patterns: Seq[Pattern]) = {
       lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)
