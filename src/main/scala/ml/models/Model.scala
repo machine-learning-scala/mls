@@ -20,75 +20,100 @@ package ml.models
 import ml.Pattern
 
 trait Model {
-  val L: Int
+   val L: Int
 
-  def predict(instance: Pattern): Double
+   def predict(instance: Pattern): Double
 
-  /**
-   * Mostra qtas vezes a classe da linha foi predita como a classe da coluna.
-   * @param patts
-   */
-  def confusion(patts: Seq[Pattern]) = if (patts.isEmpty) {
-    println("Empty list of patterns at confusion matrix.")
-    sys.exit(1)
-  } else {
-    val nc = patts.head.nclasses
-    val n = patts.size
-    val res = Array.fill(nc)(Array.fill(nc)(0))
-    var i = 0
-    while (i < n) {
-      val p = patts(i)
-      res(p.label.toInt)(predict(p).toInt) += 1
-      i += 1
-    }
-    res
-  }
+   /**
+    * Mostra qtas vezes a classe da linha foi predita como a classe da coluna.
+    * @param patts
+    */
+   def confusion(patts: Seq[Pattern]) = if (patts.isEmpty) {
+      println("Empty list of patterns at confusion matrix.")
+      sys.exit(1)
+   } else {
+      val nc = patts.head.nclasses
+      val n = patts.size
+      val res = Array.fill(nc)(Array.fill(nc)(0))
+      var i = 0
+      while (i < n) {
+         val p = patts(i)
+         res(p.label.toInt)(predict(p).toInt) += 1
+         i += 1
+      }
+      res
+   }
 
-  def distribution(instance: Pattern): Array[Double]
+   def distribution(instance: Pattern): Array[Double]
 
+   protected def log(x: Double) = if (x == 0) 0d else math.log(x)
 
-  def output(instance: Pattern): Array[Double]
+   protected def normalized_entropy(P: Array[Double]) = -P.map(x => x * log(x)).sum / log(P.length)
 
-  //  {
-  //    val dist = distribution(instance)
-  //    val nclasses = instance.nclasses
-  //    var c = 0
-  //    var max = 0d
-  //    var cmax = 0
-  //    while (c < nclasses) {
-  //      val v = dist(c)
-  //      if (v > max) {
-  //        max = v
-  //        cmax = c
-  //      }
-  //      c += 1
-  //    }
-  //    cmax
-  //  }
+   protected def media_desvioPadrao(items: Vector[Double]) = {
+      val s = items.sum
+      val l = items.length.toDouble
+      val m = s / l
+      val v0 = (items map {
+         x =>
+            val di = x - m
+            di * di
+      }).sum / (l - 1)
+      val v = if (v0.isNaN) 0 else v0
+      val d = math.sqrt(v)
+      (m, d)
+   }
 
-  def hit(instance: Pattern) = instance.label == predict(instance)
+   def predictionEntropy(patts: Seq[Pattern]) = if (patts.isEmpty) {
+      println("Empty list of patterns at predictionEntropy.")
+      sys.exit(1)
+   } else {
+      val ents = patts.map(x => normalized_entropy(distribution(x)))
+      media_desvioPadrao(ents.toVector)
+   }
 
-  def hits(patterns: Seq[Pattern]) = patterns.count(hit) //weka is not thread-safe to parallelize hits()
+   def output(instance: Pattern): Array[Double]
 
-  def accuracy(patterns: Seq[Pattern], n: Double = -1) = {
-    hits(patterns) / (if (n == -1) patterns.length.toDouble else n)
-  }
+   //  {
+   //    val dist = distribution(instance)
+   //    val nclasses = instance.nclasses
+   //    var c = 0
+   //    var max = 0d
+   //    var cmax = 0
+   //    while (c < nclasses) {
+   //      val v = dist(c)
+   //      if (v > max) {
+   //        max = v
+   //        cmax = c
+   //      }
+   //      c += 1
+   //    }
+   //    cmax
+   //  }
 
-  def hits_and_qtd_per_class(patterns: Seq[Pattern]) = {
-    ??? //inefficient
-    (0 until patterns.head.nclasses) map {
-      c =>
-        val hits_for_this_class = patterns.filter(_.label == c)
-        val hits = (hits_for_this_class map hit) count (_ == true)
-        (hits, hits_for_this_class.length)
-    }
-  }
+   def hit(instance: Pattern) = instance.label == predict(instance)
+
+   def hits(patterns: Seq[Pattern]) = patterns.count(hit) //weka is not thread-safe to parallelize hits()
+
+   def accuracy(patterns: Seq[Pattern], n: Double = -1) = {
+      hits(patterns) / (if (n == -1) patterns.length.toDouble else n)
+   }
+
+   def hits_and_qtd_per_class(patterns: Seq[Pattern]) = {
+      ??? //inefficient
+      (0 until patterns.head.nclasses) map {
+         c =>
+            val hits_for_this_class = patterns.filter(_.label == c)
+            val hits = (hits_for_this_class map hit) count (_ == true)
+            (hits, hits_for_this_class.length)
+      }
+   }
 }
 
 //trait IncrementalModel extends Model
 
 trait BatchModel extends Model {
-  val training_set: Vector[Pattern]
+   val training_set: Vector[Pattern]
 }
 
 
