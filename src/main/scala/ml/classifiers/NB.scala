@@ -28,22 +28,24 @@ import weka.classifiers.bayes.NaiveBayesUpdateable
  * No, because it discretizes by fixed intervals of 0.1 (need to check in weka sources).
  */
 case class NB() extends IncrementalWekaLearner {
-  override val toString = s"NB"
-  val id = 1
-  val abr = toString
+   override val toString = s"NB"
+   val boundaryType = "flexível"
+   val attPref = "nominal"
+   val id = 1
+   val abr = toString
 
-  def expected_change(model: Model)(pattern: Pattern): Double = ???
+   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-  def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new NaiveBayesUpdateable
-    classifier.setUseSupervisedDiscretization(false)
-    generate_model(classifier, patterns)
-  }
+   def build(patterns: Seq[Pattern]): Model = {
+      val classifier = new NaiveBayesUpdateable
+      classifier.setUseSupervisedDiscretization(false)
+      generate_model(classifier, patterns)
+   }
 
-  protected def test_subclass(cla: Classifier) = cla match {
-    case n: NaiveBayesUpdateable => n
-    case _ => throw new Exception(this + " requires NaiveBayesUpdateable.")
-  }
+   protected def test_subclass(cla: Classifier) = cla match {
+      case n: NaiveBayesUpdateable => n
+      case _ => throw new Exception(this + " requires NaiveBayesUpdateable.")
+   }
 
-  override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

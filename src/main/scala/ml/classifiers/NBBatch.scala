@@ -23,22 +23,24 @@ import weka.classifiers.Classifier
 import weka.classifiers.bayes.NaiveBayes
 
 case class NBBatch() extends BatchWekaLearner {
-  override val toString = s"NBBatch"
-  val id = 12
-  val abr = toString
+   override val toString = s"NBBatch"
+   val boundaryType = "flexível"
+   val attPref = "nominal"
+   val id = 12
+   val abr = toString
 
-  def expected_change(model: Model)(pattern: Pattern): Double = ???
+   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-  def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new NaiveBayes
-    classifier.setUseSupervisedDiscretization(true) //true=slow?
-    generate_model(classifier, patterns)
-  }
+   def build(patterns: Seq[Pattern]): Model = {
+      val classifier = new NaiveBayes
+      classifier.setUseSupervisedDiscretization(true) //true=slow?
+      generate_model(classifier, patterns)
+   }
 
-  protected def test_subclass(classifier: Classifier) = classifier match {
-    case cla: NaiveBayes => cla
-    case _ => throw new Exception(this + " requires NaiveBayes.")
-  }
+   protected def test_subclass(classifier: Classifier) = classifier match {
+      case cla: NaiveBayes => cla
+      case _ => throw new Exception(this + " requires NaiveBayes.")
+   }
 
-  override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

@@ -23,21 +23,23 @@ import weka.classifiers.Classifier
 import weka.classifiers.rules.ZeroR
 
 case class Maj() extends BatchWekaLearner {
-  override val toString = s"maj"
-  val id = 13
-  val abr = toString
+   override val toString = s"maj"
+   val boundaryType = "nenhuma"
+   val attPref = "ambos"
+   val id = 13
+   val abr = toString
 
-  def expected_change(model: Model)(pattern: Pattern): Double = ???
+   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-  def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new ZeroR()
-    generate_model(classifier, patterns)
-  }
+   def build(patterns: Seq[Pattern]): Model = {
+      val classifier = new ZeroR()
+      generate_model(classifier, patterns)
+   }
 
-  protected def test_subclass(classifier: Classifier) = classifier match {
-    case cla: ZeroR => cla
-    case _ => throw new Exception(this + " requires ZeroR.")
-  }
+   protected def test_subclass(classifier: Classifier) = classifier match {
+      case cla: ZeroR => cla
+      case _ => throw new Exception(this + " requires ZeroR.")
+   }
 
-  override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

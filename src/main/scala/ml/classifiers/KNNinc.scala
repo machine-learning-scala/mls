@@ -26,35 +26,37 @@ import weka.core.neighboursearch.{KDTree, LinearNNSearch}
 import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, MinkowskiDistance}
 
 case class KNNinc(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], weighted: Boolean = false) extends IncrementalWekaLearner {
-  override val toString = k + "NNinc" + (if (weighted) " weighted " else " (") + distance_name + s")"
-  println("Please use KNNBatch which should have the same speed and is consistent across resumings.")
-  val id = -1
-  val abr = "kNNi"
+   override val toString = k + "NNinc" + (if (weighted) " weighted " else " (") + distance_name + s")"
+   println("Please use KNNBatch which should have the same speed and is consistent across resumings.")
+   val boundaryType = "flexível"
+   val attPref = "numérico"
+   val id = -1
+   val abr = "kNNi"
 
-  def build(patterns: Seq[Pattern]) = {
-    lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)
-    val classifier = new IBk
-    val distance = distance_name match {
-      case "eucl" => new EuclideanDistance(instancesForCache)
-      case "mink" => new MinkowskiDistance(instancesForCache) //defaults to EuclideanDistance   order: 1=manh; 2=eucl; infinity=cheb
-      case "manh" => new ManhattanDistance(instancesForCache)
-      case "cheb" => new ChebyshevDistance(instancesForCache)
-    }
-    val search = if (distance_name != "eucl" || pattsForDistanceCache.length / pattsForDistanceCache.head.nattributes < 10) new LinearNNSearch else new KDTree
-    //    val search = new KDTree()
-    search.setDistanceFunction(distance)
-    classifier.setNearestNeighbourSearchAlgorithm(search)
-    classifier.setKNN(k)
-    if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-I"))
-    generate_model(classifier, patterns)
-  }
+   def build(patterns: Seq[Pattern]) = {
+      lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)
+      val classifier = new IBk
+      val distance = distance_name match {
+         case "eucl" => new EuclideanDistance(instancesForCache)
+         case "mink" => new MinkowskiDistance(instancesForCache) //defaults to EuclideanDistance   order: 1=manh; 2=eucl; infinity=cheb
+         case "manh" => new ManhattanDistance(instancesForCache)
+         case "cheb" => new ChebyshevDistance(instancesForCache)
+      }
+      val search = if (distance_name != "eucl" || pattsForDistanceCache.length / pattsForDistanceCache.head.nattributes < 10) new LinearNNSearch else new KDTree
+      //    val search = new KDTree()
+      search.setDistanceFunction(distance)
+      classifier.setNearestNeighbourSearchAlgorithm(search)
+      classifier.setKNN(k)
+      if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-I"))
+      generate_model(classifier, patterns)
+   }
 
-  def expected_change(model: Model)(pattern: Pattern): Double = ???
+   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-  protected def test_subclass(classifier: Classifier) = classifier match {
-    case cla: IBk => cla
-    case _ => throw new Exception(this + " requires IBk.")
-  }
+   protected def test_subclass(classifier: Classifier) = classifier match {
+      case cla: IBk => cla
+      case _ => throw new Exception(this + " requires IBk.")
+   }
 
-  override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

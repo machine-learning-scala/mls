@@ -25,6 +25,8 @@ import weka.classifiers.trees.RandomForest
 
 case class RF(seed: Int = 42) extends BatchWekaLearner {
    override val toString = s"RF"
+   val boundaryType = "flexível"
+   val attPref = "ambos"
    val id = 773
    val abr = toString
 

@@ -21,26 +21,29 @@ import ml.Pattern
 import ml.models.Model
 
 trait Learner {
-  val id: Int
-  val abr: String
+   val id: Int
+   val abr: String
+   val attPref: String
+   val boundaryType: String
 
-  def EMC(model: Model)(patterns: Seq[Pattern]): Pattern
 
-  //  def diff(modelA: Model, modelB: Model): Double
+   def EMC(model: Model)(patterns: Seq[Pattern]): Pattern
 
-  /**
-   * Every call to build generates a model from scratch
-   * (and reinstanciate all needed internal mutable objects, if any).
-   * @param pool
-   * @return
-   */
-  def build(pool: Seq[Pattern]): Model
+   //  def diff(modelA: Model, modelB: Model): Double
 
-  def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
+   /**
+    * Every call to build generates a model from scratch
+    * (and reinstanciate all needed internal mutable objects, if any).
+    * @param pool
+    * @return
+    */
+   def build(pool: Seq[Pattern]): Model
 
-  //  def forget(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
+   def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
 
-  def expected_change(model: Model)(pattern: Pattern): Double
+   //  def forget(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
+
+   def expected_change(model: Model)(pattern: Pattern): Double
 }
 
 //trait IncrementalLearner extends Learner {

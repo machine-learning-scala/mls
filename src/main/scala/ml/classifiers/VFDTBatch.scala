@@ -26,22 +26,24 @@ import weka.classifiers.trees.HoeffdingTree
  * fixed GraceTime = nclasses * 5
  */
 case class VFDTBatch() extends BatchWekaLearner {
-  override val toString = s"VFDTBatch"
-  val id = -6
-  val abr = toString
+   override val toString = s"VFDTBatch"
+   val boundaryType = "rígida"
+   val attPref = "ambos"
+   val id = -6
+   val abr = toString
 
-  def expected_change(model: Model)(pattern: Pattern): Double = ???
+   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-  def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new HoeffdingTree
-    classifier.setGracePeriod(math.min(200, patterns.head.nclasses * 5))
-    generate_model(classifier, patterns)
-  }
+   def build(patterns: Seq[Pattern]): Model = {
+      val classifier = new HoeffdingTree
+      classifier.setGracePeriod(math.min(200, patterns.head.nclasses * 5))
+      generate_model(classifier, patterns)
+   }
 
-  protected def test_subclass(cla: Classifier) = cla match {
-    case n: HoeffdingTree => n
-    case _ => throw new Exception(this + " requires HoeffdingTree.")
-  }
+   protected def test_subclass(cla: Classifier) = cla match {
+      case n: HoeffdingTree => n
+      case _ => throw new Exception(this + " requires HoeffdingTree.")
+   }
 
-  override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

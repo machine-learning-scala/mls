@@ -21,20 +21,22 @@ Copyright (C) 2014 Davi Pereira dos Santos
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 case class LASVM() extends Learner {
-  override val toString = "LASVM"
-  val id = -2
-  val abr = toString
+   override val toString = "LASVM"
+   val boundaryType = "flexível"
+   val attPref = "numérico"
+   val id = -2
+   val abr = toString
 
-  def update(model: Model, fast_mutable: Boolean)(pattern: Pattern) = ???
+   def update(model: Model, fast_mutable: Boolean)(pattern: Pattern) = ???
 
-  def expected_change(model: Model)(pattern: Pattern) = ???
+   def expected_change(model: Model)(pattern: Pattern) = ???
 
-  def EMC(model: Model)(patterns: Seq[Pattern]) = ???
+   def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
-  def build(pool: Seq[Pattern]) = {
-    //todo: preciso que jkernelmachines tenha suporte a "multiclass probability output" e que seja mais rapido que libsvm; caso não seja mais rápido ele pode ser descartado, já que diz o autor que ele já é realmente incremental.
-    //build deve começar com |Y| exemplos e depois incrementar o resto por motivos de replicabilidade/resumable.
-    ???
-    LASVMModel()
-  }
+   def build(pool: Seq[Pattern]) = {
+      //todo: preciso que jkernelmachines tenha suporte a "multiclass probability output" e que seja mais rapido que libsvm; caso não seja mais rápido ele pode ser descartado, já que diz o autor que ele já é realmente incremental.
+      //build deve começar com |Y| exemplos e depois incrementar o resto por motivos de replicabilidade/resumable.
+      ???
+      LASVMModel()
+   }
 }

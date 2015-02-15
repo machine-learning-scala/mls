@@ -27,23 +27,25 @@ import weka.classifiers.functions.SMO
  * Slow, but hopefully more amenable to multithreading than weka's SVMLib wrapper.
  */
 case class SVMWeka() extends BatchWekaLearner {
-  override val toString = s"SVMw"
-  val id = 11
-  val abr = toString
+   override val toString = s"SVMw"
+   val boundaryType = "flexível"
+   val attPref = "numérico"
+   val id = 11
+   val abr = toString
 
-  def expected_change(model: Model)(pattern: Pattern): Double = ???
+   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-  def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new SMO()
-    ???
-    //    classifier.setsetUseSupervisedDiscretization(false)
-    generate_model(classifier, patterns)
-  }
+   def build(patterns: Seq[Pattern]): Model = {
+      val classifier = new SMO()
+      ???
+      //    classifier.setsetUseSupervisedDiscretization(false)
+      generate_model(classifier, patterns)
+   }
 
-  protected def test_subclass(cla: Classifier) = cla match {
-    case n: SMO => n
-    case _ => throw new Exception(this + " requires ???.")
-  }
+   protected def test_subclass(cla: Classifier) = cla match {
+      case n: SMO => n
+      case _ => throw new Exception(this + " requires ???.")
+   }
 
-  override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

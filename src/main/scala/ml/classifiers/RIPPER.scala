@@ -23,21 +23,23 @@ import weka.classifiers.Classifier
 import weka.classifiers.rules.JRip
 
 case class RIPPER() extends BatchWekaLearner {
-  override val toString = s"RIPPER"
-  val id = -4
-  val abr = toString
+   override val toString = s"RIPPER"
+   val boundaryType = "rígida"
+   val attPref = "ambos"
+   val id = -4
+   val abr = toString
 
-  def expected_change(model: Model)(pattern: Pattern): Double = ???
+   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-  def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new JRip
-    generate_model(classifier, patterns.padTo(3, patterns.head))
-  }
+   def build(patterns: Seq[Pattern]): Model = {
+      val classifier = new JRip
+      generate_model(classifier, patterns.padTo(3, patterns.head))
+   }
 
-  protected def test_subclass(classifier: Classifier) = classifier match {
-    case cla: JRip => cla
-    case _ => throw new Exception(this + " requires JRip.")
-  }
+   protected def test_subclass(classifier: Classifier) = classifier match {
+      case cla: JRip => cla
+      case _ => throw new Exception(this + " requires JRip.")
+   }
 
-  override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

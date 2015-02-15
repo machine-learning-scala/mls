@@ -33,6 +33,8 @@ import weka.classifiers.functions.LibSVM
  */
 case class SVMLib(seed: Int = 42) extends BatchWekaLearner {
    override val toString = "SVM"
+   val boundaryType = "flexível"
+   val attPref = "numérico"
    val id = 5
    val originalStream = System.out
    val dummyStream = new PrintStream(new OutputStream() {

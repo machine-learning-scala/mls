@@ -24,34 +24,36 @@ import weka.classifiers.trees.J48
 
 case class C45(min_leaf_size: Int = 2) extends BatchWekaLearner {
    override val toString = s"C4.5"
-  val id = if (min_leaf_size == 2) 3 else throw new Error("C45 fora dos parametros esperados!")
-  val abr = toString
+   val id = if (min_leaf_size == 2) 3 else throw new Error("C45 fora dos parametros esperados!")
+   val abr = toString
+   val boundaryType = "rígida"
+   val attPref = "ambos"
 
-  //  private def complexity(classifier: Classifier) = classifier match {
-  //    //      case sgd: SGD =>
-  //    case rf: RF => rf.toString.lines.filter(_.contains("Size of the tree")).map(_.split(':').last.toDouble).sum
-  //    case j48: J48 => j48.measureNumLeaves * j48.measureTreeSize
-  //    case jrip: JRip => val output = jrip.toString.lines.dropWhile(!_.contains("JRIP rules")).drop(3).toList
-  //      lazy val nrules = output.filter(_.contains("Number of Rules")).toList.headOption match {
-  //        case Some(txt) => txt.split(':').last.toDouble
-  //        case None => println("Number of rules not found!")
-  //          sys.exit(1)
-  //      }
-  //      val ands = output.takeWhile(_.contains("=")).map(_.dropRight(1)).mkString.split(')').length.toDouble
-  //      ands
-  //  }
-  def expected_change(model: Model)(pattern: Pattern): Double = ???
+   //  private def complexity(classifier: Classifier) = classifier match {
+   //    //      case sgd: SGD =>
+   //    case rf: RF => rf.toString.lines.filter(_.contains("Size of the tree")).map(_.split(':').last.toDouble).sum
+   //    case j48: J48 => j48.measureNumLeaves * j48.measureTreeSize
+   //    case jrip: JRip => val output = jrip.toString.lines.dropWhile(!_.contains("JRIP rules")).drop(3).toList
+   //      lazy val nrules = output.filter(_.contains("Number of Rules")).toList.headOption match {
+   //        case Some(txt) => txt.split(':').last.toDouble
+   //        case None => println("Number of rules not found!")
+   //          sys.exit(1)
+   //      }
+   //      val ands = output.takeWhile(_.contains("=")).map(_.dropRight(1)).mkString.split(')').length.toDouble
+   //      ands
+   //  }
+   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-  def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new J48
-    classifier.setMinNumObj(min_leaf_size)
-    generate_model(classifier, patterns)
-  }
+   def build(patterns: Seq[Pattern]): Model = {
+      val classifier = new J48
+      classifier.setMinNumObj(min_leaf_size)
+      generate_model(classifier, patterns)
+   }
 
-  protected def test_subclass(classifier: Classifier) = classifier match {
-    case cla: J48 => cla
-    case _ => throw new Exception(this + " requires J48.")
-  }
+   protected def test_subclass(classifier: Classifier) = classifier match {
+      case cla: J48 => cla
+      case _ => throw new Exception(this + " requires J48.")
+   }
 
-  override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

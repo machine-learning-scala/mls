@@ -29,29 +29,31 @@ import weka.classifiers.trees.HoeffdingTree
  * GraceTime = math.min(200,nclasses + N/20)
  */
 case class VFDT() extends IncrementalWekaLearner {
-  override val toString = s"VFDT"
-  val id = 4
-  val abr = toString
+   override val toString = s"VFDT"
+   val boundaryType = "rígida"
+   val attPref = "ambos"
+   val id = 4
+   val abr = toString
 
-  def expected_change(model: Model)(pattern: Pattern): Double = ???
+   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-  def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new HoeffdingTree
-    classifier.setGracePeriod(math.max(math.min(200, patterns.head.nclasses), 3))
-    generate_model(classifier, patterns)
-  }
+   def build(patterns: Seq[Pattern]): Model = {
+      val classifier = new HoeffdingTree
+      classifier.setGracePeriod(math.max(math.min(200, patterns.head.nclasses), 3))
+      generate_model(classifier, patterns)
+   }
 
-  override def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern) = {
-    val newModel = super.update(model, fast_mutable)(pattern)
-    val ht = test_subclass(newModel.classifier)
-    ht.asInstanceOf[HoeffdingTree].setGracePeriod(math.min(200, pattern.nclasses + newModel.N / 20))
-    newModel
-  }
+   override def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern) = {
+      val newModel = super.update(model, fast_mutable)(pattern)
+      val ht = test_subclass(newModel.classifier)
+      ht.asInstanceOf[HoeffdingTree].setGracePeriod(math.min(200, pattern.nclasses + newModel.N / 20))
+      newModel
+   }
 
-  protected def test_subclass(cla: Classifier) = cla match {
-    case n: HoeffdingTree => n
-    case x => throw new Exception(this + " requires HoeffdingTree. Not [" + x + "].")
-  }
+   protected def test_subclass(cla: Classifier) = cla match {
+      case n: HoeffdingTree => n
+      case x => throw new Exception(this + " requires HoeffdingTree. Not [" + x + "].")
+   }
 
-  override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
+   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }
