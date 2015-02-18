@@ -37,11 +37,7 @@ case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pa
    override val toString = k + "NN" + (if (weighted) " weighted " else " (") + distance_name + s")"
    val boundaryType = "flexível"
    val attPref = "numérico"
-   val id = if ((k == 5 || k == 1) && distance_name == "eucl" && weighted) 2
-   else {
-      println("KNN fora dos parametros esperados!");
-      22222
-   }
+   val id = 666002
    val abr = "5NN"
 
    def build(patterns: Seq[Pattern]) = {
@@ -61,7 +57,8 @@ case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pa
       search.setDistanceFunction(distance)
       classifier.setNearestNeighbourSearchAlgorithm(search)
       classifier.setKNN(k)
-      if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-F"))
+      classifier.setDoNotCheckCapabilities(true)
+      if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-I"))
       val instances = Datasets.patterns2instances(patterns)
       classifier.buildClassifier(instances)
       WekaBatModel(classifier, patterns)

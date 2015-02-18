@@ -22,9 +22,9 @@ import ml.models.Model
 import weka.classifiers.Classifier
 import weka.classifiers.trees.J48
 
-case class C45(min_leaf_size: Int = 2) extends BatchWekaLearner {
-   override val toString = s"C4.5"
-   val id = if (min_leaf_size == 2) 3 else throw new Error("C45 fora dos parametros esperados!")
+case class C45() extends BatchWekaLearner {
+   override val toString = s"C4.5w"
+   val id = 666003
    val abr = toString
    val boundaryType = "rígida"
    val attPref = "ambos"
@@ -46,7 +46,9 @@ case class C45(min_leaf_size: Int = 2) extends BatchWekaLearner {
 
    def build(patterns: Seq[Pattern]): Model = {
       val classifier = new J48
-      classifier.setMinNumObj(min_leaf_size)
+      classifier.setMinNumObj(math.min(10, patterns.head.nclasses * 2))
+      classifier.setUseLaplace(true)
+      classifier.setDoNotCheckCapabilities(true)
       generate_model(classifier, patterns)
    }
 

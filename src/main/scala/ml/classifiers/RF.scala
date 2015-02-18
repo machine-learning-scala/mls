@@ -27,7 +27,7 @@ case class RF(seed: Int = 42) extends BatchWekaLearner {
    override val toString = s"RF"
    val boundaryType = "flexível"
    val attPref = "ambos"
-   val id = 773
+   val id = 666773
    val abr = toString
 
    def expected_change(model: Model)(pattern: Pattern): Double = ???
@@ -38,6 +38,8 @@ case class RF(seed: Int = 42) extends BatchWekaLearner {
       classifier.setDontCalculateOutOfBagError(true)
       classifier.setDebug(false)
       classifier.setDoNotCheckCapabilities(true)
+      classifier.setMaxDepth(10)
+      classifier.setNumTrees(15)
       generate_model(classifier, patterns.padTo(3, patterns.head))
    }
 

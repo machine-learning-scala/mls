@@ -34,6 +34,7 @@ case class NBBatch() extends BatchWekaLearner {
    def build(patterns: Seq[Pattern]): Model = {
       val classifier = new NaiveBayes
       classifier.setUseSupervisedDiscretization(true) //true=slow?
+      classifier.setDoNotCheckCapabilities(true)
       generate_model(classifier, patterns)
    }
 
