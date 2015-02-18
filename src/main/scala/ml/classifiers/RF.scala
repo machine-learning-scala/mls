@@ -28,6 +28,7 @@ case class RF(seed: Int = 42) extends BatchWekaLearner {
    val boundaryType = "flexível"
    val attPref = "ambos"
    val id = 666773
+   //773
    val abr = toString
 
    def expected_change(model: Model)(pattern: Pattern): Double = ???
