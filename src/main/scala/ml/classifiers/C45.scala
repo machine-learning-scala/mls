@@ -22,7 +22,7 @@ import ml.models.Model
 import weka.classifiers.Classifier
 import weka.classifiers.trees.J48
 
-case class C45() extends BatchWekaLearner {
+case class C45(laplace: Boolean = true) extends BatchWekaLearner {
    override val toString = s"C4.5w"
    val id = 666003
    val abr = toString
@@ -47,7 +47,7 @@ case class C45() extends BatchWekaLearner {
    def build(patterns: Seq[Pattern]): Model = {
       val classifier = new J48
       classifier.setMinNumObj(math.min(10, patterns.head.nclasses * 2))
-      classifier.setUseLaplace(true)
+      classifier.setUseLaplace(laplace)
       classifier.setDoNotCheckCapabilities(true)
       generate_model(classifier, patterns)
    }

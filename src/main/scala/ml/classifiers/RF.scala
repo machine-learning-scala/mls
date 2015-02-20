@@ -23,8 +23,8 @@ import weka.classifiers.Classifier
 import weka.classifiers.rules.JRip
 import weka.classifiers.trees.RandomForest
 
-case class RF(seed: Int = 42) extends BatchWekaLearner {
-   override val toString = s"RF"
+case class RF(seed: Int = 42, trees: Int = 10, depth: Int = 0) extends BatchWekaLearner {
+   override val toString = s"RFw"
    val boundaryType = "flexível"
    val attPref = "ambos"
    val id = 773
@@ -40,8 +40,8 @@ case class RF(seed: Int = 42) extends BatchWekaLearner {
       classifier.setDontCalculateOutOfBagError(true)
       classifier.setDebug(false)
       classifier.setDoNotCheckCapabilities(true)
-      //      classifier.setMaxDepth(5)
-      classifier.setNumTrees(10)
+      classifier.setNumTrees(trees)
+      classifier.setMaxDepth(depth)
       generate_model(classifier, patterns.padTo(3, patterns.head))
    }
 

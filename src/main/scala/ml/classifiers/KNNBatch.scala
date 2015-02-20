@@ -59,6 +59,7 @@ case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pa
       classifier.setKNN(k)
       classifier.setDoNotCheckCapabilities(true)
       if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-I"))
+      //      if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-F"))
       val instances = Datasets.patterns2instances(patterns)
       classifier.buildClassifier(instances)
       WekaBatModel(classifier, patterns)

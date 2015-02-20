@@ -27,7 +27,7 @@ case class NBBatch() extends BatchWekaLearner {
    val boundaryType = "flexível"
    val attPref = "nominal"
    val id = 12
-   val abr = toString
+   val abr = "NB"
 
    def expected_change(model: Model)(pattern: Pattern): Double = ???
 
