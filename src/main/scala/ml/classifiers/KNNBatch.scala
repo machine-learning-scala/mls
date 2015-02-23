@@ -71,6 +71,4 @@ case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pa
       case cla: IBk => cla
       case _ => throw new Exception(this + " requires IBk.")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

@@ -44,6 +44,4 @@ case class VFDTBatch() extends BatchWekaLearner {
       case n: HoeffdingTree => n
       case _ => throw new Exception(this + " requires HoeffdingTree.")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

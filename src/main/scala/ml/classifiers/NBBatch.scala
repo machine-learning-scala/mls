@@ -42,6 +42,4 @@ case class NBBatch() extends BatchWekaLearner {
       case cla: NaiveBayes => cla
       case _ => throw new Exception(this + " requires NaiveBayes.")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

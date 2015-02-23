@@ -40,6 +40,4 @@ case class Maj() extends BatchWekaLearner {
       case cla: ZeroR => cla
       case _ => throw new Exception(this + " requires ZeroR.")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

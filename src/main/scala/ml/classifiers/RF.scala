@@ -49,6 +49,4 @@ case class RF(seed: Int = 42, trees: Int = 10, depth: Int = 0) extends BatchWeka
       case cla: RandomForest => cla
       case _ => throw new Exception(this + " requires RandomForest.")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

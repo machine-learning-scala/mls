@@ -56,6 +56,4 @@ case class C45(laplace: Boolean = true) extends BatchWekaLearner {
       case cla: J48 => cla
       case _ => throw new Exception(this + " requires J48.")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

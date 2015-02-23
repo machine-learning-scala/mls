@@ -40,6 +40,4 @@ case class RIPPER() extends BatchWekaLearner {
       case cla: JRip => cla
       case _ => throw new Exception(this + " requires JRip.")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

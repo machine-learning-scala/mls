@@ -46,6 +46,4 @@ case class SVMWeka() extends BatchWekaLearner {
       case n: SMO => n
       case _ => throw new Exception(this + " requires ???.")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

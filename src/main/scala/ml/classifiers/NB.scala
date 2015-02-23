@@ -46,6 +46,4 @@ case class NB() extends IncrementalWekaLearner {
       case n: NaiveBayesUpdateable => n
       case _ => throw new Exception(this + " requires NaiveBayesUpdateable.")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

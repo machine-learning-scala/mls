@@ -57,6 +57,4 @@ case class KNNinc(k: Int, distance_name: String, pattsForDistanceCache: Seq[Patt
       case cla: IBk => cla
       case _ => throw new Exception(this + " requires IBk.")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }

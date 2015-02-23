@@ -27,8 +27,6 @@ trait Learner {
    val boundaryType: String
 
 
-   def EMC(model: Model)(patterns: Seq[Pattern]): Pattern
-
    //  def diff(modelA: Model, modelB: Model): Double
 
    /**

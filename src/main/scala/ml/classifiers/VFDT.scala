@@ -54,6 +54,4 @@ case class VFDT() extends IncrementalWekaLearner {
       case n: HoeffdingTree => n
       case x => throw new Exception(this + " requires HoeffdingTree. Not [" + x + "].")
    }
-
-   override def EMC(model: Model)(patterns: Seq[Pattern]): Pattern = ???
 }
