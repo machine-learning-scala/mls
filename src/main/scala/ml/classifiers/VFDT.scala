@@ -43,7 +43,7 @@ case class VFDT() extends IncrementalWekaLearner {
       generate_model(classifier, patterns)
    }
 
-   override def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern) = {
+   override def update(model: Model, fast_mutable: Boolean = false, semcrescer: Boolean = false)(pattern: Pattern) = {
       val newModel = super.update(model, fast_mutable)(pattern)
       val ht = test_subclass(newModel.classifier)
       ht.asInstanceOf[HoeffdingTree].setGracePeriod(math.min(200, pattern.nclasses + newModel.N / 20))

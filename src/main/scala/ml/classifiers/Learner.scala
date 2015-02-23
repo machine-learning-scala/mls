@@ -37,7 +37,7 @@ trait Learner {
     */
    def build(pool: Seq[Pattern]): Model
 
-   def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
+   def update(model: Model, fast_mutable: Boolean = false, semcrescer: Boolean = false)(pattern: Pattern): Model
 
    //  def forget(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
 

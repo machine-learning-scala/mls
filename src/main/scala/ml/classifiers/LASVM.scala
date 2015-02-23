@@ -27,7 +27,7 @@ case class LASVM() extends Learner {
    val id = -2
    val abr = toString
 
-   def update(model: Model, fast_mutable: Boolean)(pattern: Pattern) = ???
+   def update(model: Model, fast_mutable: Boolean, semcrescer: Boolean = false)(pattern: Pattern) = ???
 
    def expected_change(model: Model)(pattern: Pattern) = ???
 

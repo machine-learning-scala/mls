@@ -23,16 +23,16 @@ import util.Datasets
 import weka.classifiers.{AbstractClassifier, Classifier, UpdateableClassifier}
 
 trait WekaLearner extends Learner {
-  protected def test_subclass(classifier: Classifier): Classifier
+   protected def test_subclass(classifier: Classifier): Classifier
 
-  protected def next_classifier(wekamodel: WekaModel, fast_mutable: Boolean) = {
-    val tested_classifier = test_subclass(wekamodel.classifier)
-    val new_wc = if (fast_mutable) {
-      wekamodel.classifier = null
-      tested_classifier
-    } else AbstractClassifier.makeCopy(tested_classifier)
-    new_wc
-  }
+   protected def next_classifier(wekamodel: WekaModel, fast_mutable: Boolean) = {
+      val tested_classifier = test_subclass(wekamodel.classifier)
+      val new_wc = if (fast_mutable) {
+         wekamodel.classifier = null
+         tested_classifier
+      } else AbstractClassifier.makeCopy(tested_classifier)
+      new_wc
+   }
 
 }
 
@@ -46,60 +46,60 @@ trait WekaLearner extends Learner {
  * and do fast updates on the remaining ones.
  */
 trait IncrementalWekaLearner extends WekaLearner {
-  protected def cast2wekaincmodel(model: Model) = model match {
-    case m: WekaIncModel => m
-    case _ => throw new Exception("IncrementalWekaLearner requires WekaIncModel.")
-  }
+   protected def cast2wekaincmodel(model: Model) = model match {
+      case m: WekaIncModel => m
+      case _ => throw new Exception("IncrementalWekaLearner requires WekaIncModel.")
+   }
 
-  protected def generate_model(classifier: Classifier with UpdateableClassifier, patterns: Seq[Pattern]) = {
-    if (patterns.size < patterns.head.nclasses) {
-      println("build() needs at least |Y| patterns.")
-      sys.exit(1)
-    }
-    classifier.buildClassifier(Datasets.patterns2instances(patterns.take(patterns.head.nclasses))) //no more head.dataset()
-    patterns.drop(patterns.head.nclasses) foreach classifier.updateClassifier
-    WekaIncModel(classifier, patterns.size)
-  }
+   protected def generate_model(classifier: Classifier with UpdateableClassifier, patterns: Seq[Pattern]) = {
+      if (patterns.size < patterns.head.nclasses) {
+         println("build() needs at least |Y| patterns.")
+         sys.exit(1)
+      }
+      classifier.buildClassifier(Datasets.patterns2instances(patterns.take(patterns.head.nclasses))) //no more head.dataset()
+      patterns.drop(patterns.head.nclasses) foreach classifier.updateClassifier
+      WekaIncModel(classifier, patterns.size)
+   }
 
-  //  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]) = {
-  //    val wekaincmodel = cast2wekaincmodel(model)
-  //    val cla = next_classifier(wekaincmodel, fast_mutable).asInstanceOf[Classifier with UpdateableClassifier]
-  //    patterns foreach cla.updateClassifier
-  //    WekaIncModel(cla, wekaincmodel.N + 1)
-  //  }
+   //  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]) = {
+   //    val wekaincmodel = cast2wekaincmodel(model)
+   //    val cla = next_classifier(wekaincmodel, fast_mutable).asInstanceOf[Classifier with UpdateableClassifier]
+   //    patterns foreach cla.updateClassifier
+   //    WekaIncModel(cla, wekaincmodel.N + 1)
+   //  }
 
-  def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern) = {
-    val wekaincmodel = cast2wekaincmodel(model)
-    val cla = next_classifier(wekaincmodel, fast_mutable).asInstanceOf[Classifier with UpdateableClassifier]
-    cla.updateClassifier(pattern)
-    WekaIncModel(cla, wekaincmodel.N + 1)
-  }
+   def update(model: Model, fast_mutable: Boolean = false, semcrescer: Boolean = false)(pattern: Pattern) = {
+      val wekaincmodel = cast2wekaincmodel(model)
+      val cla = next_classifier(wekaincmodel, fast_mutable).asInstanceOf[Classifier with UpdateableClassifier]
+      cla.updateClassifier(pattern)
+      WekaIncModel(cla, wekaincmodel.N + 1)
+   }
 }
 
 /**
  * Model is created every time.
  */
 trait BatchWekaLearner extends WekaLearner {
-  protected def cast2wekabatmodel(model: Model) = model match {
-    case m: WekaBatModel => m
-    case _ => throw new Exception("BatchWekaLearner requires WekaModel.")
-  }
+   protected def cast2wekabatmodel(model: Model) = model match {
+      case m: WekaBatModel => m
+      case _ => throw new Exception("BatchWekaLearner requires WekaModel.")
+   }
 
-  protected def generate_model(classifier: Classifier, patterns: Seq[Pattern]) = {
-    classifier.buildClassifier(Datasets.patterns2instances(patterns))
-    WekaBatModel(classifier, patterns)
-  }
+   protected def generate_model(classifier: Classifier, patterns: Seq[Pattern]) = {
+      classifier.buildClassifier(Datasets.patterns2instances(patterns))
+      WekaBatModel(classifier, patterns)
+   }
 
-  //  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]) = {
-  //    val wekabatmodel = cast2wekabatmodel(model)
-  //    val nb = next_classifier(wekabatmodel, fast_mutable)
-  //    generate_model(nb, patterns ++ wekabatmodel.training_set)
-  //  }
+   //  def updateAll(model: Model, fast_mutable: Boolean = false)(patterns: Seq[Pattern]) = {
+   //    val wekabatmodel = cast2wekabatmodel(model)
+   //    val nb = next_classifier(wekabatmodel, fast_mutable)
+   //    generate_model(nb, patterns ++ wekabatmodel.training_set)
+   //  }
 
-  def update(model: Model, fast_mutable: Boolean = false)(pattern: Pattern) = {
-    //todo: VFDTBatch graceTime should be dynamic
-    val wekabatmodel = cast2wekabatmodel(model)
-    val nb = next_classifier(wekabatmodel, fast_mutable)
-    generate_model(nb, pattern +: wekabatmodel.training_set)
-  }
+   def update(model: Model, fast_mutable: Boolean = false, semcrescer: Boolean = false)(pattern: Pattern) = {
+      //todo: VFDTBatch graceTime should be dynamic
+      val wekabatmodel = cast2wekabatmodel(model)
+      val nb = next_classifier(wekabatmodel, fast_mutable)
+      generate_model(nb, pattern +: wekabatmodel.training_set)
+   }
 }
