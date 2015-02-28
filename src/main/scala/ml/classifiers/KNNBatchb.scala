@@ -33,12 +33,12 @@ import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, Minko
  * @param notes
  * @param weighted
  */
-case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], weighted: Boolean = false) extends BatchWekaLearner {
-   override val toString = k + "NN" + (if (weighted) " weighted " else " (") + distance_name + s")"
+case class KNNBatchb(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], weighted: Boolean = false) extends BatchWekaLearner {
+   override val toString = k + "NNb" + (if (weighted) " weighted " else " (") + distance_name + s")"
    val boundaryType = "flexível"
    val attPref = "numérico"
    val id = 666002
-   val abr = "5NN"
+   val abr = "5NNb"
 
    def build(patterns: Seq[Pattern]) = {
       lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)
@@ -59,7 +59,6 @@ case class KNNBatch(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pa
       classifier.setKNN(k)
       classifier.setDoNotCheckCapabilities(true)
       if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-I"))
-      //      if (weighted) classifier.setOptions(weka.core.Utils.splitOptions("-F"))
       val instances = Datasets.patterns2instances(patterns)
       classifier.buildClassifier(instances)
       WekaBatModel(classifier, patterns)

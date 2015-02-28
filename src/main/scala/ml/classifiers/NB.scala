@@ -28,7 +28,7 @@ import weka.classifiers.bayes.NaiveBayesUpdateable
  * No, because it discretizes by fixed intervals of 0.1 (need to check in weka sources).
  */
 case class NB() extends IncrementalWekaLearner {
-   override val toString = s"NB"
+   override val toString = s"NBinc"
    val boundaryType = "flexível"
    val attPref = "nominal"
    val id = 1
