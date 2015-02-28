@@ -23,6 +23,9 @@ import ml.models.Model
 trait Learner {
    val id: Int
    val abr: String
+
+   def limpa = abr.replace("\\textbf{", "").replace("}", "")
+
    val attPref: String
    val boundaryType: String
 
