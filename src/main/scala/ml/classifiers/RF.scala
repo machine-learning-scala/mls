@@ -18,10 +18,11 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml.classifiers
 
 import ml.Pattern
-import ml.models.Model
+import ml.models.{WekaBatModel, Model}
+import util.Datasets
 import weka.classifiers.Classifier
 import weka.classifiers.rules.JRip
-import weka.classifiers.trees.RandomForest
+import weka.classifiers.trees.{RandomForest2, RandomForest}
 
 case class RF(seed: Int = 42, trees: Int = 10, depth: Int = 0) extends BatchWekaLearner {
    override val toString = s"RFw"
@@ -35,7 +36,7 @@ case class RF(seed: Int = 42, trees: Int = 10, depth: Int = 0) extends BatchWeka
    def expected_change(model: Model)(pattern: Pattern): Double = ???
 
    def build(patterns: Seq[Pattern]): Model = {
-      val classifier = new RandomForest
+      val classifier = new RandomForest2
       classifier.setSeed(seed)
       classifier.setDontCalculateOutOfBagError(true)
       classifier.setDebug(false)
@@ -46,7 +47,14 @@ case class RF(seed: Int = 42, trees: Int = 10, depth: Int = 0) extends BatchWeka
    }
 
    protected def test_subclass(classifier: Classifier) = classifier match {
-      case cla: RandomForest => cla
+      case cla: RandomForest2 => cla
       case _ => throw new Exception(this + " requires RandomForest.")
    }
+}
+
+object RFTest extends App {
+   val ps = Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-3class.arff").right.get
+   val l = RF(42, 10)
+   val m = l.build(ps.tail)
+   ps foreach (x => println(" " + m.JS(x) + " "))
 }

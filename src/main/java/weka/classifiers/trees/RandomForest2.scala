@@ -1,9 +1,14 @@
-package ml.models
+package weka.classifiers.trees
 
 import ml.Pattern
+import weka.classifiers.meta.Bagging
+
+class Bagging2 extends Bagging {
+   def models = m_Classifiers
+}
 
 /*
-mls: basic machine learning algorithms for Scala
+elm-scala: an implementation of ELM in Scala using MTJ
 Copyright (C) 2014 Davi Pereira dos Santos
 
   This program is free software: you can redistribute it and/or modify
@@ -19,14 +24,6 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-case class LASVMModel() extends Model {
-  val L = -1
-
-  def distribution(instance: Pattern) = ???
-
-  def output(instance: Pattern) = ???
-
-  def predict(instance: Pattern) = ???
-
-   def JS(pattern: Pattern) = ???
+class RandomForest2 extends RandomForest0 with JSMeasure {
+   def JS(p: Pattern) = JSdivergence(m_bagger.models.map(_.distributionForInstance(p)))
 }

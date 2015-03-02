@@ -18,23 +18,26 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml.models
 
 import ml.Pattern
+import weka.classifiers.trees.RandomForest2
 import weka.classifiers.{Classifier, UpdateableClassifier}
 
 class WekaModel(var classifier: Classifier) extends Model {
-  val L = -1
+   val L = -1
 
-  def output(instance: Pattern) = distribution(instance)
+   def JS(pattern: Pattern) = classifier.asInstanceOf[RandomForest2].JS(pattern)
 
-  def distribution(pattern: Pattern) =
-    if (classifier == null) throw new Exception("Underlying model already changed! Please call update with fast_mutable disabled.")
-    else classifier.distributionForInstance(pattern)
+   def output(instance: Pattern) = distribution(instance)
 
-  def predict(instance: Pattern) =
-    if (classifier == null) throw new Exception("Underlying model already changed! Please call update with fast_mutable disabled.")
-    else {
-      //            println(instance + " <<<<<<<<<<<<<")
-      classifier.classifyInstance(instance)
-    }
+   def distribution(pattern: Pattern) =
+      if (classifier == null) throw new Exception("Underlying model already changed! Please call update with fast_mutable disabled.")
+      else classifier.distributionForInstance(pattern)
+
+   def predict(instance: Pattern) =
+      if (classifier == null) throw new Exception("Underlying model already changed! Please call update with fast_mutable disabled.")
+      else {
+         //            println(instance + " <<<<<<<<<<<<<")
+         classifier.classifyInstance(instance)
+      }
 }
 
 case class WekaBatModel(private val batch_classifier: Classifier, training_set: Seq[Pattern]) extends WekaModel(batch_classifier)
