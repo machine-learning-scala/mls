@@ -18,29 +18,70 @@ Copyright (C) 2014 Davi Pereira dos Santos
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import util.{Tempo, Datasets}
-import weka.classifiers.functions.LibSVM
-import weka.core.SelectedTag
+import ml.Pattern
+import ml.classifiers.SVMLib
+import util.Datasets
+import weka.filters.Filter
 
 import scala.util.Random
 
-object wekalibsvmTest extends App {
-  val d = Random.shuffle(Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get)
-  val tr = Datasets.patterns2instances(d.take(1000))
-  val ts = Datasets.patterns2instances(d.drop(1000))
-  val svm = new LibSVM()
-  svm.setDoNotReplaceMissingValues(true)
-  svm.setNormalize(false)
-  svm.setProbabilityEstimates(true)
-  svm.setDoNotCheckCapabilities(true)
-  svm.setDebug(false)
-  svm.setSeed(0)
-  Tempo.start
-  svm.buildClassifier(tr)
-  Tempo.print_stop
-  print(svm.distributionForInstance(ts.firstInstance()).toList)
+object wekalibsvmTest extends App with FilterTrait {
+   val d = Random.shuffle(Datasets.arff("/home/davi/wcs/ucipp/uci/leaf.arff").right.get)
+   val tr = d.take(d.size/2)
+   val ts = d.drop(d.size/2)
+   //  val tr = Datasets.patterns2instances(d.take(1000))
+   //  val ts = Datasets.patterns2instances(d.drop(1000))
+   //  val svm = new LibSVM()
+   //  svm.setDoNotReplaceMissingValues(true)
+   //  svm.setNormalize(false)
+   //  svm.setProbabilityEstimates(true)
+   //  svm.setDoNotCheckCapabilities(true)
+   //  svm.setDebug(false)
+   //  svm.setSeed(0)
+   //  Tempo.start
+   //  svm.buildClassifier(tr)
+   //  Tempo.print_stop
+   //  print(svm.distributionForInstance(ts.firstInstance()).toList)
 
-  //  svm.setSVMType(new SelectedTag(LibSVM.SVMTYPE_C_SVC,    LibSVM.TAGS_SVMTYPE))
-  //  d.take(50) foreach (Datasets.pattern2TrainingSample _ andThen svm.train)
+   val svm = SVMLib()
+   val m = svm.build(tr)
 
+   val (fpool, binaf, zscof) = criaFiltro(tr, 0)
+   val ftestSet = aplicaFiltro(ts, 0, binaf, zscof)
+   val svmf = SVMLib()
+   val mf = svm.build(fpool)
+   println(m.accuracy(ts))
+   println(mf.accuracy(ftestSet))
+
+
+   //  svm.setSVMType(new SelectedTag(LibSVM.SVMTYPE_C_SVC,    LibSVM.TAGS_SVMTYPE))
+   //  d.take(50) foreach (Datasets.pattern2TrainingSample _ andThen svm.train)
+
+}
+
+trait FilterTrait {
+   def criaFiltro(tr: Seq[Pattern], fold: Int) = {
+      //bina
+      val binaf = Datasets.binarizeFilter(tr)
+      val binarizedTr = Datasets.applyFilter(binaf)(tr)
+
+      //tr
+      val zscof = Datasets.zscoreFilter(binarizedTr)
+      val pool = {
+         val filteredTr = Datasets.applyFilter(zscof)(binarizedTr)
+         new Random(fold).shuffle(filteredTr.sortBy(_.id))
+      }
+
+      (pool, binaf, zscof)
+   }
+
+   def aplicaFiltro(ts: Seq[Pattern], fold: Int, binaf: Filter, zscof: Filter) = {
+      //ts
+      val binarizedTs = Datasets.applyFilter(binaf)(ts)
+      val testSet = {
+         val filteredTs = Datasets.applyFilter(zscof)(binarizedTs)
+         new Random(fold).shuffle(filteredTs.sortBy(_.id))
+      }
+      testSet
+   }
 }
