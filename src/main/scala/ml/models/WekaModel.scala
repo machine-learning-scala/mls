@@ -40,6 +40,6 @@ class WekaModel(var classifier: Classifier) extends Model {
       }
 }
 
-case class WekaBatModel(private val batch_classifier: Classifier, training_set: Seq[Pattern]) extends WekaModel(batch_classifier)
+case class WekaBatModel(batch_classifier: Classifier, training_set: Seq[Pattern]) extends WekaModel(batch_classifier)
 
 case class WekaIncModel(private val incremental_classifier: Classifier with UpdateableClassifier, N: Int) extends WekaModel(incremental_classifier)

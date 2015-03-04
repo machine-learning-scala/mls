@@ -1,12 +1,14 @@
 name := "mls"
 
-version := "0.2"
+version := "0.3"
 
 scalaVersion := "2.10.4"
 
 libraryDependencies += "nz.ac.waikato.cms.weka" % "weka-dev" % "3.7.11"
 
 libraryDependencies += "nz.ac.waikato.cms.weka" % "LibSVM" % "1.0.6"
+
+libraryDependencies += "de.bwaldvogel" % "liblinear" % "1.95"
 
 libraryDependencies += "com.googlecode.matrix-toolkits-java" % "mtj" % "1.0.1"
 
