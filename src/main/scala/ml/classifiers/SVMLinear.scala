@@ -21,11 +21,10 @@ import java.io.{OutputStream, PrintStream}
 
 import exp.raw.FilterTrait
 import ml.Pattern
-import ml.models.{WekaBatModel, Model}
-import util.{Tempo, Datasets}
+import ml.models.{Model, WekaBatModel}
+import util.{Datasets, Tempo}
 import weka.classifiers.Classifier
 import weka.classifiers.functions.LibLINEAR
-
 import weka.core.SelectedTag
 
 import scala.util.Random
