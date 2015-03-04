@@ -20,9 +20,9 @@ package ml.classifiers
 import java.io.{OutputStream, PrintStream}
 
 import ml.Pattern
-import ml.models.{WekaBatModel, Model}
+import ml.models.{WekaModel, Model, WekaBatModel}
 import util.Datasets
-import weka.classifiers.Classifier
+import weka.classifiers.{AbstractClassifier, Classifier}
 import weka.classifiers.functions.LibSVM
 import weka.core.SelectedTag
 
@@ -32,11 +32,11 @@ import weka.core.SelectedTag
  * libsvm.svm calls Math.random so the model it returns is
  * usually different for the same training set and svm parameters over time.
  */
-case class SVMLibK(seed: Int = 42) extends BatchWekaLearner {
-   override val toString = "SVM"
+case class SVMLibDegree1(seed: Int = 42) extends BatchWekaLearner {
+   override val toString = "SVMLibL"
    val boundaryType = "flexível"
    val attPref = "numérico"
-   val id = 2651110
+   val id = 165111
    val originalStream = System.out
    val dummyStream = new PrintStream(new OutputStream() {
       def write(b: Int) {}
@@ -63,6 +63,7 @@ case class SVMLibK(seed: Int = 42) extends BatchWekaLearner {
       classifier.setShrinking(false)
       //      classifier.setKernelType()
       classifier.setProbabilityEstimates(true)
+      classifier.setKernelType(new SelectedTag(0, LibSVM.TAGS_SVMTYPE))
       generate_model(classifier, pool)
    }
 

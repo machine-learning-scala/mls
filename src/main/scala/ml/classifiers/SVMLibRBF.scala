@@ -19,21 +19,24 @@ package ml.classifiers
 
 import java.io.{OutputStream, PrintStream}
 
-import exp.raw.FilterTrait
 import ml.Pattern
-import ml.models.{Model, WekaBatModel}
-import util.{Datasets, Tempo}
+import ml.models.{WekaBatModel, Model}
+import util.Datasets
 import weka.classifiers.Classifier
-import weka.classifiers.functions.LibLINEAR
+import weka.classifiers.functions.LibSVM
 import weka.core.SelectedTag
 
-import scala.util.Random
-
-case class SVMLinear(seed: Int = 42) extends BatchWekaLearner {
-   override val toString = "SVML"
+/**
+ * SVM conventional (batch training)
+ * Usa LibSVM wrapper for Weka:
+ * libsvm.svm calls Math.random so the model it returns is
+ * usually different for the same training set and svm parameters over time.
+ */
+case class SVMLibRBF(seed: Int = 42) extends BatchWekaLearner {
+   override val toString = "SVM"
    val boundaryType = "flexível"
    val attPref = "numérico"
-   val id = 556665
+   val id = 2651110
    val originalStream = System.out
    val dummyStream = new PrintStream(new OutputStream() {
       def write(b: Int) {}
@@ -45,43 +48,33 @@ case class SVMLinear(seed: Int = 42) extends BatchWekaLearner {
    def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
    def build(pool: Seq[Pattern]) = {
-      val classifier = new LibLINEAR()
-      //      classifier.setBias()
-      classifier.setConvertNominalToBinary(false)
+      val classifier = new LibSVM()
+      classifier.setCacheSize(200) //MB
+      //      classifier.setCoef0()
       //      classifier.setCost()
+      //      classifier.setDegree()
       classifier.setDoNotReplaceMissingValues(true)
-      //      classifier.setEps()
-      classifier.setNormalize(false)
-      classifier.setProbabilityEstimates(true)
-      classifier.setSVMType(new SelectedTag(0, LibLINEAR.TAGS_SVMTYPE))
-      //      classifier.setWeights()
-      classifier.setDebug(false)
       classifier.setDoNotCheckCapabilities(true)
+      classifier.setOptions(weka.core.Utils.splitOptions("-J")) //Turn off nominal to binary conversion.
+      classifier.setOptions(weka.core.Utils.splitOptions("-V")) //Turn off missing value replacement.
+      //      classifier.setOptions(weka.core.Utils.splitOptions("-Z")) //Turns on normalization of input data.
+      classifier.setSeed(seed)
+      classifier.setDebug(false)
+      classifier.setShrinking(false)
+      //      classifier.setKernelType()
+      classifier.setProbabilityEstimates(true)
       generate_model(classifier, pool)
    }
 
    override protected def generate_model(classifier: Classifier, patterns: Seq[Pattern]) = {
+      //    System.setOut(dummyStream)
       classifier.buildClassifier(Datasets.patterns2instances(patterns))
+      //    System.setOut(originalStream)
       WekaBatModel(classifier, patterns)
    }
 
    protected def test_subclass(classifier: Classifier) = classifier match {
-      case cla: LibLINEAR => cla
-      case _ => throw new Exception(this + " requires LibLINEAR.")
+      case cla: LibSVM => cla
+      case _ => throw new Exception(this + " requires LibSVM.")
    }
-}
-
-object SVMLinearTest extends App with FilterTrait {
-   val (tr, ts) = Random.shuffle(Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-11class.arff").right.get).splitAt(300)
-   val (ftr, bf, zf) = criaFiltro(tr, 0)
-   val fts = aplicaFiltro(ts, 0, bf, zf)
-   val (ma, mb, mc) = (SVMLinear(42).build(ftr), SVMLib(42).build(ftr), SVMLibK(42).build(ftr))
-   val a = Tempo.timev(ma.accuracy(fts))
-   val b = Tempo.timev(mb.accuracy(fts))
-   val c = Tempo.timev(mc.accuracy(fts))
-   println(s"$a $b $c")
-   println(ma.distribution(fts.head).toList)
-   println(mb.distribution(fts.head).toList)
-   println(mc.distribution(fts.head).toList)
-
 }
