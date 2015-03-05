@@ -29,8 +29,8 @@ import weka.core.SelectedTag
 
 import scala.util.Random
 
-case class LibLinear(seed: Int = 42) extends BatchWekaLearner {
-   override val toString = "SVML"
+case class LogReg(seed: Int = 42) extends BatchWekaLearner {
+   override val toString = "LReg"
    val boundaryType = "flexível"
    val attPref = "numérico"
    val id = 556665
@@ -75,7 +75,7 @@ object SVMLinearTest extends App with FilterTrait {
    val (tr, ts) = Random.shuffle(Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-3class.arff").right.get).splitAt(2000)
    val (ftr, bf, zf) = criaFiltro(tr, 0)
    val fts = aplicaFiltro(ts, 0, bf, zf)
-   val (ma, mb, mc) = (LibLinear(42).build(ftr), SVMLibDegree1(42).build(ftr), SVMLibRBF(42).build(ftr))
+   val (ma, mb, mc) = (LogReg(42).build(ftr), SVMLibDegree1(42).build(ftr), SVMLibRBF(42).build(ftr))
    val a = Tempo.timev(ma.accuracy(fts))
    val b = Tempo.timev(mb.accuracy(fts))
    val c = Tempo.timev(mc.accuracy(fts))
