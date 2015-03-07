@@ -2,6 +2,7 @@ package weka.classifiers.trees
 
 import ml.Pattern
 import weka.classifiers.meta.Bagging
+import weka.core.{Utils, Instances}
 
 class Bagging2 extends Bagging {
    def models = m_Classifiers
@@ -24,6 +25,40 @@ Copyright (C) 2014 Davi Pereira dos Santos
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-class RandomForest2 extends RandomForest0 with JSMeasure {
+class RandomForest2(minObjsAtLeaf: Int = 1) extends RandomForest0 with JSMeasure {
    def JS(p: Pattern) = JSdivergence(m_bagger.models.map(_.distributionForInstance(p)))
+
+   /**
+    * Builds a classifier for a set of instances.
+    *
+    * @param data the instances to train the classifier with
+    * @throws Exception if something goes wrong
+    */
+   override def buildClassifier(data0: Instances) {
+
+      // can classifier handle the data?
+      getCapabilities.testWithFail(data0)
+
+      // remove instances with missing class
+      val data = new Instances(data0)
+      data.deleteWithMissingClass()
+
+      m_bagger = new Bagging2()
+      val rTree = new RandomTree()
+
+      // set up the random tree options
+      m_KValue = m_numFeatures
+      if (m_KValue < 1) m_KValue = (Utils.log2(data.numAttributes()) + 1).toInt
+      rTree.setKValue(m_KValue)
+      rTree.setMaxDepth(getMaxDepth)
+      rTree.setMinNum(minObjsAtLeaf) //minObjsAtLeaf>1 to allow prob estimation for JS measure
+
+      // set up the bagger and build the forest
+      m_bagger.setClassifier(rTree)
+      m_bagger.setSeed(m_randomSeed)
+      m_bagger.setNumIterations(m_numTrees)
+      m_bagger.setCalcOutOfBag(true)
+      m_bagger.setNumExecutionSlots(m_numExecutionSlots)
+      m_bagger.buildClassifier(data)
+   }
 }
