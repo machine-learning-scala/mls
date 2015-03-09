@@ -19,6 +19,7 @@ package ml.classifiers
 
 import java.io.{OutputStream, PrintStream}
 
+import libsvm.svm
 import ml.Pattern
 import ml.models.{WekaModel, Model, WekaBatModel}
 import util.Datasets
@@ -48,6 +49,9 @@ case class SVMLibDegree1(seed: Int = 42) extends BatchWekaLearner {
    def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 
    def build(pool: Seq[Pattern]) = {
+      svm.svm_set_print_string_function(new libsvm.svm_print_interface() {
+         override def print(s: String) {} // Disables svm output
+      })
       val classifier = new LibSVM()
       classifier.setCacheSize(200) //MB
       //      classifier.setCoef0()

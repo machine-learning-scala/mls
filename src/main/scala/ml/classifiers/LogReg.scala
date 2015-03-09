@@ -1,3 +1,5 @@
+import libsvm.svm
+
 ///*
 //mls: basic machine learning algorithms for Scala
 //Copyright (C) 2014 Davi Pereira dos Santos
@@ -44,6 +46,9 @@
 //   def EMC(model: Model)(patterns: Seq[Pattern]) = ???
 //
 //   def build(pool: Seq[Pattern]) = {
+////svm.svm_set_print_string_function(new libsvm.svm_print_interface() {
+////   override def print(s: String) {} // Disables svm output
+////})
 //      val classifier = new LibLINEAR()
 //      //      classifier.setBias()
 //      classifier.setConvertNominalToBinary(false)

@@ -19,7 +19,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 
 import ml.Pattern
-import ml.classifiers.SVMLibDegree1
+import ml.classifiers.{SVMLibRBF, SVMLibDegree1}
 import util.Datasets
 import weka.filters.Filter
 
@@ -43,7 +43,7 @@ object wekalibsvmTest extends App with FilterTrait {
    //  Tempo.print_stop
    //  print(svm.distributionForInstance(ts.firstInstance()).toList)
 
-   val svm = SVMLibDegree1()
+   val svm = SVMLibRBF()
    val m = svm.build(tr)
 
    val (fpool, binaf, zscof) = criaFiltro(tr, 0)
