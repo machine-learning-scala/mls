@@ -38,7 +38,7 @@ case class KNNBatcha(k: Int, distance_name: String, pattsForDistanceCache: Seq[P
    val boundaryType = "flexível"
    val attPref = "numérico"
    val id = 2
-   val abr = "5NNa"
+   val abr = "5NN"
 
    def build(patterns: Seq[Pattern]) = {
       lazy val instancesForCache = Datasets.patterns2instances(pattsForDistanceCache)
