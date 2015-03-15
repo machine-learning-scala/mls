@@ -29,7 +29,7 @@ import weka.classifiers.trees.HoeffdingTree
  * GraceTime = math.min(200,nclasses + N/20)
  */
 case class VFDT() extends IncrementalWekaLearner {
-   override val toString = s"VFDT"
+   override val toString = s"VFDTw"
    val boundaryType = "rígida"
    val attPref = "ambos"
    val id = 4
