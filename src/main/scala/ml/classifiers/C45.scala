@@ -18,11 +18,12 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml.classifiers
 
 import ml.Pattern
-import ml.models.Model
+import ml.models.{WekaModel, Model}
+import util.Datasets
 import weka.classifiers.Classifier
 import weka.classifiers.trees.J48
 
-case class C45(laplace: Boolean = true) extends BatchWekaLearner {
+case class C45(laplace: Boolean = true, minobjs: Int = -1) extends BatchWekaLearner {
    override val toString = s"C4.5w"
    val id = 666003
    val abr = toString
@@ -46,7 +47,7 @@ case class C45(laplace: Boolean = true) extends BatchWekaLearner {
 
    def build(patterns: Seq[Pattern]): Model = {
       val classifier = new J48
-      classifier.setMinNumObj(math.min(10, patterns.head.nclasses * 2))
+      classifier.setMinNumObj(if (minobjs == -1) math.min(10, patterns.head.nclasses * 2) else minobjs)
       classifier.setUseLaplace(laplace)
       classifier.setDoNotCheckCapabilities(true)
       generate_model(classifier, patterns)
@@ -56,4 +57,24 @@ case class C45(laplace: Boolean = true) extends BatchWekaLearner {
       case cla: J48 => cla
       case _ => throw new Exception(this + " requires J48.")
    }
+
+   def tree(model: Model) = {
+      val j = model.asInstanceOf[WekaModel].classifier.asInstanceOf[J48]
+      println(s"graph --------------")
+      println(j.graph())
+      println(s"")
+      println(s"prefix ---------------")
+      println(j.prefix())
+      println(s"")
+      println(s"toSource ---------------")
+      println(j.toSource("bla"))
+   }
+}
+
+object C45Test extends App {
+   val ps = Datasets.arff("/home/davi/wcs/ucipp/uci/abalone-3class.arff").right.get
+   val l = C45(laplace = false, 10)
+   val m = l.build(ps)
+   l.tree(m)
+
 }
