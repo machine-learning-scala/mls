@@ -151,6 +151,8 @@ object C45Test extends App {
          println(s"}")
       case l@Leaf(cond, operador, valor, texto, pureza) =>
          println("child {node [outcome, label=" + op(operador, valor) + "] {" + texto + "}}")
+      case _ => println(s"pau")
+         sys.exit(0)
    }
 
    def op(operador: String, valor: String) = operador match {
