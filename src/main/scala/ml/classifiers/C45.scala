@@ -17,6 +17,8 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml.classifiers
 
+import java.io.PrintWriter
+
 import ml.Pattern
 import ml.models.{Model, WekaModel}
 import util.Datasets
@@ -32,19 +34,6 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1) extends BatchWekaLear
    val boundaryType = "rígida"
    val attPref = "ambos"
 
-   //  private def complexity(classifier: Classifier) = classifier match {
-   //    //      case sgd: SGD =>
-   //    case rf: RF => rf.toString.lines.filter(_.contains("Size of the tree")).map(_.split(':').last.toDouble).sum
-   //    case j48: J48 => j48.measureNumLeaves * j48.measureTreeSize
-   //    case jrip: JRip => val output = jrip.toString.lines.dropWhile(!_.contains("JRIP rules")).drop(3).toList
-   //      lazy val nrules = output.filter(_.contains("Number of Rules")).toList.headOption match {
-   //        case Some(txt) => txt.split(':').last.toDouble
-   //        case None => println("Number of rules not found!")
-   //          sys.exit(1)
-   //      }
-   //      val ands = output.takeWhile(_.contains("=")).map(_.dropRight(1)).mkString.split(')').length.toDouble
-   //      ands
-   //  }
    def expected_change(model: Model)(pattern: Pattern): Double = ???
 
    def build(patterns: Seq[Pattern]): Model = {
@@ -60,7 +49,35 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1) extends BatchWekaLear
       case _ => throw new Exception(this + " requires J48.")
    }
 
-   def tree(model: Model) = model.asInstanceOf[WekaModel].classifier.toString.replace("extbf", "\\textbf").replace("%", "\\%").replace("#", "\\#") //.asInstanceOf[J48]
+   def trav(t: Tree): String = t match {
+      case Root(children) =>
+         """\node[line width=0.3ex, decision] {""" + children.head.asInstanceOf[Obj].cond + "}\n" + (children map trav).mkString("\n")
+      case Node(cond, operador, valor, children) =>
+         "child {node [decision] {" + children.head.asInstanceOf[Obj].cond + "}\n" + (children map trav).mkString("\n") + "edge from parent node [cond] {" + op(operador, valor) + "}}"
+      case l@Leaf(cond, operador, valor, texto, pureza, tot) =>
+         "child {node [outcome] {" + texto + "\\\\$" + tot + "$: $" + pureza + "\\%$} edge from parent node [cond] {" + op(operador, valor) + "}}"
+      case _ => sys.error(s"erro matching")
+   }
+
+   def op(operador: String, valor: String) = operador match {
+      case "=" => valor
+      case "<=" => "$\\leq" + valor.toDouble.round.toInt + "$"
+      case ">" => "$>" + valor.toDouble.round.toInt + "$"
+      case _ => sys.error("pau")
+   }
+
+   def tree(arff: String, tex: String) = {
+      val ps = Datasets.arff(arff, dedup = false).right.get
+      val l = C45(laplace = false, minobjs)
+      val m = l.build(ps)
+      val str = m.asInstanceOf[WekaModel].classifier.toString.replace("extbf", "\\textbf")
+      val fw2 = new PrintWriter(tex, "ISO-8859-1")
+      val r = trav(Parsing.parse(str)) + ";"
+      fw2.write(r)
+      fw2.close()
+      println(s"")
+      println(r)
+   }
 }
 
 
@@ -76,7 +93,7 @@ trait Obj extends Tree {
 
 case class Node(cond: String, operador: String, valor: String, children: List[Tree]) extends Obj
 
-case class Leaf(cond: String, operador: String, valor: String, texto: String, pureza: Int) extends Obj
+case class Leaf(cond: String, operador: String, valor: String, texto: String, pureza: Int, tot: Int) extends Obj
 
 object Parsing extends RegexParsers with ImplicitConversions with JavaTokenParsers {
 
@@ -113,9 +130,9 @@ object Parsing extends RegexParsers with ImplicitConversions with JavaTokenParse
    def children = "[" ~> rep(obj) <~ "]"
 
    def obj: Parser[Tree] = se ~ children ^^ Node | seLeaf ~ (":" ~> texto <~ "(") ~ floatingPointNumber ~ ("/" ~> floatingPointNumber <~ ")") ^^ {
-      case a ~ b ~ c ~ d ~ e ~ f => Leaf(a, b, c, d, (100 * (e.toDouble - f.toDouble) / e.toDouble).round.toInt)
+      case a ~ b ~ c ~ d ~ e ~ f => Leaf(a, b, c, d, (100 * (e.toDouble - f.toDouble) / e.toDouble).round.toInt, e.toDouble.toInt)
    } | seLeaf ~ (":" ~> texto <~ "(") ~ (floatingPointNumber <~ ")") ^^ {
-      case a ~ b ~ c ~ d ~ e => Leaf(a, b, c, d, 100)
+      case a ~ b ~ c ~ d ~ e => Leaf(a, b, c, d, 100, e.toDouble.toInt)
    }
 
    def se = cond ~ """(=|<=|>)""".r ~ valor
@@ -136,30 +153,6 @@ object C45Test extends App {
    val ps = Datasets.arff("/home/davi/wcs/ucipp/uci/metaTree.arff").right.get
    val l = C45(laplace = false, 30)
    val m = l.build(ps)
-   println(l.tree(m))
-   trav(Parsing.parse(l.tree(m)))
-
-   def trav(t: Tree): Unit = t match {
-      case Root(children) =>
-         val text = children.head.asInstanceOf[Obj].cond
-         println( """\node[line width=0.3ex, decision] {""" + text + "}")
-         children foreach trav
-      case Node(cond, operador, valor, children) =>
-         val text = children.head.asInstanceOf[Obj].cond
-         println("child {node [decision, label=" + op(operador, valor) + "] {" + text + "}")
-         children foreach trav
-         println(s"}")
-      case l@Leaf(cond, operador, valor, texto, pureza) =>
-         println("child {node [outcome, label=" + op(operador, valor) + "] {" + texto + "}}")
-      case _ => println(s"pau")
-         sys.exit(0)
-   }
-
-   def op(operador: String, valor: String) = operador match {
-      case "=" => valor
-      case "<=" => "$\\leq" + ((valor.toDouble * 100).round / 100d) + "$"
-      case ">" => "$>" + ((valor.toDouble * 100).round / 100d) + "$"
-   }
 }
 
 /*
