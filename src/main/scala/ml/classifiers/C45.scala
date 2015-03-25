@@ -71,12 +71,16 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1) extends BatchWekaLear
       val l = C45(laplace = false, minobjs)
       val m = l.build(ps)
       val str = m.asInstanceOf[WekaModel].classifier.toString.replace("extbf", "\\textbf")
+      println(s"")
+      println(str)
+      println(s"")
       val fw2 = new PrintWriter(tex, "ISO-8859-1")
       val r = trav(Parsing.parse(str)) + ";"
       fw2.write(r)
       fw2.close()
       println(s"")
       println(r)
+      println(s"")
    }
 }
 
