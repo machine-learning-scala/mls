@@ -20,12 +20,9 @@ package ml.classifiers
 import ml.Pattern
 import ml.models.Model
 
-trait Learner {
+trait Learner extends Limpa {
    val id: Int
    val abr: String
-
-   def limpa = abr.replace("\\textbf{", "").replace("}", "")
-
    val attPref: String
    val boundaryType: String
 
