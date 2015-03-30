@@ -26,6 +26,17 @@ trait Learner extends Limpa {
    val attPref: String
    val boundaryType: String
 
+   lazy val querFiltro = qf(this)
+
+   def qf(le: Learner) = le.id match {
+      case 2651110 => true //rbf
+      case 8001 => true //ci
+      case 773 => false //rf
+      case 2 => false //knn
+      case 12 => false //nb
+      case 666003 => false //c45
+   }
+
 
    //  def diff(modelA: Model, modelB: Model): Double
 
