@@ -37,7 +37,6 @@ trait Learner extends Limpa {
       case 666003 => false //c45
    }
 
-
    //  def diff(modelA: Model, modelB: Model): Double
 
    /**
