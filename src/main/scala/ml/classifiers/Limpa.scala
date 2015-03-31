@@ -18,7 +18,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 trait Limpa {
-   val abr: String
+   val abrev: String
 
-   def limpa = abr.replace("\\textbf{", "").replace("}", "")
+   def limpa = abrev.replace("\\textbf{", "").replace("}", "")
 }

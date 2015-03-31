@@ -23,6 +23,7 @@ import ml.models.Model
 trait Learner extends Limpa {
    val id: Int
    val abr: String
+   lazy val abrev = abr
    val attPref: String
    val boundaryType: String
 
