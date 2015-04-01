@@ -41,6 +41,7 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1) extends BatchWekaLear
       classifier.setMinNumObj(if (minobjs == -1) math.min(10, patterns.head.nclasses * 2) else minobjs)
       classifier.setUseLaplace(laplace)
       classifier.setDoNotCheckCapabilities(true)
+      //      classifier.setSaveInstanceData(true)
       generate_model(classifier, patterns)
    }
 
@@ -82,6 +83,8 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1) extends BatchWekaLear
       println(r)
       println(s"")
    }
+
+   def str(m: Model) = cast2wekabatmodel(m).classifier.toString
 }
 
 
@@ -157,6 +160,7 @@ object C45Test extends App {
    val ps = Datasets.arff("/home/davi/wcs/ucipp/uci/metaTree.arff").right.get
    val l = C45(laplace = false, 30)
    val m = l.build(ps)
+   println(l.str(m))
 }
 
 /*

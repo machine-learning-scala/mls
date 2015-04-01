@@ -26,7 +26,7 @@ import weka.core.neighboursearch.{KDTree, LinearNNSearch}
 import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, MinkowskiDistance}
 
 /**
- * Weights by (1-d) if desired.
+ * Weights by (1/d) if desired.
  * @param k
  * @param distance_name
  * @param pattsForDistanceCache
