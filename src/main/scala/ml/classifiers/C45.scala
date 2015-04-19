@@ -25,14 +25,16 @@ import util.Datasets
 import weka.classifiers.Classifier
 import weka.classifiers.trees.J48
 
+import scala.collection.mutable
 import scala.util.parsing.combinator.{ImplicitConversions, JavaTokenParsers, RegexParsers}
 
-case class C45(laplace: Boolean = true, minobjs: Int = -1) extends BatchWekaLearner {
+case class C45(laplace: Boolean = true, minobjs: Int = -1, confidence: Double = 0.25, prune: Boolean = true) extends BatchWekaLearner {
    override val toString = s"C4.5w"
    val id = 666003
    val abr = toString
    val boundaryType = "rígida"
    val attPref = "ambos"
+   val min = if (minobjs == -1) 1 else minobjs
 
    def expected_change(model: Model)(pattern: Pattern): Double = ???
 
@@ -41,6 +43,8 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1) extends BatchWekaLear
       classifier.setMinNumObj(if (minobjs == -1) math.min(10, patterns.head.nclasses * 2) else minobjs)
       classifier.setUseLaplace(laplace)
       classifier.setDoNotCheckCapabilities(true)
+      classifier.setConfidenceFactor(confidence.toFloat)
+      classifier.setUnpruned(!prune)
       //      classifier.setSaveInstanceData(true)
       generate_model(classifier, patterns)
    }
@@ -50,13 +54,51 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1) extends BatchWekaLear
       case _ => throw new Exception(this + " requires J48.")
    }
 
+   class MyMap[K, V](m1: Map[K, V]) {
+      def merge(m2: Map[K, V])(f: (V, V) => V) = (m1 -- m2.keySet) ++ (m2 -- m1.keySet) ++ (for (k <- m1.keySet & m2.keySet) yield {
+         k -> f(m1(k), m2(k))
+      })
+   }
+
+   implicit def toMyMap[K, V](m: Map[K, V]) = new MyMap(m)
+
+   def add(mm: mutable.Map[String, Int], m: Map[String, Int]) = m foreach { case (k, v) =>
+      val s = mm.getOrElseUpdate(k, 0)
+      mm(k) = s + v
+   }
+
+   def travDistr(t: Tree): Map[String, Int] = t match {
+      //case Root(children) =>
+      case Node(cond, operador, valor, children) => (children map travDistr) reduceLeft {
+         _.merge(_)(_ + _)
+      }
+      case l@Leaf(cond, operador, valor, texto, qtd, demais) => Map(texto -> qtd, "demais" -> demais)
+      case _ => sys.error(s"erro matching")
+   }
+
+   //mesmo sem podar, ficam ~10% das folhas impuras; isso estraga a contabilização, pois pode por como "demais" uma strat já explícita na folha
    def trav(t: Tree): String = t match {
       case Root(children) =>
          """\node[line width=0.3ex, decision] {""" + children.head.asInstanceOf[Obj].cond + "}\n" + (children map trav).mkString("\n")
-      case Node(cond, operador, valor, children) =>
-         "child {node [decision] {" + children.head.asInstanceOf[Obj].cond + "}\n" + (children map trav).mkString("\n") + "edge from parent node [cond] {" + op(operador, valor) + "}}"
-      case l@Leaf(cond, operador, valor, texto, pureza, tot) =>
-         "child {node [outcome] {" + texto + "\\\\$" + tot + "$: $" + pureza + "\\%$} edge from parent node [cond] {" + op(operador, valor) + "}}"
+      case n@Node(cond, operador, valor, children) =>
+         val maps = children map travDistr
+         val filhosSaudaveis = maps.map(_.values.sum).min >= min
+         if (filhosSaudaveis) "child {node [decision] {" + children.head.asInstanceOf[Obj].cond + "}\n" + (children map trav).mkString("\n") + "edge from parent node [cond] {" + op(operador, valor) + "}}"
+         else {
+            val listaCrua = travDistr(n).updated("demais", 0).toList.sortBy(_._2).reverse
+            var s = 0
+            val tot = maps.map(_.values.sum).sum
+            val (listaMelhores0, _) = listaCrua.zipWithIndex.takeWhile { case ((k, v), i) =>
+               s += v
+               s <= 0.8 * tot || (i < listaCrua.size - 1 && listaCrua(i + 1)._2 == v) || i == listaCrua.size - 1
+            }.unzip
+            val listaMelhores = listaCrua.take(listaMelhores0.size + 1).filter(_._2 > 0)
+            val resto = listaCrua.drop(listaMelhores.size).map(_._2).sum //+ travDistr(n).get("demais").get é melhor perder esses exemplos sem nome do que parecer inconsistente
+            val lista = listaMelhores ++ (if (resto > 0) Seq("demais" -> resto) else Seq())
+            "child {node [outcome] {" + lista.map { case (k, v) => k.trim + ": " + v}.mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
+         }
+      case l@Leaf(cond, operador, valor, texto, qtd, demais) =>
+         "child {node [outcome] {" + texto.trim + ": " + qtd + (if (demais > 0) "\\\\\ndemais: " + demais else "") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
       case _ => sys.error(s"erro matching")
    }
 
@@ -68,20 +110,23 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1) extends BatchWekaLear
    }
 
    def tree(arff: String, tex: String) = {
-      val ps = Datasets.arff(arff, dedup = false).right.get
-      val l = C45(laplace = false, minobjs)
-      val m = l.build(ps)
-      val str = m.asInstanceOf[WekaModel].classifier.toString.replace("extbf", "\\textbf")
-      println(s"")
-      println(str)
-      println(s"")
-      val fw2 = new PrintWriter(tex, "ISO-8859-1")
-      val r = trav(Parsing.parse(str)) + ";"
-      fw2.write(r)
-      fw2.close()
-      println(s"")
-      println(r)
-      println(s"")
+      Datasets.arff(arff, dedup = false) match {
+         case Left(str) => throw new Error(str)
+         case Right(ps) =>
+            val l = C45(laplace = false, 1, 1, prune = false)
+            val m = l.build(ps)
+            val str = m.asInstanceOf[WekaModel].classifier.toString.replace("extbf", "\\textbf")
+            println(s"")
+            println(str)
+            println(s"")
+            val fw2 = new PrintWriter(tex, "ISO-8859-1")
+            val r = trav(Parsing.parse(str)) + ";"
+            fw2.write(r)
+            fw2.close()
+            println(s"")
+            println(r)
+            println(s"")
+      }
    }
 
    def str(m: Model) = cast2wekabatmodel(m).classifier.toString
@@ -100,7 +145,7 @@ trait Obj extends Tree {
 
 case class Node(cond: String, operador: String, valor: String, children: List[Tree]) extends Obj
 
-case class Leaf(cond: String, operador: String, valor: String, texto: String, pureza: Int, tot: Int) extends Obj
+case class Leaf(cond: String, operador: String, valor: String, texto: String, qtd: Int, demais: Int) extends Obj
 
 object Parsing extends RegexParsers with ImplicitConversions with JavaTokenParsers {
 
@@ -132,15 +177,17 @@ object Parsing extends RegexParsers with ImplicitConversions with JavaTokenParse
       }
    }
 
-   def expr = "J48 pruned tree\n" ~> children ^^ Root
+   def expr = ("J48 unpruned tree\n" | "J48 pruned tree\n") ~> children ^^ Root
 
    def children = "[" ~> rep(obj) <~ "]"
 
-   def obj: Parser[Tree] = se ~ children ^^ Node | seLeaf ~ (":" ~> texto <~ "(") ~ floatingPointNumber ~ ("/" ~> floatingPointNumber <~ ")") ^^ {
-      case a ~ b ~ c ~ d ~ e ~ f => Leaf(a, b, c, d, (100 * (e.toDouble - f.toDouble) / e.toDouble).round.toInt, e.toDouble.toInt)
-   } | seLeaf ~ (":" ~> texto <~ "(") ~ (floatingPointNumber <~ ")") ^^ {
-      case a ~ b ~ c ~ d ~ e => Leaf(a, b, c, d, 100, e.toDouble.toInt)
-   }
+   def obj: Parser[Tree] = se ~ children ^^ Node |
+      seLeaf ~ (":" ~> texto <~ "(") ~ floatingPointNumber ~ ("/" ~> floatingPointNumber <~ ")") ^^ {
+         case a ~ b ~ c ~ d ~ e ~ f => Leaf(a, b, c, d, e.toDouble.toInt - f.toDouble.toInt, f.toDouble.toInt)
+      } |
+      seLeaf ~ (":" ~> texto <~ "(") ~ (floatingPointNumber <~ ")") ^^ {
+         case a ~ b ~ c ~ d ~ e => Leaf(a, b, c, d, e.toDouble.toInt, 0) //, 100, e.toDouble.toInt)
+      }
 
    def se = cond ~ """(=|<=|>)""".r ~ valor
 
@@ -158,7 +205,7 @@ object Parsing extends RegexParsers with ImplicitConversions with JavaTokenParse
 
 object C45Test extends App {
    val ps = Datasets.arff("/home/davi/wcs/ucipp/uci/metaTree.arff").right.get
-   val l = C45(laplace = false, 30)
+   val l = C45(laplace = false, 30, 0.25, true)
    val m = l.build(ps)
    println(l.str(m))
 }
