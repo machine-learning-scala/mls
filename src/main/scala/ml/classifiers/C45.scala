@@ -67,16 +67,17 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, confidence: Double = 
       mm(k) = s + v
    }
 
+   //mesmo sem podar, ficam ~10% das folhas impuras; isso estraga a contabilização, pois pode por como "demais" uma strat já explícita na folha
+   //   é melhor perder esses exemplos sem nome do que parecer inconsistente
    def travDistr(t: Tree): Map[String, Int] = t match {
       //case Root(children) =>
       case Node(cond, operador, valor, children) => (children map travDistr) reduceLeft {
          _.merge(_)(_ + _)
       }
-      case l@Leaf(cond, operador, valor, texto, qtd, demais) => Map(texto -> qtd, "demais" -> demais)
+      case l@Leaf(cond, operador, valor, texto, qtd, demais) => Map(texto -> qtd)
       case _ => sys.error(s"erro matching")
    }
 
-   //mesmo sem podar, ficam ~10% das folhas impuras; isso estraga a contabilização, pois pode por como "demais" uma strat já explícita na folha
    def trav(t: Tree): String = t match {
       case Root(children) =>
          """\node[line width=0.3ex, decision] {""" + children.head.asInstanceOf[Obj].cond + "}\n" + (children map trav).mkString("\n")
@@ -85,15 +86,15 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, confidence: Double = 
          val filhosSaudaveis = maps.map(_.values.sum).min >= min
          if (filhosSaudaveis) "child {node [decision] {" + children.head.asInstanceOf[Obj].cond + "}\n" + (children map trav).mkString("\n") + "edge from parent node [cond] {" + op(operador, valor) + "}}"
          else {
-            val listaCrua = travDistr(n).updated("demais", 0).toList.sortBy(_._2).reverse
+            val listaCrua = travDistr(n).toList.sortBy(_._2).reverse
             var s = 0
             val tot = maps.map(_.values.sum).sum
             val (listaMelhores0, _) = listaCrua.zipWithIndex.takeWhile { case ((k, v), i) =>
                s += v
-               s <= 0.8 * tot || (i < listaCrua.size - 1 && listaCrua(i + 1)._2 == v) || i == listaCrua.size - 1
+               s <= confidence * tot || (i < listaCrua.size - 1 && listaCrua(i + 1)._2 == v) || i == listaCrua.size - 1
             }.unzip
-            val listaMelhores = listaCrua.take(listaMelhores0.size + 1).filter(_._2 > 0)
-            val resto = listaCrua.drop(listaMelhores.size).map(_._2).sum //+ travDistr(n).get("demais").get é melhor perder esses exemplos sem nome do que parecer inconsistente
+            val listaMelhores = listaCrua.take(listaMelhores0.size + 1)
+            val resto = listaCrua.drop(listaMelhores.size).map(_._2).sum
             val lista = listaMelhores ++ (if (resto > 0) Seq("demais" -> resto) else Seq())
             "child {node [outcome] {" + lista.map { case (k, v) => k.trim + ": " + v}.mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
          }
@@ -104,8 +105,8 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, confidence: Double = 
 
    def op(operador: String, valor: String) = operador match {
       case "=" => valor
-      case "<=" => "$\\leq" + valor.toDouble.round.toInt + "$"
-      case ">" => "$>" + valor.toDouble.round.toInt + "$"
+      case "<=" => "$\\leq" + "%2.0f".format(valor.toDouble) + "$"
+      case ">" => "$>" + "%2.0f".format(valor.toDouble) + "$"
       case _ => sys.error("pau")
    }
 
