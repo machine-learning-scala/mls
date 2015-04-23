@@ -22,6 +22,7 @@
 package weka.classifiers.trees.j48;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import weka.core.Instance;
 import weka.core.Instances;
@@ -188,8 +189,7 @@ public abstract class ClassifierSplitModel
         StringBuffer text;
 
         text = new StringBuffer();
-        text.append(((Instances) data).classAttribute().
-                value(m_distribution.maxClass(index)));
+        text.append(((Instances) data).classAttribute().value(m_distribution.maxClass(index)));
         text.append(" (" + Utils.roundDouble(m_distribution.perBag(index), 2));
         if (Utils.gr(m_distribution.numIncorrect(index), 0))
             text.append("/" + Utils.roundDouble(m_distribution.numIncorrect(index), 2));
@@ -199,16 +199,14 @@ public abstract class ClassifierSplitModel
     }
 
     public final String dumpDistr(int index, Instances data) throws Exception {
-
         StringBuffer text;
-
         text = new StringBuffer();
-        text.append(((Instances) data).classAttribute().
-                value(m_distribution.maxClass(index)));
-        text.append(" (" + Utils.roundDouble(m_distribution.perBag(index), 2));
-        if (Utils.gr(m_distribution.numIncorrect(index), 0))
-            text.append("/" + Utils.roundDouble(m_distribution.numIncorrect(index), 2));
+        String txt = data.classAttribute().value(m_distribution.maxClass(index)) + " (";
+        for (int i = 0; i < m_distribution.numClasses(); i++)
+            txt += data.classAttribute().value(i) + ";";
+        text.append(txt.substring(0, txt.length() - 1));
         text.append(")");
+        text.append(Arrays.toString(m_distribution.m_perClassPerBag[index]).replace(", ", ";").replace("[", "ª").replace("]", "º"));
 
         return text.toString();
     }

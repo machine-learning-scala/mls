@@ -46,7 +46,7 @@ public class Distribution implements Cloneable, Serializable, RevisionHandler {
     /**
      * Weight of instances per class per bag.
      */
-    private final double m_perClassPerBag[][];
+    public final double m_perClassPerBag[][];
 
     /**
      * Weight of instances per bag.

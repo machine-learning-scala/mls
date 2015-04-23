@@ -772,6 +772,10 @@ public class J48 extends AbstractClassifier implements OptionHandler, Drawable,
         }
     }
 
+    public String distrs() {
+        return m_root.toDistrs();
+    }
+
     /**
      * Returns a superconcise version of the model
      *
