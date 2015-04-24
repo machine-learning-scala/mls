@@ -18,6 +18,7 @@ Copyright (C) 2014 Davi Pereira dos Santos
 package ml.classifiers
 
 import java.io.PrintWriter
+import java.text.DecimalFormat
 
 import ml.Pattern
 import ml.models.{Model, WekaModel}
@@ -54,18 +55,18 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
       case _ => throw new Exception(this + " requires J48.")
    }
 
-   class MyMap[K, V](m1: Map[K, V]) {
-      def merge(m2: Map[K, V])(f: (V, V) => V) = (m1 -- m2.keySet) ++ (m2 -- m1.keySet) ++ (for (k <- m1.keySet & m2.keySet) yield {
-         k -> f(m1(k), m2(k))
-      })
-   }
-
-   implicit def toMyMap[K, V](m: Map[K, V]) = new MyMap(m)
-
-   def add(mm: mutable.Map[String, Int], m: Map[String, Int]) = m foreach { case (k, v) =>
-      val s = mm.getOrElseUpdate(k, 0)
-      mm(k) = s + v
-   }
+   //   class MyMap[K, V](m1: Map[K, V]) {
+   //      def merge(m2: Map[K, V])(f: (V, V) => V) = (m1 -- m2.keySet) ++ (m2 -- m1.keySet) ++ (for (k <- m1.keySet & m2.keySet) yield {
+   //         k -> f(m1(k), m2(k))
+   //      })
+   //   }
+   //
+   //   implicit def toMyMap[K, V](m: Map[K, V]) = new MyMap(m)
+   //
+   //   def add(mm: mutable.Map[String, Int], m: Map[String, Int]) = m foreach { case (k, v) =>
+   //      val s = mm.getOrElseUpdate(k, 0)
+   //      mm(k) = s + v
+   //   }
 
    //   def travDistr(t: Tree): Map[String, Int] = t match {
    //      case Node(cond, operador, valor, children) => (children map travDistr) reduceLeft {
@@ -89,15 +90,15 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
          }
          val qtds2 = bef :+ aft.head
          val demais = tot - qtds2.map(_._2).sum
-         val qtds3 = if (demais > 0) qtds2 :+ ("demais" -> demais) else qtds2
-         "child {node [outcome] {" + qtds3.map(x => x._1 + ": " + x._2).mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
+         val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) :+ ("demais" -> demais) else qtds2
+         "child {node [outcome] {\n" + qtds3.map(x => x._1 + ": " + x._2).mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
       case _ => sys.error(s"erro matching")
    }
 
    def op(operador: String, valor: String) = operador match {
       case "=" => valor
-      case "<=" => "$\\leq" + "%2.0f".format(valor.toDouble) + "$"
-      case ">" => "$>" + "%2.0f".format(valor.toDouble) + "$"
+      case "<=" => "$\\leq" + new DecimalFormat("##.#").format(valor.toDouble) + "$"
+      case ">" => "$>" + new DecimalFormat("##.#").format(valor.toDouble) + "$"
       case _ => sys.error("pau")
    }
 
@@ -204,74 +205,3 @@ object C45Test extends App {
    val m = l.build(ps)
    println(l.str(m))
 }
-
-/*
-graph --------------
-digraph J48Tree {
-N0 [label="V2" ]
-N0->N1 [label="<= 0.561"]
-N1 [label="V2" ]
-N1->N2 [label="<= -0.857"]
-N2 [label="1 (1426.0/427.0)" shape=box style=filled ]
-N1->N3 [label="> -0.857"]
-N3 [label="V1" ]
-N3->N4 [label="<= 0.155"]
-N4 [label="2 (1149.0/180.0)" shape=box style=filled ]
-N3->N5 [label="> 0.155"]
-N5 [label="1 (1000.0/490.0)" shape=box style=filled ]
-N0->N6 [label="> 0.561"]
-N6 [label="1 (1716.0/487.0)" shape=box style=filled ]
-}
-
-
-prefix ---------------
-[V2: <= 0.561,
- > 0.561[V2: <= -0.857,
- > -0.857[1 (1426.0/427.0)][V1: <= 0.155,
- > 0.155[2 (1149.0/180.0)][1 (1000.0/490.0)]]][1 (1716.0/487.0)]]
-
-toSource ---------------
-class bla {
-
-  public static double classify(Object[] i)
-    throws Exception {
-
-    double p = Double.NaN;
-    p = bla.N37374a5e0(i);
-    return p;
-  }
-  static double N37374a5e0(Object []i) {
-    double p = Double.NaN;
-    if (i[1] == null) {
-      p = 1;
-    } else if (((Double) i[1]).doubleValue() <= 0.561) {
-    p = bla.N4671e53b1(i);
-    } else if (((Double) i[1]).doubleValue() > 0.561) {
-      p = 0;
-    }
-    return p;
-  }
-  static double N4671e53b1(Object []i) {
-    double p = Double.NaN;
-    if (i[1] == null) {
-      p = 0;
-    } else if (((Double) i[1]).doubleValue() <= -0.857) {
-      p = 0;
-    } else if (((Double) i[1]).doubleValue() > -0.857) {
-    p = bla.N2db7a79b2(i);
-    }
-    return p;
-  }
-  static double N2db7a79b2(Object []i) {
-    double p = Double.NaN;
-    if (i[0] == null) {
-      p = 1;
-    } else if (((Double) i[0]).doubleValue() <= 0.155) {
-      p = 1;
-    } else if (((Double) i[0]).doubleValue() > 0.155) {
-      p = 0;
-    }
-    return p;
-  }
-}
- */
