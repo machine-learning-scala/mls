@@ -89,7 +89,7 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
          }
          val qtds2 = bef :+ aft.head
          val demais = tot - qtds2.map(_._2).sum
-         val qtds3 = if (demais > 0) qtds2 :+ ("demais:" -> demais) else qtds2
+         val qtds3 = if (demais > 0) qtds2 :+ ("demais" -> demais) else qtds2
          "child {node [outcome] {" + qtds3.map(x => x._1 + ": " + x._2).mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
       case _ => sys.error(s"erro matching")
    }
