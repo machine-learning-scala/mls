@@ -83,15 +83,17 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
          "child {node [decision] {" + children.head.asInstanceOf[Obj].cond + "}\n" + (children map trav).mkString("\n") + "edge from parent node [cond] {" + op(operador, valor) + "}}"
       case l@Leaf(cond, operador, valor, texto, qtds) =>
          val tot = qtds.values.sum
-         var s = 0
-         val (bef, aft) = qtds.toList.sortBy(_._2).reverse span { case (k, v) =>
-            s += v
-            s < explicitos * tot
-         }
-         val qtds2 = bef :+ aft.head
-         val demais = tot - qtds2.map(_._2).sum
-         val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) :+ ("demais" -> demais) else qtds2
-         "child {node [outcome] {\n" + qtds3.map(x => x._1 + ": " + x._2).mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
+         if (tot > 0) {
+            var s = 0
+            val (bef, aft) = qtds.toList.sortBy(_._2).reverse span { case (k, v) =>
+               s += v
+               s < explicitos * tot
+            }
+            val qtds2 = bef :+ aft.head
+            val demais = tot - qtds2.map(_._2).sum
+            val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) :+ ("demais" -> demais) else qtds2
+            "child {node [outcome] {\n" + qtds3.map(x => x._1 + ": " + x._2).mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
+         } else "%"
       case _ => sys.error(s"erro matching")
    }
 
@@ -108,11 +110,11 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
          case Right(ps) =>
             val m = build(ps)
             val str = m.asInstanceOf[WekaModel].classifier.asInstanceOf[J48].distrs().replace("extbf", "\\textbf")
-            //            println(s"")
-            //            println(str)
-            //            println(s"")
+            println(s"")
+            println(str)
+            println(s"")
             val fw2 = new PrintWriter(tex, "ISO-8859-1")
-            val r = trav(Parsing.parse(str)) + ";"
+            val r = trav(Parsing.parse(str)) + "\n;"
             fw2.write(r)
             fw2.close()
          //            println(s"")
