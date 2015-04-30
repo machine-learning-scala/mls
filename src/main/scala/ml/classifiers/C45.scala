@@ -85,13 +85,14 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
          val tot = qtds.values.sum
          if (tot > 0) {
             var s = 0
-            val (bef, aft) = qtds.toList.sortBy(_._2).reverse span { case (k, v) =>
+            val srtd = qtds.toList.sortBy(_._2).reverse
+            val (bef, aft) = srtd span { case (k, v) =>
                s += v
-               s < explicitos * tot
+               s < explicitos * tot && v > 1
             }
-            val qtds2 = bef :+ aft.head
+            val qtds2 = bef ++ aft.takeWhile(x => x._2 == bef.last._2 && x._2 > 1)
             val demais = tot - qtds2.map(_._2).sum
-            val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) :+ ("demais" -> demais) else qtds2
+            val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) :+ ("demais ($\\leq " + srtd.drop(qtds2.size).head._2 + "$)" -> demais) else qtds2
             "child {node [outcome] {\n" + qtds3.map(x => x._1 + ": " + x._2).mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
          } else "%"
       case _ => sys.error(s"erro matching")
