@@ -114,7 +114,7 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
             println(s"")
             println(str)
             println(s"")
-            val fw2 = new PrintWriter(tex, "ISO-8859-1")
+            val fw2 = new PrintWriter(tex, "UTF-8")
             val r = trav(Parsing.parse(str)) + "\n;"
             fw2.write(r)
             fw2.close()
