@@ -28,7 +28,7 @@ import weka.filters.unsupervised.attribute._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.util.{Failure, Success, Try}
+import scala.util.{Random, Failure, Success, Try}
 
 object Datasets extends Lock {
 
@@ -107,6 +107,34 @@ object Datasets extends Lock {
       q.toList
    }
 
+   def LTO[T, U](patterns: Array[U], parallel: Boolean = false)(f: (Seq[U], Seq[U]) => T): Seq[T] = {
+      if (parallel) ???
+      var i = 0
+      val n = patterns.size
+      val array = patterns
+      val list = patterns.toList
+      val q = mutable.Queue[T]()
+      while (i < n - 1) {
+         q += f(list.take(i) ++ list.drop(i + 2), Seq(array(i), array(i + 1)))
+         i += 2
+      }
+      q.toList
+   }
+
+   def LThO[T, U](patterns: Array[U], parallel: Boolean = false)(f: (Seq[U], Seq[U]) => T): Seq[T] = {
+      if (parallel) ???
+      var i = 0
+      val n = patterns.size
+      val array = patterns
+      val list = patterns.toList
+      val q = mutable.Queue[T]()
+      while (i < n - 2) {
+         q += f(list.take(i) ++ list.drop(i + 3), Seq(array(i), array(i + 1), array(i + 2)))
+         i += 3
+      }
+      q.toList
+   }
+
    /**
     * @param patterns
     * @param k
@@ -127,6 +155,31 @@ object Datasets extends Lock {
          }
          tmp.toVector
       }
+      lazy val testfolds = folds
+      lazy val trainfolds = for (fo <- 0 until k) yield folds.filterNot(_.sameElements(testfolds(fo))).flatten
+      val minSize = trainfolds.map(_.length).min
+      val seq = if (parallel) (0 until k).par else 0 until k
+      seq.map { foldnr =>
+         lazy val tr = trainfolds(foldnr)
+         lazy val ts = testfolds(foldnr)
+         f(tr, ts, foldnr, minSize)
+      }
+   }
+
+   def kfoldCV2[T](patterns: => Seq[Vector[Pattern]], k: Int = 10, parallel: Boolean = false)(f: (Seq[Vector[Pattern]], Seq[Vector[Pattern]], Int, Int) => T) = {
+      lazy val folds = {
+         val n = patterns.length
+         val tmp = Array.fill(k)(Seq[Vector[Pattern]]())
+         def label(s: Vector[Pattern]) = Random.shuffle(s).head.label
+
+         val grouped = (patterns sortBy label).toArray
+         var i = 0
+         while (i < n) {
+            tmp(i % k) +:= grouped(i)
+            i += 1
+         }
+         tmp.toVector
+      }.toSeq
       lazy val testfolds = folds
       lazy val trainfolds = for (fo <- 0 until k) yield folds.filterNot(_.sameElements(testfolds(fo))).flatten
       val minSize = trainfolds.map(_.length).min
