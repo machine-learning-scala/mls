@@ -170,8 +170,7 @@ object Datasets extends Lock {
       lazy val folds = {
          val n = patterns.length
          val tmp = Array.fill(k)(Seq[Vector[Pattern]]())
-         def label(s: Vector[Pattern]) = Random.shuffle(s).head.label
-
+         def label(s: Vector[Pattern]) = s.groupBy(_.label).maxBy(_._2.size)._1 //Random.shuffle(s).head.label <-violates general contract
          val grouped = (patterns sortBy label).toArray
          var i = 0
          while (i < n) {
