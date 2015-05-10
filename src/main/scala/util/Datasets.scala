@@ -19,7 +19,6 @@ package util
 
 import java.io.{BufferedReader, FileReader, IOException}
 
-import fr.lip6.jkernelmachines.`type`.TrainingSample
 import ml.{Pattern, PatternParent}
 import weka.core.Instances
 import weka.core.converters.ArffLoader.ArffReader
@@ -276,14 +275,14 @@ object Datasets extends Lock {
     * @param patterns
     * @return
     */
-   def patterns2TrainingSamples(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
-      println("Empty sequence of patterns; cannot generate empty list of TrainingSamples.")
-      throw new Error("Empty sequence of patterns; cannot generate list of TrainingSamples.")
-   } else {
-      patterns.toList map (p => new TrainingSample[Array[Double]](p.array, p.label.toInt))
-   }
+   //   def patterns2TrainingSamples(patterns: Seq[Pattern]) = if (patterns.isEmpty) {
+   //      println("Empty sequence of patterns; cannot generate empty list of TrainingSamples.")
+   //      throw new Error("Empty sequence of patterns; cannot generate list of TrainingSamples.")
+   //   } else {
+   //      patterns.toList map (p => new TrainingSample[Array[Double]](p.array, p.label.toInt))
+   //   }
 
-   def pattern2TrainingSample(pattern: Pattern) = new TrainingSample[Array[Double]](pattern.array, pattern.label.toInt)
+   //   def pattern2TrainingSample(pattern: Pattern) = new TrainingSample[Array[Double]](pattern.array, pattern.label.toInt)
 
    //useless ----------------------------------
    val readOnly: Boolean = true
