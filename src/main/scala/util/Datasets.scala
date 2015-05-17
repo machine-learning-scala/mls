@@ -35,7 +35,12 @@ object Datasets extends Lock {
 
    val predAttsLimit = 998
 
-   /**
+  def instances2patterns(instances: Instances) = {
+    val parent = PatternParent(instances)
+    instances.zipWithIndex.map { case (instance, idx) => Pattern(idx, instance, missed = false, parent) }
+  }
+
+  /**
     * Reads an ARFF file.
     * Remove useless attributes.
     */
@@ -60,12 +65,13 @@ object Datasets extends Lock {
          if (instancesUselessRemoved.numAttributes() != projected.numAttributes()) println(s"random projection applied to shrink ${instancesUselessRemoved.numAttributes()} ${projected.numAttributes()} attributes in $arq.")
 
          //Assigns ids from zero. (should be one of the first things because of weka filters' indeterminism)
-         val parent = PatternParent(projected)
-         val idpatts = projected.zipWithIndex.map { case (instance, idx) => Pattern(idx, instance, missed = false, parent)}
+         val idpatts = instances2patterns(projected)
 
          //Deduplication.
-         println("Only distinct instances will be kept, but preserving ARFF original line number as id, starting from zero.")
-         val distinctPatts = if (dedup) distinctMode(idpatts) else idpatts
+         val distinctPatts = if (dedup) {
+           println("Only distinct instances will be kept, but preserving ARFF original line number as id, starting from zero.")
+           distinctMode(idpatts)
+         } else idpatts
 
          //Alerts about how many duplicates were found.
          if (instances.numInstances() != distinctPatts.size) {
