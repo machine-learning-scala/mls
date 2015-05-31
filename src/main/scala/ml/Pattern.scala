@@ -26,115 +26,124 @@ import weka.core._
  * zero is not a valid Pattern id
  */
 object Pattern {
-   def apply(id: Int, instance: Instance, missed: Boolean, parent: PatternParent) = new Pattern(id, instance, missed, parent)
+  def apply(id: Int, instance: Instance, missed: Boolean, parent: PatternParent) = new Pattern(id, instance, missed, parent)
 }
 
 case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight: Double = 1, missed: Boolean = false, parent: PatternParent = null, weka: Boolean = false)
-   extends DenseInstance(instance_weight, vector.toArray :+ label) {
-   lazy val array = vector.toArray
-   lazy val arraymtj = new DenseVector(array, false)
-   lazy val arraymtjmatrix = {
-      val m = new DenseMatrix(1, nattributes)
-      var i = 0
-      while (i < nattributes) {
-         m.set(0, i, vector(i))
-         i += 1
-      }
-      m
-   }
-   lazy val nominalSplit = nominalLabel.drop(10).split(",").map(_.toDouble)
-   lazy val nclasses = if (parent == null) {
-      println("Non weka instances! Assuming 3 classes!")
-      3
-   } else if (nominalLabel.startsWith("multilabel")) {
-      nominalSplit.size
-   } else numClasses
-   //  lazy val unlabel = Pattern(vector, -1, weight, missed, parent, weka)
-   lazy val label_array = {
-      val a = Array.fill(nclasses)(0d)
-      a(label.toInt) = 1
-      a
-   }
-   lazy val weighted_label_array = if (nominalLabel.startsWith("multilabel")) {
-      nominalSplit
-   } else {
-      val a = Array.fill(nclasses)(0d)
-      a(label.toInt) = weight
-      a
-   }
-   //   lazy val weighted_label_list = {
-   //      val idx = label.toInt
-   //      val a = List.fill(idx)(0d) ++ List(weight) ++ List.fill(nclasses - idx)(0d)
-   //      //    if (label != -1)
-   //      a
-   //   }
-   //   lazy val reversed_weighted_label_array = {
-   //      val a = Array.fill(nclasses)(weight)
-   //      a(label.toInt) = 0d
-   //      a
-   //   }
+  extends DenseInstance(instance_weight, vector.toArray :+ label) {
+  lazy val array = vector.toArray
+  lazy val arraymtj = new DenseVector(array, false)
+  lazy val arraymtjmatrix = {
+    val m = new DenseMatrix(1, inputs)
+    var i = 0
+    while (i < inputs) {
+      m.set(0, i, vector(i))
+      i += 1
+    }
+    m
+  }
+  lazy val nattributes = if (attribute(0).isString) ndescs else numAttributes - 1
+  lazy val ntargets = if (attribute(0).isString) attribute(0).name.split("_").last.toInt else error("sem bagAtt")
+  lazy val ndescs= if (attribute(0).isString) numAttributes()-ntargets-1 else error("sem bagAtt")
+  lazy val targets = vector.takeRight(ntargets).toArray
+  lazy val nominalSplit = nominalLabel.drop(10).split(",").map(_.toDouble)
+  lazy val nclasses = if (parent == null) {
+    println("Non weka instances! Assuming 3 classes!")
+    3
+  } else if (nominalLabel.startsWith("multilabel")) {
+    nominalSplit.size
+  } else if (attribute(0).isString) {
+    ntargets
+  } else numClasses
+  //  lazy val unlabel = Pattern(vector, -1, weight, missed, parent, weka)
+  lazy val inputs=if (attribute(0).isString) ndescs else nattributes
+  lazy val outputs=if (attribute(0).isString) ntargets else nclasses
+  lazy val label_array = {
+    val a = Array.fill(outputs)(0d)
+    a(label.toInt) = 1
+    a
+  }
+  lazy val weighted_label_array = if (attribute(0).isString) {
+    targets
+  } else if (nominalLabel.startsWith("multilabel")) {
+    nominalSplit
+  } else {
+    val a = Array.fill(outputs)(0d)
+    a(label.toInt) = weight
+    a
+  }
+  //   lazy val weighted_label_list = {
+  //      val idx = label.toInt
+  //      val a = List.fill(idx)(0d) ++ List(weight) ++ List.fill(nclasses - idx)(0d)
+  //      //    if (label != -1)
+  //      a
+  //   }
+  //   lazy val reversed_weighted_label_array = {
+  //      val a = Array.fill(nclasses)(weight)
+  //      a(label.toInt) = 0d
+  //      a
+  //   }
 
-   //  lazy val label_array = {
-   //    val a = Array.fill(nclasses)(-1d)
-   //    a(label.toInt) = 1
-   //    a
-   //  }
-   //  lazy val weighted_label_array = {
-   //    val a = Array.fill(nclasses)(-weight)
-   //    if (label != -1) a(label.toInt) = weight
-   //    a
-   //  }
-   //  lazy val reversed_weighted_label_array = {
-   //    val a = Array.fill(nclasses)(weight)
-   //    a(label.toInt) = -weight
-   //    //    val a = Array.fill(nclasses)(weight)
-   //    //    a(label.toInt) = 0d
-   //    a
-   //  }
+  //  lazy val label_array = {
+  //    val a = Array.fill(nclasses)(-1d)
+  //    a(label.toInt) = 1
+  //    a
+  //  }
+  //  lazy val weighted_label_array = {
+  //    val a = Array.fill(nclasses)(-weight)
+  //    if (label != -1) a(label.toInt) = weight
+  //    a
+  //  }
+  //  lazy val reversed_weighted_label_array = {
+  //    val a = Array.fill(nclasses)(weight)
+  //    a(label.toInt) = -weight
+  //    //    val a = Array.fill(nclasses)(weight)
+  //    //    a(label.toInt) = 0d
+  //    a
+  //  }
 
-   //  lazy val weighted_label_array_mtj = new DenseVector(weighted_label_array, false)
-   //  lazy val reversed_weighted_label_array_mtj = new DenseVector(reversed_weighted_label_array, false)
-   //  lazy val reversed_weighted_label_array_mtjmatrix = new DenseMatrix(reversed_weighted_label_array_mtj, false)
+  //  lazy val weighted_label_array_mtj = new DenseVector(weighted_label_array, false)
+  //  lazy val reversed_weighted_label_array_mtj = new DenseVector(reversed_weighted_label_array, false)
+  //  lazy val reversed_weighted_label_array_mtjmatrix = new DenseMatrix(reversed_weighted_label_array_mtj, false)
 
-   //  lazy val weighted_label_array_brz = DenseVector(weighted_label_array)
-   //  lazy val reversed_weighted_label_array_brz = DenseVector(reversed_weighted_label_array)
+  //  lazy val weighted_label_array_brz = DenseVector(weighted_label_array)
+  //  lazy val reversed_weighted_label_array_brz = DenseVector(reversed_weighted_label_array)
 
-   //  override def toString(attIndex: Int, afterDecimalPoint: Int) = if (attIndex == classIndex()) label.toString else super.toString(attIndex, afterDecimalPoint)
-   lazy val nattributes = numAttributes - 1
-   lazy val nnumeric = (for (i <- 0 until nattributes) yield attribute(i).isNumeric) count (_ == true)
-   lazy val nnominal = (for (i <- 0 until nattributes) yield attribute(i).isNominal) count (_ == true)
-   lazy val toStrWithMissed = toString + "%als:" + missed
-   lazy val toString_without_class = (0 until numAttributes() - 1) map treat_nominal mkString ","
-   lazy val nominalLabel = classAttribute().value(label.toInt)
+  //  override def toString(attIndex: Int, afterDecimalPoint: Int) = if (attIndex == classIndex()) label.toString else super.toString(attIndex, afterDecimalPoint)
+  lazy val nnumeric = (for (i <- 0 until inputs) yield attribute(i).isNumeric) count (_ == true)
+  lazy val nnominal = (for (i <- 0 until inputs) yield attribute(i).isNominal) count (_ == true)
+  lazy val toStrWithMissed = toString + "%als:" + missed
+  lazy val toString_without_class = (0 until numAttributes() - 1) map treat_nominal mkString ","
+  lazy val nominalLabel = classAttribute().value(label.toInt)
 
-   lazy val x = parent.xy(this).x
-   lazy val y = parent.xy(this).y
-   if (weka) setDataset(parent.dataset)
+  lazy val x = parent.xy(this).x
+  lazy val y = parent.xy(this).y
+  if (weka) setDataset(parent.dataset)
 
-   def this(id: Int, instance: Instance, missed: Boolean, parent: PatternParent) =
-      this(id, instance.toDoubleArray.toList.dropRight(1), instance.classValue, instance.weight, missed, parent, true)
+  def this(id: Int, instance: Instance, missed: Boolean, parent: PatternParent) =
+    this(id, instance.toDoubleArray.toList.dropRight(1), instance.classValue, instance.weight, missed, parent, true)
 
-   override lazy val hashCode = vector.hashCode() //id cannot be used as hashCode because id is unique, and this would deteriorate hashMaps performance
+  override lazy val hashCode = vector.hashCode() //id cannot be used as hashCode because id is unique, and this would deteriorate hashMaps performance
 
-   //  override def equals(that: Any) = that match {
-   //    case that: Pattern => id == that.id //cannot use this because id is unique and we need to detect duplicates
-   //    case _ => false
-   //  }
+  //  override def equals(that: Any) = that match {
+  //    case that: Pattern => id == that.id //cannot use this because id is unique and we need to detect duplicates
+  //    case _ => false
+  //  }
 
-   val smallestNumber = 0.0000001
+  val smallestNumber = 0.0000001
 
-   override def equals(that: Any) = that match {
-      case that: Pattern => array.zip(that.array).forall(x => (x._1 - x._2).abs < smallestNumber)
-      //    case that: Pattern => array.sameElements(that.array)
-      case _ => false
-   }
+  override def equals(that: Any) = that match {
+    case that: Pattern => array.zip(that.array).forall(x => (x._1 - x._2).abs < smallestNumber)
+    //    case that: Pattern => array.sameElements(that.array)
+    case _ => false
+  }
 
 
-   /**
-    * Create a copy with another label/weight/missed.
-    */
-   def relabeled_reweighted(new_label: Double, new_weight: Double, new_missed: Boolean) =
-      Pattern(id, vector, new_label, new_weight, new_missed, parent, weka = true)
+  /**
+   * Create a copy with another label/weight/missed.
+   */
+  def relabeled_reweighted(new_label: Double, new_weight: Double, new_missed: Boolean) =
+    Pattern(id, vector, new_label, new_weight, new_missed, parent, weka = true)
 
-   private def treat_nominal(i: Int) = if (attribute(i).isNominal) attribute(i).value(value(i).toInt) else value(i)
+  private def treat_nominal(i: Int) = if (attribute(i).isNominal) attribute(i).value(value(i).toInt) else value(i)
 }

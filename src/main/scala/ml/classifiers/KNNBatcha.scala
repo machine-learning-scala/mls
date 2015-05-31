@@ -53,6 +53,7 @@ case class KNNBatcha(k: Int, distance_name: String, pattsForDistanceCache: Seq[P
          case "manh" => new ManhattanDistance(instancesForCache)
          case "cheb" => new ChebyshevDistance(instancesForCache)
       }
+//      val search =  new LinearNNSearch
       val search = if (distance_name != "eucl" || pattsForDistanceCache.length / pattsForDistanceCache.head.nattributes < 10) new LinearNNSearch else new KDTree
       search.setDistanceFunction(distance)
       classifier.setNearestNeighbourSearchAlgorithm(search)

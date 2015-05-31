@@ -36,6 +36,8 @@ trait Learner extends Limpa {
       case 2 => false //knn
       case 12 => false //nb
       case 666003 => false //c45
+      case 13 =>false //maj
+      case _ =>error("classificador proibido")
    }
 
    //  def diff(modelA: Model, modelB: Model): Double
