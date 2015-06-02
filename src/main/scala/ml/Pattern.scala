@@ -31,7 +31,7 @@ object Pattern {
 
 case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight: Double = 1, missed: Boolean = false, parent: PatternParent = null, weka: Boolean = false)
   extends DenseInstance(instance_weight, vector.toArray :+ label) {
-  lazy val array = vector.toArray
+  lazy val array = if (attribute(0).isString) m_AttValues.tail.dropRight(ntargets) else vector.toArray
   lazy val arraymtj = new DenseVector(array, false)
   lazy val arraymtjmatrix = {
     val m = new DenseMatrix(1, inputs)
@@ -45,7 +45,7 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
   lazy val nattributes = if (attribute(0).isString) ndescs else numAttributes - 1
   lazy val ntargets = if (attribute(0).isString) attribute(0).name.split("_").last.toInt else error("sem bagAtt")
   lazy val ndescs= if (attribute(0).isString) numAttributes()-ntargets-1 else error("sem bagAtt")
-  lazy val targets = vector.takeRight(ntargets).toArray
+  lazy val targets = m_AttValues.takeRight(ntargets)
   lazy val nominalSplit = nominalLabel.drop(10).split(",").map(_.toDouble)
   lazy val nclasses = if (parent == null) {
     println("Non weka instances! Assuming 3 classes!")
