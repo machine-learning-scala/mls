@@ -40,11 +40,20 @@ object Datasets extends Lock {
     instances.zipWithIndex.map { case (instance, idx) => Pattern(idx, instance, missed = false, parent) }
   }
 
+  def instances2patternsId(instances: Instances) = {
+    val parent = PatternParent(instances)
+    instances map { case (instance) =>
+      val id = instance.weight.toInt
+      instance.setWeight(1)
+      Pattern(id, instance, missed = false, parent)
+    }
+  }
+
   /**
    * Reads an ARFF file.
    * Remove useless attributes.
    */
-  def arff(arq: String, dedup: Boolean = true) = {
+  def arff(arq: String, dedup: Boolean = true, rmuseless: Boolean = true) = {
     try {
 
       //Extract instances from file and close it.
@@ -55,7 +64,7 @@ object Datasets extends Lock {
       instances.setRelationName(arq)
 
       //Removes useless atts.
-      val instancesUselessRemoved = rmUselessWeka(instances)
+      val instancesUselessRemoved = if (rmuseless) rmUselessWeka(instances) else instances
       if (instances.numAttributes() != instancesUselessRemoved.numAttributes()) println(s"${instances.numAttributes() - instancesUselessRemoved.numAttributes()} useless attributes removed from $arq.")
 
       //Random projection of atts. (está roubando um pouco aqui, mas é necessário para que o SQLite aceite o dataset.
@@ -209,7 +218,7 @@ object Datasets extends Lock {
 
   def removeBagFilter(patts: Seq[Pattern]) = {
     val filter = new Remove
-    filter.setAttributeIndices("1")
+    filter.setAttributeIndices("first")
     filter.setInputFormat(patts.head.dataset())
     filter
   }
@@ -223,6 +232,16 @@ object Datasets extends Lock {
   else {
     val new_instances = new Instances(patterns.head.dataset, 0, 0)
     patterns foreach new_instances.add
+    new_instances
+  }
+
+  /**
+   * poe id no peso
+   */
+  def patterns2instancesId(patterns: Seq[Pattern]) = if (patterns.isEmpty) throw new Error("Empty sequence of patterns; cannot generate Weka Instances object.")
+  else {
+    val new_instances = new Instances(patterns.head.dataset, 0, 0)
+    patterns foreach (pa => new_instances.add(new Pattern(pa.id, pa.toDoubleArray.toList.dropRight(1), pa.toDoubleArray.last, pa.id, false, pa.parent, true)))
     new_instances
   }
 

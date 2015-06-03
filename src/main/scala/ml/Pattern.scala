@@ -43,8 +43,8 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
     m
   }
   lazy val nattributes = if (attribute(0).isString) ndescs else numAttributes - 1
-  lazy val ntargets = if (attribute(0).isString) attribute(0).name.split("_").last.toInt else error("sem bagAtt")
-  lazy val ndescs= if (attribute(0).isString) numAttributes()-ntargets-1 else error("sem bagAtt")
+  lazy val ntargets = if (attribute(0).isString) attribute(0).name.split("_").last.toInt else sys.error("sem bagAtt")
+  lazy val ndescs = if (attribute(0).isString) numAttributes() - ntargets - 1 else sys.error("sem bagAtt")
   lazy val targets = m_AttValues.takeRight(ntargets)
   lazy val nominalSplit = nominalLabel.drop(10).split(",").map(_.toDouble)
   lazy val nclasses = if (parent == null) {
@@ -56,8 +56,8 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
     ntargets
   } else numClasses
   //  lazy val unlabel = Pattern(vector, -1, weight, missed, parent, weka)
-  lazy val inputs=if (attribute(0).isString) ndescs else nattributes
-  lazy val outputs=if (attribute(0).isString) ntargets else nclasses
+  lazy val inputs = if (attribute(0).isString) ndescs else nattributes
+  lazy val outputs = if (attribute(0).isString) ntargets else nclasses
   lazy val label_array = {
     val a = Array.fill(outputs)(0d)
     a(label.toInt) = 1
@@ -118,7 +118,7 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
 
   lazy val x = parent.xy(this).x
   lazy val y = parent.xy(this).y
-  if (weka) setDataset(parent.dataset)
+  if (weka) setDataset(parent.dataset) else setDataset(null)
 
   def this(id: Int, instance: Instance, missed: Boolean, parent: PatternParent) =
     this(id, instance.toDoubleArray.toList.dropRight(1), instance.classValue, instance.weight, missed, parent, true)
@@ -146,4 +146,6 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
     Pattern(id, vector, new_label, new_weight, new_missed, parent, weka = true)
 
   private def treat_nominal(i: Int) = if (attribute(i).isNominal) attribute(i).value(value(i).toInt) else value(i)
+
+  lazy val base = value(0) //attribute(0).value(toDoubleArray.head.toInt)
 }
