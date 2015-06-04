@@ -223,6 +223,13 @@ object Datasets extends Lock {
     filter
   }
 
+  def removeUselessFilter(patts: Seq[Pattern]) = {
+    val rmUseless_filter = new RemoveUseless
+    //    rmUseless_filter.setMaximumVariancePercentageAllowed()
+    rmUseless_filter.setInputFormat(patts.head.dataset())
+    rmUseless_filter
+  }
+
   /**
    * Create a new Instances that contains Pattern objects instead of Instance objects.
    * @param patterns
