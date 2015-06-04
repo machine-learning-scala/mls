@@ -26,39 +26,39 @@ import weka.classifiers.trees.{EntropyMeasure, RandomForest2, RandomForest}
 import weka.core.Utils
 
 case class RF(seed: Int = 42, trees: Int = 10, depth: Int = 0, minObjsAtLeaf: Int = 1) extends BatchWekaLearner {
-   override val toString = s"RFw"
-   val boundaryType = "flexível"
-   val attPref = "ambos"
-   val id = 773
-   //   773 dep0 trees10
-   //666773 dep10 trees15
-   val abr = toString
+  override val toString = s"RFw" + (if (trees != 10) trees else "")
+  val boundaryType = "flexível"
+  val attPref = "ambos"
+  val id = 773
+  //   773 dep0 trees10
+  //666773 dep10 trees15
+  val abr = toString
 
-   def expected_change(model: Model)(pattern: Pattern): Double = ???
+  def expected_change(model: Model)(pattern: Pattern): Double = ???
 
-   def build(patterns: Seq[Pattern]): Model = {
-      val classifier = new RandomForest2(minObjsAtLeaf)
-      classifier.setSeed(seed)
-      classifier.setDontCalculateOutOfBagError(true)
-      classifier.setDebug(false)
-      classifier.setDoNotCheckCapabilities(true)
-      classifier.setNumTrees(trees)
-      classifier.setMaxDepth(depth)
-      generate_model(classifier, patterns.padTo(3, patterns.head))
-   }
+  def build(patterns: Seq[Pattern]): Model = {
+    val classifier = new RandomForest2(minObjsAtLeaf)
+    classifier.setSeed(seed)
+    classifier.setDontCalculateOutOfBagError(true)
+    classifier.setDebug(false)
+    classifier.setDoNotCheckCapabilities(true)
+    classifier.setNumTrees(trees)
+    classifier.setMaxDepth(depth)
+    generate_model(classifier, patterns.padTo(3, patterns.head))
+  }
 
-   protected def test_subclass(classifier: Classifier) = classifier match {
-      case cla: RandomForest2 => cla
-      case _ => throw new Exception(this + " requires RandomForest.")
-   }
+  protected def test_subclass(classifier: Classifier) = classifier match {
+    case cla: RandomForest2 => cla
+    case _ => throw new Exception(this + " requires RandomForest.")
+  }
 }
 
 object RFTest extends App with EntropyMeasure {
-   val n = 100
-   val ps = Datasets.arff("/home/davi/wcs/ucipp/uci/banana.arff").right.get.take(10 + n)
-   val l = RF(42, 10, 0, math.max(Utils.log2(n).toInt - 1, 1))
-   val m = l.build(ps.tail.drop(10))
-   ps.take(10) foreach { x =>
-      println(" " + m.JS(x) + " " + entropy(m.distribution(x)))
-   }
+  val n = 100
+  val ps = Datasets.arff("/home/davi/wcs/ucipp/uci/banana.arff").right.get.take(10 + n)
+  val l = RF(42, 10, 0, math.max(Utils.log2(n).toInt - 1, 1))
+  val m = l.build(ps.tail.drop(10))
+  ps.take(10) foreach { x =>
+    println(" " + m.JS(x) + " " + entropy(m.distribution(x)))
+  }
 }
