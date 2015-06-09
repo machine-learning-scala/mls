@@ -53,7 +53,7 @@ object Datasets extends Lock {
    * Reads an ARFF file.
    * Remove useless attributes.
    */
-  def arff(arq: String, dedup: Boolean = true, rmuseless: Boolean = true) = {
+  def arff(arq: String, dedup: Boolean = true, rmuseless: Boolean = true, print: Boolean = false) = {
     try {
 
       //Extract instances from file and close it.
@@ -78,7 +78,7 @@ object Datasets extends Lock {
 
       //Deduplication.
       val distinctPatts = if (dedup) {
-        println("Only distinct instances will be kept, but preserving ARFF original line number as id, starting from zero.")
+        if (print) println("Only distinct instances will be kept, but preserving ARFF original line number as id, starting from zero.")
         distinctMode(idpatts)
       } else idpatts
 
