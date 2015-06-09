@@ -53,7 +53,7 @@ object Datasets extends Lock {
    * Reads an ARFF file.
    * Remove useless attributes.
    */
-  def arff(arq: String, dedup: Boolean = true, rmuseless: Boolean = true, print: Boolean = false) = {
+  def arff(arq: String, dedup: Boolean = true, rmuseless: Boolean = true, print: Boolean = true) = {
     try {
 
       //Extract instances from file and close it.
@@ -65,13 +65,13 @@ object Datasets extends Lock {
 
       //Removes useless atts.
       val instancesUselessRemoved = if (rmuseless) rmUselessWeka(instances) else instances
-      if (instances.numAttributes() != instancesUselessRemoved.numAttributes()) println(s"${instances.numAttributes() - instancesUselessRemoved.numAttributes()} useless attributes removed from $arq.")
+      if (instances.numAttributes() != instancesUselessRemoved.numAttributes() && print) println(s"${instances.numAttributes() - instancesUselessRemoved.numAttributes()} useless attributes removed from $arq.")
 
       //Random projection of atts. (está roubando um pouco aqui, mas é necessário para que o SQLite aceite o dataset.
       //Há um limite de 1998 atributos; como já estou interferindo vou reduzir para 998 (pois o mysql tem limite de 1000), pois com 1998 estava muito lento.
       //Note-se que a projeção resulta em atributos numéricos.
       val projected = rndProjectionWeka(instancesUselessRemoved, arq)
-      if (instancesUselessRemoved.numAttributes() != projected.numAttributes()) println(s"random projection applied to shrink ${instancesUselessRemoved.numAttributes()} ${projected.numAttributes()} attributes in $arq.")
+      if (instancesUselessRemoved.numAttributes() != projected.numAttributes() && print) println(s"random projection applied to shrink ${instancesUselessRemoved.numAttributes()} ${projected.numAttributes()} attributes in $arq.")
 
       //Assigns ids from zero. (should be one of the first things because of weka filters' indeterminism)
       val idpatts = instances2patterns(projected)
@@ -84,7 +84,7 @@ object Datasets extends Lock {
 
       //Alerts about how many duplicates were found.
       if (instances.numInstances() != distinctPatts.size) {
-        println("In dataset " + arq + ": " + (instances.numInstances() - distinctPatts.size) + " duplicate instances eliminated! Distinct = " + distinctPatts.size + " original:" + instances.numInstances())
+        if (print) println("In dataset " + arq + ": " + (instances.numInstances() - distinctPatts.size) + " duplicate instances eliminated! Distinct = " + distinctPatts.size + " original:" + instances.numInstances())
       }
 
       Right(distinctPatts.toVector)
