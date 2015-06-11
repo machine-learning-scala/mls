@@ -30,7 +30,7 @@ import scala.collection.mutable
 import scala.util.parsing.combinator.{ImplicitConversions, JavaTokenParsers, RegexParsers}
 
 case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 1) extends BatchWekaLearner {
-  override val toString = s"C4.5w" + (if (minobjs > -1) minobjs else "")
+  override val toString = s"C4.5" + (if (minobjs > -1) minobjs else "")
   val id = 666003
   val abr = toString
   val boundaryType = "rígida"
