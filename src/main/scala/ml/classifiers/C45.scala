@@ -90,7 +90,14 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
           s += v
           s < explicitos * tot && v > 1
         }
-        val qtds2 = bef ++ aft.takeWhile(x => x._2 == bef.last._2 && (explicitos == 1 || x._2 > 1))
+        //        println(s"${} <- ")
+        //        aft foreach println
+        //        println(s"${} <- ")
+        val qtds2 = bef ++ (if (bef.isEmpty) aft
+        else
+          aft.takeWhile { x =>
+            x._2 == bef.last._2 && (explicitos == 1 || x._2 > 1)
+          })
         val demais = tot - qtds2.map(_._2).sum
         val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) :+ ("demais ($\\leq " + srtd.drop(qtds2.size).head._2 + "$)" -> demais) else qtds2
         "child {node [outcome] {\n" + qtds3.map(x => x._1 + ": " + x._2).mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
@@ -108,7 +115,11 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
   def tree(arff: String, tex: String) = {
     Datasets.arff(arff, dedup = false) match {
       case Left(str) => throw new Error(str)
-      case Right(ps) =>
+      case Right(ps0) =>
+        val ps = if (ps0.head.attribute(0).isString) {
+          val f = Datasets.removeBagFilter(ps0)
+          Datasets.applyFilter(f)(ps0)
+        } else ps0
         val m = build(ps)
         val str = m.asInstanceOf[WekaModel].classifier.asInstanceOf[J48].distrs().replace("extbf", "\\textbf")
         println(s"")
