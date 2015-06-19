@@ -25,11 +25,13 @@ import scala.util.Random
 case class ChuteModel(seed: Int) extends Model {
   def JS(pattern: Pattern) = ???
 
+  val rnd = new Random(seed)
+
   def predict(instance: Pattern) = distribution(instance).zipWithIndex.maxBy(_._1)._2
 
   def distribution(instance: Pattern) = {
     val arr = Array.fill(instance.nclasses)(0d)
-    arr(new Random().nextInt(instance.nclasses)) = 1
+    arr(rnd.nextInt(instance.nclasses)) = 1
     arr
   }
 
