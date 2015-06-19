@@ -282,12 +282,31 @@ object Datasets extends Lock {
   def applyFilterIdWeigth(filter: Filter)(patts: Seq[Pattern]) = if (patts.isEmpty) Vector()
   else {
     val instances = patterns2instances(patts)
-    val m = mutable.Map[String, Int]()
+    val m = mutable.Map[Int, Int]()
     patts.foreach { case (pat) =>
-      m += pat.toDoubleArray.mkString -> pat.id
+      m += pat.toDoubleArray.mkString.hashCode -> pat.id
     }
     val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
-    val res = newInstances.map { case instance => Pattern(m.getOrElse(instance.toDoubleArray.mkString, sys.error(instance.toDoubleArray.mkString)), instance, missed = false, PatternParent(instance.dataset())) }
+    val res = newInstances.map { case instance => Pattern(m.getOrElse(instance.toDoubleArray.mkString.hashCode, sys.error(instance.toDoubleArray.mkString.hashCode + "\n" + m)), instance, missed = false, PatternParent(instance.dataset())) }
+    res.toVector
+  }
+
+  /**
+   * Warning: nondeterministic process regarding patterns resulting order.
+   * atribui IDs arbitrarios (ideal para depois de SMOTE)
+   * @param patts
+   * @param filter
+   * @return
+   */
+  def applyFilterIdRnd(filter: Filter)(patts: Seq[Pattern]) = if (patts.isEmpty) Vector()
+  else {
+    val instances = patterns2instances(patts)
+    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
+    var id = 0
+    val res = newInstances.map { case instance =>
+      id += 1
+      Pattern(id, instance, missed = false, PatternParent(instance.dataset()))
+    }
     res.toVector
   }
 
