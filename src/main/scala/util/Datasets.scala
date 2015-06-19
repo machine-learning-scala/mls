@@ -272,6 +272,25 @@ object Datasets extends Lock {
     res.toVector
   }
 
+  /**
+   * Warning: nondeterministic process regarding patterns resulting order.
+   * mantém id por meio de mapa
+   * @param patts
+   * @param filter
+   * @return
+   */
+  def applyFilterIdWeigth(filter: Filter)(patts: Seq[Pattern]) = if (patts.isEmpty) Vector()
+  else {
+    val instances = patterns2instances(patts)
+    val m = mutable.Map[String, Int]()
+    patts.foreach { case (pat) =>
+      m += pat.toDoubleArray.mkString -> pat.id
+    }
+    val newInstances = Filter.useFilter(instances, filter) //Weka Filter clones every instance.
+    val res = newInstances.map { case instance => Pattern(m.getOrElse(instance.toDoubleArray.mkString, sys.error(instance.toDoubleArray.mkString)), instance, missed = false, PatternParent(instance.dataset())) }
+    res.toVector
+  }
+
   //Weka   -----------------------------------
   def rndProjectionWeka(instances2: Instances, arq: String) = if (instances2.numAttributes > predAttsLimit) {
     val filter = new RandomProjection
