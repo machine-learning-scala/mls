@@ -206,7 +206,10 @@ public abstract class ClassifierSplitModel
             txt += data.classAttribute().value(i) + ";";
         text.append(txt.substring(0, txt.length() - 1));
         text.append(")");
-        text.append(Arrays.toString(m_distribution.m_perClassPerBag[index]).replace(", ", ";").replace("[", "ª").replace("]", "º"));
+        double rounded[] = new double[m_distribution.m_perClassPerBag[index].length];
+        for (int i = 0; i < m_distribution.m_perClassPerBag[index].length; i++)
+            rounded[i] = Math.round(m_distribution.m_perClassPerBag[index][i]);
+        text.append(Arrays.toString(rounded).replace(", ", ";").replace("[", "ª").replace("]", "º"));
 
         return text.toString();
     }
