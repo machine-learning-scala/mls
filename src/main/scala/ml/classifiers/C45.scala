@@ -94,10 +94,9 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
         //        aft foreach println
         //        println(s"${} <- ")
         val qtds2 = bef ++ (if (bef.isEmpty) aft
-        else
-          aft.takeWhile { x =>
-            x._2 == bef.last._2 && (explicitos == 1 || x._2 > 1)
-          })
+        else aft.takeWhile { x =>
+          x._2 == bef.last._2 && (explicitos == 1 || x._2 > 1)
+        })
         val demais = tot - qtds2.map(_._2).sum
         val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) :+ ("demais ($\\leq " + srtd.drop(qtds2.size).head._2 + "$)" -> demais) else qtds2
         "child {node [outcome] {\n" + qtds3.map(x => x._1 + ": " + x._2).mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
