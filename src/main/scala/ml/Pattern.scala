@@ -148,4 +148,5 @@ case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight
   private def treat_nominal(i: Int) = if (attribute(i).isNominal) attribute(i).value(value(i).toInt) else value(i)
 
   lazy val base = value(0) //attribute(0).value(toDoubleArray.head.toInt)
+  lazy val nomeBase = stringValue(0)
 }
