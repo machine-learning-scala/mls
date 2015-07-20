@@ -111,7 +111,7 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
     case _ => sys.error("pau")
   }
 
-  def tree(arff: String, tex: String) = {
+  def tree(arff: String, tex: String = null) = {
     Datasets.arff(arff, dedup = false) match {
       case Left(str) => throw new Error(str)
       case Right(ps0) =>
@@ -124,13 +124,12 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
         println(s"")
         println(str)
         println(s"")
-        val fw2 = new PrintWriter(tex, "UTF-8")
         val r = trav(Parsing.parse(str)) + "\n;"
-        fw2.write(r)
-        fw2.close()
-      //            println(s"")
-      //            println(r)
-      //            println(s"")
+        if (tex != null) {
+          val fw2 = new PrintWriter(tex, "UTF-8")
+          fw2.write(r)
+          fw2.close()
+        } else println("\n" + r + "\n")
     }
   }
 
