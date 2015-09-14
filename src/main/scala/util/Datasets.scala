@@ -89,7 +89,7 @@ object Datasets extends Lock {
 
       Right(distinctPatts.toVector)
     } catch {
-      case ex: IOException => Left("Problems reading file " + arq + ": " + ex.getMessage)
+      case ex: IOException => Left("\n" + ex + "\nProblems reading file " + arq)
     }
   }
 
