@@ -33,6 +33,8 @@ trait Learner extends Limpa {
       case 2651110 => true //rbf
       case 8001 => true //ci
       case 773 => false //rf
+      case 5541 => false //rof
+      case 5542 => false //adab
       case 2 => false //knn
       case 12 => false //nb
       case 666003 => false //c45

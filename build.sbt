@@ -14,6 +14,8 @@ libraryDependencies += "com.googlecode.matrix-toolkits-java" % "mtj" % "1.0.1"
 
 libraryDependencies += "org.scala-lang.modules" % "scala-parser-combinators_2.11" % "1.0.4"
 
+libraryDependencies += "nz.ac.waikato.cms.weka" % "rotationForest" % "1.0.3"
+
 //libraryDependencies += "com.googlecode.efficient-java-matrix-library" % "ejml" % "0.25"
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-language:reflectiveCalls")
