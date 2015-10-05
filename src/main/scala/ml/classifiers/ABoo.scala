@@ -49,7 +49,7 @@ case class ABoo(seed: Int = 42, iterations: Int = 10) extends BatchWekaLearner {
 
   protected def test_subclass(classifier: Classifier) = classifier match {
     case cla: ABoo => cla
-    case _ => throw new Exception(this + " requires ABoo.")
+    case x => throw new Exception(this + s" requires ABoo. not $x")
   }
 }
 

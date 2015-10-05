@@ -55,7 +55,7 @@ case class RoF(seed: Int = 42, iterations: Int = 10) extends BatchWekaLearner {
 
   protected def test_subclass(classifier: Classifier) = classifier match {
     case cla: RoF => cla
-    case _ => throw new Exception(this + " requires RoF.")
+    case x => throw new Exception(this + s" requires Rof. not $x")
   }
 }
 
