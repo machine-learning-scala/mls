@@ -27,7 +27,7 @@ case class RoF(seed: Int = 42, iterations: Int = 10) extends BatchWekaLearner {
   override val toString = s"RoF" + (if (iterations != 10) iterations else "")
   val boundaryType = "flexível"
   val attPref = "ambos"
-  val id = 5541
+  val id = 55411
   val abr = toString
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
