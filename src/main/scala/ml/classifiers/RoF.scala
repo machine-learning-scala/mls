@@ -21,7 +21,7 @@ import ml.Pattern
 import ml.models.Model
 import weka.classifiers.Classifier
 import weka.classifiers.meta.{RotationForest}
-import weka.classifiers.trees.{RandomTree}
+import weka.classifiers.trees.{RandomForest, RandomTree}
 
 case class RoF(seed: Int = 42, iterations: Int = 10) extends BatchWekaLearner {
   override val toString = s"RoF" + (if (iterations != 10) iterations else "")
@@ -54,7 +54,7 @@ case class RoF(seed: Int = 42, iterations: Int = 10) extends BatchWekaLearner {
   }
 
   protected def test_subclass(classifier: Classifier) = classifier match {
-    case cla: RoF => cla
+    case cla: RotationForest => cla
     case x => throw new Exception(this + s" requires Rof. not ${x.getClass}")
   }
 }
