@@ -20,42 +20,39 @@ package ml.classifiers
 import ml.Pattern
 import ml.models.Model
 import weka.classifiers.Classifier
-import weka.classifiers.meta.{RotationForest}
-import weka.classifiers.trees.{RandomForest, RandomTree}
+import weka.classifiers.bayes.NaiveBayes
+import weka.classifiers.meta.{Bagging, RotationForest}
+import weka.classifiers.trees.RandomTree
 
-case class RoF(seed: Int = 42, iterations: Int = 10) extends BatchWekaLearner {
-  override val toString = s"RoF" + (if (iterations != 10) iterations else "")
+case class BagNB(seed: Int = 42, iterations: Int = 10) extends BatchWekaLearner {
+  override val toString = s"BagNB" + (if (iterations != 10) iterations else "")
   val boundaryType = "flexível"
   val attPref = "ambos"
-  val id = 554110
+  val id = 54321
   val abr = toString
 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
   def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new RotationForest
+    val classifier = new Bagging
     classifier.setSeed(seed)
     classifier.setNumIterations(iterations)
     classifier.setDebug(false)
     classifier.setDoNotCheckCapabilities(true)
-    val rndtree = new RandomTree
-    rndtree.setDebug(false)
-    rndtree.setDoNotCheckCapabilities(true)
-    classifier.setClassifier(rndtree)
-    //    classifier.setMaxGroup()
-    //    classifier.setMinGroup()
-    //    classifier.setNumberOfGroups()
-    //    classifier.setProjectionFilter()
-    //    classifier.setRemovedPercentage()
-    //    classifier.setBatchSize()
-    //    classifier.setNumDecimalPlaces()
-    //    classifier.setNumExecutionSlots()
-    generate_model(classifier, patterns) //.padTo(3, patterns.head))
+
+    val cla = new NaiveBayes
+    cla.setDebug(false)
+    cla.setUseSupervisedDiscretization(true) //true=slow?
+    cla.setDoNotCheckCapabilities(true)
+    cla.setDebug(false)
+
+    classifier.setClassifier(cla)
+    generate_model(classifier, patterns)
   }
 
   protected def test_subclass(classifier: Classifier) = classifier match {
-    case cla: RotationForest => cla
-    case x => throw new Exception(this + s" requires Rof. not ${x.getClass}")
+    case cla: Bagging => cla
+    case x => throw new Exception(this + s" requires BagNB. not ${x.getClass}")
   }
 }
 

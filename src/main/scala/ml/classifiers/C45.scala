@@ -40,14 +40,14 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
   def expected_change(model: Model)(pattern: Pattern): Double = ???
 
   def build(patterns: Seq[Pattern]): Model = {
-    val classifier = new J48
-    classifier.setMinNumObj(if (minobjs == -1) math.min(10, patterns.head.nclasses * 2) else minobjs)
-    classifier.setUseLaplace(laplace)
-    classifier.setDoNotCheckCapabilities(true)
+    val cla = new J48
+    cla.setMinNumObj(if (minobjs == -1) math.min(10, patterns.head.nclasses * 2) else minobjs)
+    cla.setUseLaplace(laplace)
+    cla.setDoNotCheckCapabilities(true)
     //      classifier.setConfidenceFactor(confidence.toFloat)
     //      classifier.setUnpruned(!prune)
     //      classifier.setSaveInstanceData(true)
-    generate_model(classifier, patterns)
+    generate_model(cla, patterns)
   }
 
   protected def test_subclass(classifier: Classifier) = classifier match {
