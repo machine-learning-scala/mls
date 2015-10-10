@@ -29,14 +29,13 @@ import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, Minko
  * Weights by (1-d) if desired.
  * @param pattsForDistanceCache
  */
-case class Knn10(pattsForDistanceCache: Seq[Pattern]) extends BatchWekaLearner {
-  val weighted = true
+case class Knn10(pattsForDistanceCache: Seq[Pattern], weighted: Boolean) extends BatchWekaLearner {
   val k = 10
   val distance_name = "eucl"
-  override val toString = "10nn"
+  override val toString = "10nn" + (if (weighted) "w" else "")
   val boundaryType = "flexível"
   val attPref = "numérico"
-  val id = 54323
+  val id = 54323 + (if (weighted) 0 else 200000)
   val abr = toString
 
   def build(patterns: Seq[Pattern]) = {
