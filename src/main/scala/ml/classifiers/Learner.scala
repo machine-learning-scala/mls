@@ -41,6 +41,7 @@ trait Learner extends Limpa {
       case 54323 => false //10nn
 
       case 2 => false //knn
+      case 124356 => false //knnm
       case 12 => false //nb
       case 666003 => false //c45
       case 6660032 => false //c452
