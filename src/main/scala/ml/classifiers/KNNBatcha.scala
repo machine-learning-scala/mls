@@ -38,7 +38,7 @@ case class KNNBatcha(k: Int, distance_name: String, pattsForDistanceCache: Seq[P
   //(if (weighted) " weighted " else " (") + distance_name + s")"
   val boundaryType = "flexível"
   val attPref = "numérico"
-  val id = 2 + (if (distance_name == "manh") 124356 else 0)
+  val id = if (distance_name == "manh") 124358 else 2
   val abr = s"${k}NN" + (if (distance_name == "manh") "m" else "")
 
   def build(patterns: Seq[Pattern]) = {
