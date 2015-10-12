@@ -39,6 +39,4 @@ case class RandomRank(seed: Int) extends Model {
   val rnd = new Random(seed)
 
   def output(instance: Pattern) = (rnd.shuffle(1 to instance.nclasses) map (_.toDouble)).toArray
-
-  override lazy val L = ???
 }

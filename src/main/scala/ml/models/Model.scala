@@ -22,8 +22,6 @@ import ml.Pattern
 trait Model {
    def JS(pattern: Pattern): Double
 
-   val L: Int
-
    def predict(instance: Pattern): Double
 
    /**

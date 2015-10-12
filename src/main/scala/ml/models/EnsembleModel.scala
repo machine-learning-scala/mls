@@ -29,6 +29,4 @@ case class EnsembleModel(models: Seq[Model]) extends Model {
   def distribution(instance: Pattern) = models.map(_.distribution(instance)).reduce((a, b) => a.zip(b).map { case (x, y) => x + y }.map(_ / models.size))
 
   def output(instance: Pattern) = models.map(_.output(instance)).reduce((a, b) => a.zip(b).map { case (x, y) => x + y })
-
-  override lazy val L = ??? // models.map(_.L).sum
 }

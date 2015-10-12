@@ -38,8 +38,6 @@ case class FakeModelRank(predMap: Map[Int, Array[Double]]) extends Model {
 
   def output(instance: Pattern) = predMap(instance.id)
 
-  override lazy val L = ??? // models.map(_.L).sum
-
   /**
    * All maps should have the same ids.
    * @param that

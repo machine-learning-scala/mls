@@ -36,6 +36,4 @@ case class ChuteModel(seed: Int) extends Model {
   }
 
   def output(instance: Pattern) = distribution(instance)
-
-  override lazy val L = ???
 }
