@@ -34,7 +34,7 @@ import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, Minko
  * @param weighted
  */
 case class KNNBatcha(k: Int, distance_name: String, pattsForDistanceCache: Seq[Pattern], weighted: Boolean = false) extends BatchWekaLearner {
-  override val toString = k + "NNa" + (if (distance_name == "manh") "m" else "")  + (if (weighted) "w" else "")
+  override val toString = k + "NN" + (if (distance_name == "manh") "m" else "")  + (if (weighted) "w" else "")
   //(if (weighted) " weighted " else " (") + distance_name + s")"
   val boundaryType = "flexível"
   val attPref = "numérico"
