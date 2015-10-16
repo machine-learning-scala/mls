@@ -31,7 +31,7 @@ import weka.core.{ChebyshevDistance, EuclideanDistance, ManhattanDistance, Minko
  */
 case class Knn10(pattsForDistanceCache: Seq[Pattern], weighted: Boolean, distance_name: String) extends BatchWekaLearner {
   val k = 10
-  override val toString = "10nn" + (if (weighted) "w" else "") + (if (distance_name == "eucl") "" else "m")
+  override val toString = "10NN" + (if (weighted) "w" else "") + (if (distance_name == "eucl") "" else "m")
   val boundaryType = "flexível"
   val attPref = "numérico"
   val id = 54323 + (if (weighted) 0 else 200000) + (if (distance_name == "eucl") 0 else 100000)
