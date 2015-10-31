@@ -23,7 +23,7 @@ import weka.classifiers.Classifier
 
 case class WekaBatModel2(batch_classifier: Classifier, labeled: Seq[Pattern], ftodos: Map[Int, Pattern])
   extends WekaModel(batch_classifier) {
-  val precisouFiltro = !labeled.head.vector.sameElements(ftodos(labeled.head.id).vector)
+  val precisouFiltro = labeled.head.vector.sameElements(ftodos(labeled.head.id).vector)
 
   /**
    * verifica se trSet veio filtrado,
