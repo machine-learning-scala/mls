@@ -21,59 +21,60 @@ import ml.Pattern
 import ml.models.Model
 
 trait Learner extends Limpa {
-   val id: Int
-   val abr: String
-   lazy val abrev = abr
-   val attPref: String
-   val boundaryType: String
+  val id: Int
+  val abr: String
+  lazy val abrev = abr
+  val attPref: String
+  val boundaryType: String
 
-   lazy val querFiltro = qf(this)
+  lazy val querFiltro = qf(this)
 
-   def qf(le: Learner) = le.id match {
-      case 2651110 => true //rbf
-      case 8001 => true //ci
-      case 773 => false //rf
-      case 554110 => true //rof
-      case 5542 => false //adab
+  def qf(le: Learner) = le.id match {
+    case 2651110 => true //rbf
+    case 8001 => true //ci
+    case 773 => false //rf
+    case 554110 => true //rof
+    case 5542 => false //adab
 
-      case 54321 => false //bagnb
-      case 54322 => false //bagc45
-      case 54323 => false //10nnw
-      case 254323 => false //10nn
-      case 154323 => false //10nnmw
-      case 354323 => false //10nnm
+    case 54321 => false //bagnb
+    case 54322 => false //bagc45
+    case 54323 => false //10nnw
+    case 254323 => false //10nn
+    case 154323 => false //10nnmw
+    case 354323 => false //10nnm
 
-      case 2 => false //knnew
-      case 200002 => false //knne
-      case 124358 => false //knnmw
-      case 324358 => false //knnm
-      case 12 => false //nb
-      case 666003 => false //c45
-      case 6660032 => false //c452
-      case 13 =>false //maj
-      case 11 => true
-      case 91919292 => false
-      case 13133166 => false
-      case 71939292 => true
-      case 4 => false //vfdt
-      case x =>sys.error(s"classificador proibido:$x")
-   }
+    case 2 => false //knnew
+    case 200002 => false //knne
+    case 124358 => false //knnmw
+    case 324358 => false //knnm
+    case 12 => false //nb
+    case 666003 => false //c45
+    case 6660032 => false //c452
+    case 13 => false //maj
+    case 11 => true
+    case 91919292 => false
+    case 13133166 => false
+    case 71939292 => true
+    case 4 => false //vfdt
+    case 165111 => true //svm linear
+    case x => sys.error(s"classificador proibido:$x")
+  }
 
-   //  def diff(modelA: Model, modelB: Model): Double
+  //  def diff(modelA: Model, modelB: Model): Double
 
-   /**
-    * Every call to build generates a model from scratch
-    * (and reinstanciate all needed internal mutable objects, if any).
-    * @param pool
-    * @return
-    */
-   def build(pool: Seq[Pattern]): Model
+  /**
+   * Every call to build generates a model from scratch
+   * (and reinstanciate all needed internal mutable objects, if any).
+   * @param pool
+   * @return
+   */
+  def build(pool: Seq[Pattern]): Model
 
-   def update(model: Model, fast_mutable: Boolean = false, semcrescer: Boolean = false)(pattern: Pattern): Model
+  def update(model: Model, fast_mutable: Boolean = false, semcrescer: Boolean = false)(pattern: Pattern): Model
 
-   //  def forget(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
+  //  def forget(model: Model, fast_mutable: Boolean = false)(pattern: Pattern): Model
 
-   def expected_change(model: Model)(pattern: Pattern): Double
+  def expected_change(model: Model)(pattern: Pattern): Double
 }
 
 //trait IncrementalLearner extends Learner {
