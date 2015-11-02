@@ -55,6 +55,7 @@ trait Learner extends Limpa {
       case 91919292 => false
       case 13133166 => false
       case 71939292 => true
+      case 4 => false //vfdt
       case x =>sys.error(s"classificador proibido:$x")
    }
 
