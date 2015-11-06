@@ -25,8 +25,6 @@ import ml.models.{Model, WekaModel}
 import util.Datasets
 import weka.classifiers.Classifier
 import weka.classifiers.trees.J48
-
-import scala.collection.mutable
 import scala.util.parsing.combinator.{ImplicitConversions, JavaTokenParsers, RegexParsers}
 
 case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 1) extends BatchWekaLearner {
@@ -124,7 +122,7 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
         println(s"")
         println(str)
         println(s"")
-        val r = trav(Parsing.parse(str)).replace("maiorque",">") + "\n;"
+        val r = trav(Parsing.parse(str)).replace("maiorque", ">").replace("simbolomenor", "<") + "\n;"
         if (tex != null) {
           val fw2 = new PrintWriter(tex, "UTF-8")
           fw2.write(r)
