@@ -124,7 +124,7 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
         println(s"")
         println(str)
         println(s"")
-        val r = trav(Parsing.parse(str)) + "\n;"
+        val r = trav(Parsing.parse(str)).replace("maiorque",">") + "\n;"
         if (tex != null) {
           val fw2 = new PrintWriter(tex, "UTF-8")
           fw2.write(r)

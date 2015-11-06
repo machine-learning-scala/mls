@@ -27,7 +27,7 @@ import weka.classifiers.trees.RandomTree
 case class BagNB(seed: Int = 42, iterations: Int = 10) extends BatchWekaLearner {
   override val toString = s"BagNB" + (if (iterations != 10) iterations else "")
   val boundaryType = "flexível"
-  val attPref = "ambos"
+  val attPref = "nominal"
   val id = 54321
   val abr = toString
 

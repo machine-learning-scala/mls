@@ -26,7 +26,7 @@ import weka.classifiers.trees.{RandomForest, RandomTree}
 case class RoF(seed: Int = 42, iterations: Int = 10) extends BatchWekaLearner {
   override val toString = s"RoF" + (if (iterations != 10) iterations else "")
   val boundaryType = "flexível"
-  val attPref = "ambos"
+  val attPref = "numérico"
   val id = 554110
   val abr = toString
 
