@@ -32,10 +32,10 @@ trait Learner extends Limpa {
   def qf(le: Learner) = le.id match {
     case 2651110 => true //rbf
     case 8001 => true //ci
-    case 773 => false //rf
     case 554110 => true //rof
-    case 5542 => false //adab
 
+    case 773 => false //rf
+    case 5542 => false //adab
     case 54321 => false //bagnb
     case 54322 => false //bagc45
     case 54323 => false //10nnw
