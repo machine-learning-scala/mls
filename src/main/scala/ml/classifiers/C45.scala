@@ -97,7 +97,7 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
           x._2 == bef.last._2 && (explicitos == 1 || x._2 > 1)
         })
         val demais = tot - qtds2.map(_._2).sum
-        val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) :+ ("demais ($\\leq " + aft.tail.head._2 + "$)" -> demais) else qtds2
+        val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) ++ (if(aft.tail.nonEmpty) List("demais ($\\leq " + aft.tail.head._2 + "$)" -> demais) else List()) else qtds2
         "child {node [outcome] {\n" + qtds3.map(x => x._1 + ": " + x._2).mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
       } else "%"
     case _ => sys.error(s"erro matching")
