@@ -28,7 +28,7 @@ import weka.classifiers.trees.J48
 
 import scala.util.parsing.combinator.{ImplicitConversions, JavaTokenParsers, RegexParsers}
 
-case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 1) extends BatchWekaLearner {
+case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 1, confd: Double = 0.25) extends BatchWekaLearner {
   override val toString = s"C4.5" + (if (minobjs > -1) minobjs else "")
   val id = 666003
   val abr = toString
@@ -43,7 +43,7 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
     cla.setMinNumObj(if (minobjs == -1) math.min(10, patterns.head.nclasses * 2) else minobjs)
     cla.setUseLaplace(laplace)
     cla.setDoNotCheckCapabilities(true)
-    //      classifier.setConfidenceFactor(confidence.toFloat)
+    cla.setConfidenceFactor(confd.toFloat)
     //      classifier.setUnpruned(!prune)
     //      classifier.setSaveInstanceData(true)
     generate_model(cla, patterns)
@@ -53,27 +53,6 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
     case cla: J48 => cla
     case _ => throw new Exception(this + " requires J48.")
   }
-
-  //   class MyMap[K, V](m1: Map[K, V]) {
-  //      def merge(m2: Map[K, V])(f: (V, V) => V) = (m1 -- m2.keySet) ++ (m2 -- m1.keySet) ++ (for (k <- m1.keySet & m2.keySet) yield {
-  //         k -> f(m1(k), m2(k))
-  //      })
-  //   }
-  //
-  //   implicit def toMyMap[K, V](m: Map[K, V]) = new MyMap(m)
-  //
-  //   def add(mm: mutable.Map[String, Int], m: Map[String, Int]) = m foreach { case (k, v) =>
-  //      val s = mm.getOrElseUpdate(k, 0)
-  //      mm(k) = s + v
-  //   }
-
-  //   def travDistr(t: Tree): Map[String, Int] = t match {
-  //      case Node(cond, operador, valor, children) => (children map travDistr) reduceLeft {
-  //         _.merge(_)(_ + _)
-  //      }
-  //      case l@Leaf(cond, operador, valor, texto, qtds) => qtds
-  //      case _ => sys.error(s"erro matching")
-  //   }
 
   def trav(t: Tree): String = t match {
     case Root(children) =>
@@ -85,7 +64,8 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
       if (tot > 0) {
         var s = 0
         val srtd = qtds.toList.sortBy(_._2).reverse
-        val (bef, aft) = srtd span { case (k, v) =>
+        val (bef, aft) = if (explicitos == 1) srtd -> List()
+        else srtd span { case (k, v) =>
           s += v
           s < explicitos * tot && v > 1
         }
@@ -97,7 +77,7 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
           x._2 == bef.last._2 && (explicitos == 1 || x._2 > 1)
         })
         val demais = tot - qtds2.map(_._2).sum
-        val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) ++ (if(aft.tail.nonEmpty) List("demais ($\\leq " + aft.tail.head._2 + "$)" -> demais) else List()) else qtds2
+        val qtds3 = if (demais > 0) qtds2 ++ aft.tail.map(x => "% " + x._1 -> x._2) ++ (if (aft.tail.nonEmpty) List("demais ($\\leq " + aft.tail.head._2 + "$)" -> demais) else List()) else qtds2
         "child {node [outcome] {\n" + qtds3.map(x => x._1 + ": " + x._2).mkString("\\\\\n") + "} edge from parent node [cond] {" + op(operador, valor) + "}}"
       } else "%"
     case _ => sys.error(s"erro matching")
@@ -111,6 +91,22 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
   }
 
   def tree(arff: String, tex: String = null) = {
+    val mapa = Map(
+      "Clu" -> "HS",
+      "C4.52" -> "C4.5w",
+      "maiorque" -> ">",
+      "simbolomenor" -> "<",
+      "nominalValuesCountmin" -> "$\\qnom_{min}$ ",
+      "correlsmin" -> "$\\rho_{min}$",
+      "kurtosesmin" -> "$\\ku_{min}$",
+      "#exemplos/#atributos" -> "$\\qexeatt$",
+      "#atributos" -> "$\\qatt$",
+      "entropiasmin" -> "$\\en_{min}$",
+      "mediasmin" -> "${\\mu}_{min}$",
+      "AH-Dunn-Y" -> "$\\du_{h1}$",
+      "mediasminBymediasmax" -> "$\\mu_{min/max}$",
+      "#classes" -> "$\\qnc$"
+    )
     Datasets.arff(arff, dedup = false) match {
       case Left(str) => throw new Error(str)
       case Right(ps0) =>
@@ -123,10 +119,11 @@ case class C45(laplace: Boolean = true, minobjs: Int = -1, explicitos: Double = 
         println(s"")
         println(str)
         println(s"")
-        val r = trav(Parsing.parse(str)).replace("Clu", "HS").replace("C4.52", "C4.5w").replace("maiorque", ">").replace("simbolomenor", "<") + "\n;"
+        val r = trav(Parsing.parse(str)) + "\n;"
+        val s2 = mapa.foldLeft(r)((a, b) => a.replace(b._1, b._2))
         if (tex != null) {
           val fw2 = new PrintWriter(tex, "UTF-8")
-          fw2.write(r)
+          fw2.write(s2)
           fw2.close()
         } else println("\n" + r + "\n")
     }
