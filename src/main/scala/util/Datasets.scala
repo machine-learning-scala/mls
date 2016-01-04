@@ -180,12 +180,13 @@ object Datasets extends Lock {
     }
   }
 
-  def kfoldCV2[T](patterns: => Seq[Vector[Pattern]], k: Int = 10, parallel: Boolean = false)(f: (Seq[Vector[Pattern]], Seq[Vector[Pattern]], Int, Int) => T) = {
+  def kfoldCV2[T](patterns: => Seq[Vector[Pattern]], k: Int = 10, parallel: Boolean = false, sohRoF: Boolean = false, run: Int = -1)(f: (Seq[Vector[Pattern]], Seq[Vector[Pattern]], Int, Int) => T) = {
     lazy val folds = {
       val n = patterns.length
       val tmp = Array.fill(k)(Seq[Vector[Pattern]]())
       def label(s: Vector[Pattern]) = s.groupBy(_.label).maxBy(_._2.size)._1 //Random.shuffle(s).head.label <-violates general contract
-      val grouped = (patterns sortBy label).toArray
+      val grouped = if (sohRoF) new Random(run).shuffle(patterns.sortBy(_.head.id)).zipWithIndex.sortBy { case (v, id) => v.head.label * 100000 + id }.map(_._1).toArray
+        else (patterns sortBy label).toArray
       var i = 0
       while (i < n) {
         tmp(i % k) +:= grouped(i)
