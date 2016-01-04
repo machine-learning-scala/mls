@@ -185,7 +185,7 @@ object Datasets extends Lock {
       val n = patterns.length
       val tmp = Array.fill(k)(Seq[Vector[Pattern]]())
       def label(s: Vector[Pattern]) = s.groupBy(_.label).maxBy(_._2.size)._1 //Random.shuffle(s).head.label <-violates general contract
-      val grouped = if (sohRoF) new Random(run).shuffle(patterns.sortBy(_.head.id)).zipWithIndex.sortBy { case (v, id) => v.head.label * 100000 + id }.map(_._1).toArray
+      val grouped = if (sohRoF) new Random(run).shuffle(patterns.sortBy(x=>(x.head.nomeBase+run).hashCode)).zipWithIndex.sortBy { case (v, id) => v.head.label * 100000 + id }.map(_._1).toArray
         else (patterns sortBy label).toArray
       var i = 0
       while (i < n) {
