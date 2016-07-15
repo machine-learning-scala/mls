@@ -25,7 +25,7 @@ import weka.classifiers.rules.JRip
 import weka.classifiers.trees.{EntropyMeasure, RandomForest2, RandomForest}
 import weka.core.Utils
 
-case class RF(seed: Int = 42, trees: Int = 10, depth: Int = 0, minObjsAtLeaf: Int = 1) extends BatchWekaLearner {
+case class RF(seed: Int = 42, trees: Int = 10, depth: Int = 0, minObjsAtLeaf: Int = 1, threads:Int=1) extends BatchWekaLearner {
   override val toString = s"RFw" + (if (trees != 10) trees else "")
   val boundaryType = "flexível"
   val attPref = "ambos"
@@ -44,6 +44,7 @@ case class RF(seed: Int = 42, trees: Int = 10, depth: Int = 0, minObjsAtLeaf: In
     classifier.setDoNotCheckCapabilities(true)
     classifier.setNumTrees(trees)
     classifier.setMaxDepth(depth)
+    classifier.setNumExecutionSlots(threads)
     generate_model(classifier, patterns.padTo(3, patterns.head))
   }
 
