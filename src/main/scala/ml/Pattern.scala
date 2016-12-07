@@ -29,7 +29,7 @@ object Pattern {
   def apply(id: Int, instance: Instance, missed: Boolean, parent: PatternParent) = new Pattern(id, instance, missed, parent)
 }
 
-case class Pattern(id: Int, vector: List[Double], label: Double, instance_weight: Double = 1, missed: Boolean = false, parent: PatternParent = null, weka: Boolean = false)
+case class Pattern(var id: Int, vector: List[Double], label: Double, instance_weight: Double = 1, missed: Boolean = false, parent: PatternParent = null, weka: Boolean = false)
   extends DenseInstance(instance_weight, vector.toArray :+ label) {
   lazy val array = if (attribute(0).isString) m_AttValues.tail.dropRight(ntargets) else vector.toArray
   lazy val arraymtj = new DenseVector(array, false)
