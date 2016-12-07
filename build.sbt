@@ -19,3 +19,5 @@ libraryDependencies += "nz.ac.waikato.cms.weka" % "rotationForest" % "1.0.3"
 //libraryDependencies += "com.googlecode.efficient-java-matrix-library" % "ejml" % "0.25"
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-language:reflectiveCalls")
+
+scalacOptions ++= Seq("-Xmax-classfile-name","143")
