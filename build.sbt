@@ -2,7 +2,7 @@ name := "mls"
 
 version := "0.3"
 
-scalaVersion := "2.11.6"
+scalaVersion := "2.12.1"
 
 libraryDependencies += "nz.ac.waikato.cms.weka" % "weka-dev" % "3.7.11"
 
