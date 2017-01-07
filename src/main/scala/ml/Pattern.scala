@@ -21,10 +21,10 @@ import no.uib.cipr.matrix.{DenseMatrix, DenseVector}
 import weka.core._
 
 /**
- * Two Patterns are equal if they have the same id.
- * (it could be the descriptive attributes (a vector) but id was chosen for performance)
- * zero is not a valid Pattern id
- */
+  * Two Patterns are equal if they have the same id.
+  * (it could be the descriptive attributes (a vector) but id was chosen for performance)
+  * zero is not a valid Pattern id
+  */
 object Pattern {
   def apply(id: Int, instance: Instance, missed: Boolean, parent: PatternParent) = new Pattern(id, instance, missed, parent)
 }
@@ -113,6 +113,7 @@ case class Pattern(var id: Int, vector: List[Double], label: Double, instance_we
   lazy val nnumeric = (for (i <- 0 until inputs) yield attribute(i).isNumeric) count (_ == true)
   lazy val nnominal = (for (i <- 0 until inputs) yield attribute(i).isNominal) count (_ == true)
   lazy val toStrWithMissed = toString + "%als:" + missed
+  lazy val toStrWeighted = vector.mkString(" ") + s" $label w=$weight"
   lazy val toString_without_class = (0 until numAttributes() - 1) map treat_nominal mkString ","
   lazy val nominalLabel = classAttribute().value(label.toInt)
 
@@ -140,13 +141,15 @@ case class Pattern(var id: Int, vector: List[Double], label: Double, instance_we
 
 
   /**
-   * Create a copy with another label/weight/missed.
-   */
-  def relabeled_reweighted(new_label: Double, new_weight: Double, new_missed: Boolean) =
-    Pattern(id, vector, new_label, new_weight, new_missed, parent, weka = true)
+    * Create a copy with another label/weight/missed.
+    */
+  def relabeled_reweighted(new_label: Double, new_weight: Double, new_missed: Boolean) = Pattern(id, vector, new_label, new_weight, new_missed, parent, weka = true)
+
+  def reweighted(new_weight: Double) = Pattern(id, vector, label, new_weight, missed, parent, weka = true)
 
   private def treat_nominal(i: Int) = if (attribute(i).isNominal) attribute(i).value(value(i).toInt) else value(i)
 
-  lazy val base = value(0) //attribute(0).value(toDoubleArray.head.toInt)
+  lazy val base = value(0)
+  //attribute(0).value(toDoubleArray.head.toInt)
   lazy val nomeBase = stringValue(0)
 }
