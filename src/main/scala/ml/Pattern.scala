@@ -31,6 +31,8 @@ object Pattern {
 
 case class Pattern(var id: Int, vector: List[Double], label: Double, instance_weight: Double = 1, missed: Boolean = false, parent: PatternParent = null, weka: Boolean = false)
   extends DenseInstance(instance_weight, vector.toArray :+ label) {
+  lazy val a = vector(0)
+  lazy val b = vector(1)
   lazy val array = if (attribute(0).isString) m_AttValues.tail.dropRight(ntargets) else vector.toArray
   lazy val arraymtj = new DenseVector(array, false)
   lazy val arraymtjmatrix = {
@@ -146,6 +148,8 @@ case class Pattern(var id: Int, vector: List[Double], label: Double, instance_we
   def relabeled_reweighted(new_label: Double, new_weight: Double, new_missed: Boolean) = Pattern(id, vector, new_label, new_weight, new_missed, parent, weka = true)
 
   def reweighted(new_weight: Double) = Pattern(id, vector, label, new_weight, missed, parent, weka = true)
+
+  def relabeled(new_label: Double) = Pattern(id, vector, new_label, weight, missed, parent, weka = true)
 
   private def treat_nominal(i: Int) = if (attribute(i).isNominal) attribute(i).value(value(i).toInt) else value(i)
 

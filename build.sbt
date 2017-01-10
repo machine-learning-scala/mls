@@ -1,6 +1,6 @@
 name := "mls"
 
-version := "0.3"
+version := "2.0"
 
 scalaVersion := "2.12.1"
 
@@ -21,3 +21,7 @@ libraryDependencies += "nz.ac.waikato.cms.weka" % "rotationForest" % "1.0.3"
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-language:reflectiveCalls")
 
 scalacOptions ++= Seq("-Xmax-classfile-name","143")
+
+lazy val root = Project("mls", sbt.file(".")).dependsOn(args)
+
+lazy val args = ProjectRef(uri("https://github.com/davips/args.git"), "args")

@@ -35,6 +35,22 @@ object Datasets extends Lock {
 
   val predAttsLimit = 998
 
+  /**
+    * Reweights instances to balance all classes equally.
+    *
+    * @param patts original instances
+    * @return reweighted instances
+    */
+  def reweighted(patts: Seq[Pattern]): Seq[Pattern] = {
+    val groupedPatts = patts groupBy (_.label)
+    val (majority, minorities) = groupedPatts.toList.sortBy(_._2.size).map(_._2).reverse.splitAt(1)
+    val majorityClassWeight = majority.flatten.size.toDouble
+    majority.flatten ++ (minorities flatMap { p =>
+      val w = majorityClassWeight / p.size
+      p.map(_.reweighted(w))
+    })
+  }
+
   def instances2patterns(instances: Instances) = {
     val parent = PatternParent(instances)
     instances.zipWithIndex.map { case (instance, idx) => Pattern(idx, instance, missed = false, parent) }
