@@ -17,20 +17,28 @@ Copyright (C) 2014 Davi Pereira dos Santos
 */
 package ml.models
 
-import java.io.FileWriter
+import java.io.{File, FileWriter}
+import java.nio.file.Files
 
 import ml.Pattern
-import ml.classifiers.MLP
 import traits.Util
+
 import scala.sys.process._
 
 trait Model extends Util {
-  def heatmap(ts: Vector[Pattern], f: (Array[Double]) => Double) {
+  def heatmap(arq: String, ts: Vector[Pattern], f: (Array[Double]) => Double) {
+    val prefix = s"/run/shm/$arq"
+    val tex = s"$prefix.tex"
+    val csv = s"$prefix.csv"
+    new File(tex).delete()
+    Files.copy(new File("heatmap.tex").toPath, new File(tex).toPath)
+
     val tsSorted = ts.sortBy(_.a).sortBy(_.b)
     val rows = tsSorted.map(_.b).distinct.size
-    replaceInFile("heatmap.tex", "mesh/rows=", ", shader=", rows.toString)
+    replaceInFile(tex, "mesh/rows=", ", shader=", rows.toString)
+    replaceInFile(tex, "file", "};", "[skip first] {" + csv)
 
-    var fw = new FileWriter("/run/shm/knowledge-boundary.csv")
+    val fw = new FileWriter(csv)
     fw.write("x y z\n")
     var (vmn, vmx) = Double.MinValue -> Double.MaxValue
     tsSorted foreach { p =>
@@ -42,10 +50,9 @@ trait Model extends Util {
     }
     fw.close()
 
-    var log = (Seq("pdflatex", "heatmap.tex") !!).split("\n").toList
-    println(log.mkString("\n"))
-    println("===========================================")
-    log = (Seq("okular", "heatmap.pdf") !!).split("\n").toList
+    Seq("pdflatex", tex).!! //.split("\n").toList.mkString("\n"))
+    //    new File(s"$arq.pdf").renameTo(new File(s"$arq.pdf"))
+    Seq("okular", s"$arq.pdf").run
 
     // R
     //          fw = new FileWriter("/run/shm/knowledge-boundary.r")
@@ -84,9 +91,17 @@ trait Model extends Util {
 
   def distribution(instance: Pattern): Array[Double]
 
-  protected def log(x: Double) = if (x == 0) 0d else math.log(x)
+  def predictionEntropy(patts: Seq[Pattern]) = if (patts.isEmpty) {
+    println("Empty list of patterns at predictionEntropy.")
+    sys.exit(1)
+  } else {
+    val ents = patts.map(x => normalized_entropy(distribution(x)))
+    media_desvioPadrao(ents.toVector)
+  }
 
   protected def normalized_entropy(P: Array[Double]) = -P.map(x => x * log(x)).sum / log(P.length)
+
+  protected def log(x: Double) = if (x == 0) 0d else math.log(x)
 
   protected def media_desvioPadrao(items: Vector[Double]) = {
     val s = items.sum
@@ -100,14 +115,6 @@ trait Model extends Util {
     val v = if (v0.isNaN) 0 else v0
     val d = math.sqrt(v)
     (m, d)
-  }
-
-  def predictionEntropy(patts: Seq[Pattern]) = if (patts.isEmpty) {
-    println("Empty list of patterns at predictionEntropy.")
-    sys.exit(1)
-  } else {
-    val ents = patts.map(x => normalized_entropy(distribution(x)))
-    media_desvioPadrao(ents.toVector)
   }
 
   def output(instance: Pattern): Array[Double]
@@ -129,13 +136,13 @@ trait Model extends Util {
   //    cmax
   //  }
 
-  def hit(instance: Pattern) = instance.label == predict(instance)
-
-  def hits(patterns: Seq[Pattern]) = patterns.count(hit) //weka is not thread-safe to parallelize hits()
-
   def accuracy(patterns: Seq[Pattern], n: Double = -1) = {
     hits(patterns) / (if (n == -1) patterns.length.toDouble else n)
   }
+
+  def hits(patterns: Seq[Pattern]) = patterns.count(hit) //weka is not thread-safe to parallelize hits()
+
+  def hit(instance: Pattern) = instance.label == predict(instance)
 
   def hits_and_qtd_per_class(patterns: Seq[Pattern]) = {
     ??? //inefficient
