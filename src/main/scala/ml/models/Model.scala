@@ -66,7 +66,7 @@ trait Model extends Util {
 
     println(Seq("pdflatex", tex).!!.split("\n").toList.mkString("\n"))
     //    new File(s"$arq.pdf").renameTo(new File(s"$arq.pdf"))
-    Seq("okular", s"$arq.pdf").run
+    Seq("okular", "--noraise", s"$arq.pdf").run
 
     // R
     //          fw = new FileWriter("/run/shm/knowledge-boundary.r")
