@@ -26,17 +26,31 @@ import traits.Util
 import scala.sys.process._
 
 trait Model extends Util {
-  def heatmap(arq: String, ts: Vector[Pattern], f: (Array[Double]) => Double) {
+  def heatmap(arq: String, ts: Vector[Pattern], f: (Array[Double]) => Double, symbols: Seq[(Seq[Pattern], String)] = Seq()) {
+    def plot(exs: Seq[Pattern], symb: String) = {
+      val coords = exs.map(p => p.a -> p.b).mkString(" ")
+      s"\\addplot[mark options={solid}, only marks, $symb]\ncoordinates{$coords};\n"
+    }
+
     val prefix = s"/run/shm/$arq"
     val tex = s"$prefix.tex"
     val csv = s"$prefix.csv"
-    new File(tex).delete()
+    try {
+      new File(tex).delete()
+      new File(s"$arq.pdf").delete()
+    } catch {
+      case ex: Throwable =>
+    }
     Files.copy(new File("heatmap.tex").toPath, new File(tex).toPath)
 
     val tsSorted = ts.sortBy(_.a).sortBy(_.b)
     val rows = tsSorted.map(_.b).distinct.size
     replaceInFile(tex, "mesh/rows=", ", shader=", rows.toString)
     replaceInFile(tex, "file", "};", "[skip first] {" + csv)
+    if (symbols.nonEmpty) {
+      val plots = symbols map { case (lst, symb) => plot(lst, symb) }
+      replaceInFile(tex, "%other plots", "\n\\begin{axis}[axis lines=none]" + plots.mkString("\n") + "\\end{axis}\n")
+    }
 
     val fw = new FileWriter(csv)
     fw.write("x y z\n")
@@ -50,7 +64,7 @@ trait Model extends Util {
     }
     fw.close()
 
-    Seq("pdflatex", tex).!! //.split("\n").toList.mkString("\n"))
+    println(Seq("pdflatex", tex).!!.split("\n").toList.mkString("\n"))
     //    new File(s"$arq.pdf").renameTo(new File(s"$arq.pdf"))
     Seq("okular", s"$arq.pdf").run
 
@@ -142,8 +156,6 @@ trait Model extends Util {
 
   def hits(patterns: Seq[Pattern]) = patterns.count(hit) //weka is not thread-safe to parallelize hits()
 
-  def hit(instance: Pattern) = instance.label == predict(instance)
-
   def hits_and_qtd_per_class(patterns: Seq[Pattern]) = {
     ??? //inefficient
     (0 until patterns.head.nclasses) map {
@@ -153,6 +165,8 @@ trait Model extends Util {
         (hits, hits_for_this_class.length)
     }
   }
+
+  def hit(instance: Pattern) = instance.label == predict(instance)
 }
 
 //trait IncrementalModel extends Model
