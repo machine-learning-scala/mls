@@ -29,7 +29,7 @@ trait Model extends Util {
   def heatmap(arq: String, ts: Vector[Pattern], f: (Array[Double]) => Double, symbols: Seq[(Seq[Pattern], String)] = Seq()) {
     def plot(exs: Seq[Pattern], symb: String) = {
       val coords = exs.map(p => p.a -> p.b).mkString(" ")
-      s"\\addplot[mark options={solid}, only marks, $symb]\ncoordinates{$coords};\n"
+      s"\\addplot[only marks, $symb]\ncoordinates{$coords};\n"
     }
 
     val prefix = s"/run/shm/$arq"
