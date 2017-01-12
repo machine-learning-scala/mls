@@ -26,13 +26,13 @@ import traits.Util
 import scala.sys.process._
 
 trait Model extends Util {
-  def heatmap(arq: String, ts: Vector[Pattern], f: (Array[Double]) => Double, symbols: Seq[(Seq[Pattern], String)] = Seq()) {
+  def heatmap(arq: String, ts: Vector[Pattern], f: (Array[Double]) => Double, symbols: Seq[(Seq[Pattern], (String, String))] = Seq(), colormap: String = "(100,200,255)") {
     def plot(exs: Seq[Pattern], symb: String) = {
       val coords = exs.map(p => p.a -> p.b).mkString(" ")
       s"\\addplot[only marks, $symb]\ncoordinates{$coords};\n"
     }
 
-    val prefix = s"/run/shm/$arq"
+    val prefix = s"/tmp/$arq"
     val tex = s"$prefix.tex"
     val csv = s"$prefix.csv"
     try {
@@ -46,10 +46,12 @@ trait Model extends Util {
     val tsSorted = ts.sortBy(_.a).sortBy(_.b)
     val rows = tsSorted.map(_.b).distinct.size
     replaceInFile(tex, "mesh/rows=", ", shader=", rows.toString)
-    replaceInFile(tex, "file", "};", "[skip first] {" + csv)
+    replaceInFile(tex, "file", ";", s"[skip first] { $csv }")
+    replaceInFile(tex, "(100,200,255)", colormap)
     if (symbols.nonEmpty) {
-      val plots = symbols map { case (lst, symb) => plot(lst, symb) }
-      replaceInFile(tex, "%other plots", "\n\\begin{axis}[axis lines=none]" + plots.mkString("\n") + "\\end{axis}\n")
+      val plotsBgnd = symbols map { case (lst, symb) => plot(lst, symb._2) }
+      val plots = symbols map { case (lst, symb) => plot(lst, symb._1) }
+      replaceInFile(tex, "%other plots", "\n\\begin{axis}[axis lines=none]" + (plotsBgnd ++ plots).mkString("\n") + "\\end{axis}\n")
     }
 
     val fw = new FileWriter(csv)
@@ -69,10 +71,10 @@ trait Model extends Util {
     Seq("okular", "--noraise", s"$arq.pdf").run
 
     // R
-    //          fw = new FileWriter("/run/shm/knowledge-boundary.r")
+    //          fw = new FileWriter("/tmp/knowledge-boundary.r")
     //          fw.write(script(tsSorted.map(_.a).max.toInt, tsSorted.map(_.b).max.toInt, (vmx + vmn) / 2))
     //          fw.close()
-    //    var log = (Seq("Rscript", "--vanilla", "/run/shm/knowledge-boundary.r") !!).split("\n").toList
+    //    var log = (Seq("Rscript", "--vanilla", "/tmp/knowledge-boundary.r") !!).split("\n").toList
     //    println(log.mkString("\n"))
     //    println("===========================================")
     //    log = (Seq("okular", "Rplots.pdf") !!).split("\n").toList
