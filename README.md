@@ -1,3 +1,6 @@
+Read-only repository, future improvements will be at [personal repo](https://github.com/davips/mls)!
+===========
+
 mls
 ===
 Wrappers for Weka for Scala (at least at the moment).
